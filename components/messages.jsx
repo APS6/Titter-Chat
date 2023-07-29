@@ -22,9 +22,6 @@ export default function Messages() {
     );
   };
 
-  if (!user) {
-    router.push("/SignIn");
-  }
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -39,6 +36,10 @@ export default function Messages() {
       try {
         const usersData = await fetchData("User");
         setUsers(usersData);
+        const exist = usersData.find((u) => u.id === user.uid);
+         if (!exist) {
+           router.push("/SignIn");
+         }
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -71,7 +72,7 @@ export default function Messages() {
       ref={messagesRef}
     >
       {posts.map((post) => {
-        const sender = users.find((u) => u.id === post.postedById);
+        const sender = users.find((u) => u.id === post.postedById) || {username: "DELETED"};
         return (
           <GlobalPost key={post.id} post={post} sender={sender}/>
         );

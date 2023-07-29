@@ -1,4 +1,6 @@
 import '../globals.css'
+import Loading from './loading'
+import { Suspense } from 'react'
 
 export const metadata = {
   title: 'SignIn | Titter the birb app',
@@ -10,7 +12,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className='bg-[#000]'>
         <main className='w-full max-w-5xl m-auto px-5'>
-        {children}
+        <Suspense fallback={<Loading />}>
+            {children}
+          </Suspense>
         </main>
         </body>
     </html>

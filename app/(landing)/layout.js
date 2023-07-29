@@ -12,9 +12,9 @@ export default function RootLayout({ children }) {
       <body className='bg-grey'>
         <Nav />
         <main className='w-full max-w-5xl m-auto px-5'>
-        {children}
+            {children}
         </main>
-        </body>
+      </body>
     </html>
   )
 }
