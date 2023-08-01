@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Ably from 'ably'
+import admin from "@/app/lib/firebaseAdmin";
+import { headers } from "next/headers";
 
 const prisma = new PrismaClient()
 
@@ -9,15 +11,27 @@ const channel = realtime.channels.get('likes');
 
 export async function POST(req) {
     const body = await req.json()
+    const headersList = headers();
+    const token = headersList.get("authorization");
+
     try {
-        const newLike = await prisma.like.create({
-            data: {
-                userId: body.userId,
-                postId: body.postId,
-            }
-        })
-        channel.publish('new_like', {userId: body.userId, postId: body.postId, action: "like"});
-        return NextResponse.json(newLike, { success: true }, { status: 200 });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        } else if (userId === body.userId) {
+            const newLike = await prisma.like.create({
+                data: {
+                    userId: body.userId,
+                    postId: body.postId,
+                }
+            })
+            channel.publish('new_like', { userId: body.userId, postId: body.postId, action: "like" });
+            return NextResponse.json(newLike, { success: true }, { status: 200 });
+        }
+        else {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        }
     } catch (error) {
         console.error('Request error', error);
         NextResponse.json({ error: 'Error Liking Post', success: false }, { status: 500 });
@@ -25,17 +39,29 @@ export async function POST(req) {
 }
 export async function DELETE(req) {
     const body = await req.json()
+    const headersList = headers();
+    const token = headersList.get("authorization");
+
+
     try {
-        const deletedLike = await prisma.like.delete({
-            where: {
-                postId_userId: {
-                    userId: body.userId,
-                    postId: body.postId,
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        } else if (userId === body.userId) {
+            const deletedLike = await prisma.like.delete({
+                where: {
+                    postId_userId: {
+                        userId: body.userId,
+                        postId: body.postId,
+                    },
                 },
-            },
-        })
-        channel.publish('new_like', {userId: body.userId, postId: body.postId, action: "dislike"});
-        return NextResponse.json(deletedLike, { success: true }, { status: 200 });
+            })
+            channel.publish('new_like', { userId: body.userId, postId: body.postId, action: "dislike" });
+            return NextResponse.json(deletedLike, { success: true }, { status: 200 });
+        } else {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        }
     } catch (error) {
         console.error('Request error', error);
         NextResponse.json({ error: 'Error disliking Post', success: false }, { status: 500 });

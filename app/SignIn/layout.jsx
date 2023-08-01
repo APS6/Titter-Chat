@@ -1,6 +1,7 @@
 import '../globals.css'
 import Loading from './loading'
 import { Suspense } from 'react'
+import { AuthContextProvider } from '@/context/authContext'
 
 export const metadata = {
   title: 'SignIn | Titter the birb app',
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
       <body className='bg-[#000]'>
         <main className='w-full max-w-5xl m-auto px-5'>
         <Suspense fallback={<Loading />}>
+          <AuthContextProvider>
             {children}
+            </AuthContextProvider>
           </Suspense>
         </main>
         </body>

@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Ably from 'ably'
+import admin from "@/app/lib/firebaseAdmin";
+import { headers } from "next/headers";
 
 const prisma = new PrismaClient()
 
@@ -9,18 +11,30 @@ const channel = realtime.channels.get('global');
 
 export async function POST(req) {
     const body = await req.json()
+    const headersList = headers();
+    const token = headersList.get("authorization");
+
     try {
-        const newPost = await prisma.post.create({
-            data: {
-                content: body.content,
-                postedById: body.postedById,
-            }
-        })
-        channel.publish('new_post', newPost);
-        return NextResponse.json(newPost, { success: true }, { status: 200 });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        } else if (userId === body.postedById) {
+            const newPost = await prisma.post.create({
+                data: {
+                    content: body.content,
+                    postedById: body.postedById,
+                }
+            })
+            channel.publish('new_post', newPost);
+            return NextResponse.json(newPost, { success: true }, { status: 200 });
+        }
+        else {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
+        }
     } catch (error) {
         console.error('Request error', error);
-        NextResponse.json({ error: 'Error creating Post', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error creating Post', success: false }, { status: 500 });
     }
 }
 
@@ -34,6 +48,6 @@ export async function GET() {
         return NextResponse.json(posts, { status: 200 });
     } catch (error) {
         console.error('Error retrieving posts', error);
-        NextResponse.json({ error: 'Error retrieving posts', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error retrieving posts', success: false }, { status: 500 });
     }
 }

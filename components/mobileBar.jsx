@@ -42,13 +42,15 @@ export default function MobileBar() {
           </svg>
         </Link>
         {account ? (
-          <Image
-            src={account?.pfpURL ?? "/birblogo.png"}
-            alt="User Image"
-            width="30"
-            height="30"
-            className="rounded-full"
-          />
+          <Link href={`/profile/${account?.username}`}>
+            <Image
+              src={account?.pfpURL ?? "/birblogo.png"}
+              alt="User Image"
+              width="30"
+              height="30"
+              className="rounded-full"
+            />
+          </Link>
         ) : (
           <svg
             xmlns="http://www.w3.org/2000/svg"

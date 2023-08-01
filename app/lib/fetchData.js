@@ -5,8 +5,6 @@ export default async function fetchData(endpoint) {
         });
         if (response.status !== 200) {
             console.log("something went wrong");
-        } else {
-            console.log("Fetched Data successfully");
         }
         return response.json()
     } catch (error) {

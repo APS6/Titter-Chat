@@ -67,13 +67,15 @@ export default function Sidebar() {
       </div>
       <div className="flex gap-2">
         {account.pfpURL ? (
-          <Image
-            src={account?.pfpURL}
-            alt="User Image"
-            width="30"
-            height="30"
-            className="rounded-full"
-          />
+          <Link href={`/profile/${account?.username}`}>
+            <Image
+              src={account?.pfpURL}
+              alt="User Image"
+              width="30"
+              height="30"
+              className="rounded-full"
+            />
+          </Link>
         ) : (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -87,9 +89,11 @@ export default function Sidebar() {
             ></path>
           </svg>
         )}
-        <h2 className="font-mont text-xl">
-          {account?.username || <Skeleton/>}
-        </h2>
+        <Link href={`/profile/${account?.username}`}>
+          <h2 className="font-mont text-xl">
+            {account?.username || <Skeleton />}
+          </h2>
+        </Link>
         <svg
           onClick={() => handleSignOut()}
           className="cursor-pointer"

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { format } from "date-fns";
 import Image from "next/image";
+import Link from "next/link";
 import Ably from "ably";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("likes");
 
 export default function GlobalPost({ post, sender }) {
-  const { user } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const [liked, setLiked] = useState(
     post.likes ? post.likes.some((like) => like.userId === user.uid) : false
   );
@@ -46,7 +47,7 @@ export default function GlobalPost({ post, sender }) {
       try {
         const response = await fetch("/api/LikePost", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
           body: JSON.stringify(body),
         });
         if (response.status !== 200) {
@@ -69,7 +70,7 @@ export default function GlobalPost({ post, sender }) {
       try {
         const response = await fetch("/api/LikePost", {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
           body: JSON.stringify(body),
         });
         if (response.status !== 200) {
@@ -87,6 +88,7 @@ export default function GlobalPost({ post, sender }) {
 
   return (
     <div className="bg-grey flex items-start gap-2 p-2 rounded" key={post.id}>
+      <Link href={`/profile/${sender?.username}`}>
       {sender.pfpURL ? (
         <Image
           src={sender?.pfpURL}
@@ -108,11 +110,14 @@ export default function GlobalPost({ post, sender }) {
           ></path>
         </svg>
       )}
-      <div className="">
+      </Link>
+      <div className="w-[95%]">
         <div className="flex items-center gap-2">
+        <Link href={`/profile/${sender?.username}`}>
           <h3 className="text-lg font-raleway font-semibold leading-none">
             {sender?.username ?? "DELETED"}
           </h3>
+          </Link>
           <span className="text-sm text-lightwht">{formattedPostedAt}</span>
         </div>
         <p className="mb-1">{post?.content ?? "Could not find post"}</p>

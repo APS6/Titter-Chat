@@ -3,7 +3,7 @@ import { useAuthContext } from "@/context/authContext";
 import { useState } from "react";
 
 export default function Input() {
-  const { user } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
 
@@ -19,7 +19,7 @@ export default function Input() {
       try {
         const response = await fetch("/api/Posts", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
           body: JSON.stringify(body),
         });
         if (response.status !== 200) {

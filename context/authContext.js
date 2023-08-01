@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { initFirebase } from '@/firebase/app';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -17,19 +17,28 @@ const useAuthContext = () => {
   
 const AuthContextProvider = ({ children }) => {
     const [user, loading, error] = useAuthState(auth);
+    const [accessToken, setAccessToken] = useState("");
+
+    useEffect(() => {
+      if (user) {
+        user.getIdToken().then((token) => {
+          setAccessToken(token);
+        }).catch((error) => {
+          console.error('Error getting access token:', error);
+        });
+      }
+    }, [user]);
 
     if (loading) {
-      // You can render a loading component or return null while loading
       return null;
     }
   
     if (error) {
-      // Handle any error that might occur during authentication
       console.error('Authentication Error:', error);
     }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, accessToken }}>
       {children}
     </AuthContext.Provider>
   );

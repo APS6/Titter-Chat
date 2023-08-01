@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className='bg-[#000]'>
         <AuthContextProvider>
-          <div className='h-[100dvh] w-full p-4 flex flex-col md:flex-row gap-4'>
+          <div className='h-[100svh] w-full p-4 flex flex-col md:flex-row gap-4'>
         <Sidebar />
         <MobileBar />
         <main className='w-full md:w-3/4 max-w-4xl m-auto md:px-5 h-full'>
