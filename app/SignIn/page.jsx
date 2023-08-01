@@ -56,6 +56,7 @@ export default function SignIn() {
     )
   }
 
+  
   if (!user) {
     return (
       <div className="h-screen grid place-items-center">
