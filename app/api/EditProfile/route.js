@@ -10,7 +10,7 @@ export async function POST(req) {
     const headersList = headers();
     const token = headersList.get("authorization");
 
-    if (body.username.length >= 3 && body.username.length < 10 && body.bio.length < 191) {
+    if (body.username.length >= 3 && body.username.length < 10 && body.bio.length < 61) {
         try {
             const decodedToken = await admin.auth().verifyIdToken(token);
             const userId = decodedToken.uid;

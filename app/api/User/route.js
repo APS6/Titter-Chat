@@ -12,8 +12,8 @@ export async function POST(req) {
 
     if (!isValidEmail(body.email)) {
         NextResponse.json({ error: 'Invalid Email address', success: false }, { status: 400 });
-    } else if (body.username.length < 3 && body.username.length > 10 && body.bio.length > 190) {
-        NextResponse.json({ error: 'Invalid Data: uername must be longer than 3, less than 10 characters, bio should be less than 190 characters', success: false }, { status: 400 });
+    } else if (body.username.length < 3 && body.username.length > 10 && body.bio.length > 60) {
+        NextResponse.json({ error: 'Invalid Data: username must be longer than 3, less than 10 characters, bio should be less than 60 characters', success: false }, { status: 400 });
     } else {
         try {
             const decodedToken = await admin.auth().verifyIdToken(token);
