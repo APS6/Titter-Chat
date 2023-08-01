@@ -50,7 +50,10 @@ export default function EditProfile() {
       try {
         const response = await fetch("/api/EditProfile", {
           method: "POST",
-          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: accessToken,
+          },
           body: JSON.stringify(body),
         });
         if (response.status !== 200) {
@@ -67,29 +70,35 @@ export default function EditProfile() {
 
   const usernameHandler = (e) => {
     let value = e.target.value;
-    if (value.length >= 3 && value.length <= 10) {
-      setUsername(value);
+    if (value.length >= 3 && value.length <= 10 && bio.length < 61) {
       setDisabled(false);
       setTip("");
     } else if (value.length < 3) {
       setDisabled(true);
-      setUsername(value);
       setTip("Username must be minimum 3 characters.");
     } else if (value.length > 10) {
       setDisabled(true);
-      setUsername(value);
       setTip("Username must be maximum 10 characters.");
+    } else {
+      setTip("Bio cannot be longer than 60 characters");
     }
+    setUsername(value);
   };
 
   const bioHandler = (e) => {
     let value = e.target.value;
-    if (tip.length === 0 && value.length < 191) {
+    if (username.length >= 3 && username.length <= 10 && value.length < 61) {
       setDisabled(false);
-      setTip("")
-    } else if (value.length > 190){
-      setDisabled(true)
-      setTip("Bio cannot be longer than 190 characters");
+      setTip("");
+    } else if (value.length > 60) {
+      setDisabled(true);
+      setTip("Bio cannot be longer than 60 characters");
+    } else if (username.length < 3) {
+      setDisabled(true);
+      setTip("Username must be minimum 3 characters.");
+    } else if (username.length > 10) {
+      setDisabled(true);
+      setTip("Username must be maximum 10 characters.");
     }
     setBio(value);
   };

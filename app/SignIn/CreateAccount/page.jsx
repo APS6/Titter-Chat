@@ -9,9 +9,10 @@ export default function CreateAccount() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [disabled, setDisabled] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [tip, setTip] = useState("");
   const router = useRouter();
-  const { user, accessToken, loading } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   console.log(user);
   const [users, setUsers] = useState([]);
 
@@ -31,6 +32,8 @@ export default function CreateAccount() {
     const foundUser = users.find((u) => u.id === user?.uid);
     if (user && foundUser?.username) {
       router.push("/Home");
+    } else {
+      setLoading(false);
     }
   }, [users, user]);
 
@@ -70,37 +73,167 @@ export default function CreateAccount() {
 
   const userHandler = (e) => {
     let value = e.target.value;
-    if (value.length >= 3 && value.length <= 10 && bio.length < 191) {
-      setUsername(value);
+    if (value.length >= 3 && value.length <= 10 && bio.length < 61) {
       setDisabled(false);
       setTip("");
     } else if (value.length < 3) {
       setDisabled(true);
       setTip("Username must be minimum 3 characters.");
-      setUsername(value);
     } else if (value.length > 10) {
       setDisabled(true);
       setTip("Username must be maximum 10 characters.");
-      setUsername(value);
+    } else {
+      setTip("Bio cannot be longer than 60 characters");
     }
+    setUsername(value);
   };
   const bioHandler = (e) => {
     let value = e.target.value;
-    if (value.length > 190) {
-      setTip("Bio cannot be longer than 190 characters");
-      setDisabled(true);
-    } else if (tip.length !==0 && value.length < 191) {
+    if (username.length >= 3 && username.length <= 10 && value.length < 61) {
       setDisabled(false);
       setTip("");
+    } else if (value.length > 60) {
+      setDisabled(true);
+      setTip("Bio cannot be longer than 60 characters");
+    } else if (username.length < 3) {
+      setDisabled(true);
+      setTip("Username must be minimum 3 characters.");
+    } else if (username.length > 10) {
+      setDisabled(true);
+      setTip("Username must be maximum 10 characters.");
     }
-    setBio(value);s
+    setBio(value);
   };
 
-  if (loading){
+  if (loading) {
     if (loading) {
       return (
-        <div className="h-screen grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" width="10rem" height="10rem" viewBox="0 0 24 24"><rect width="10" height="10" x="1" y="1" fill="currentColor" rx="1"><animate id="svgSpinnersBlocksShuffle30" fill="freeze" attributeName="x" begin="0;svgSpinnersBlocksShuffle3b.end" dur="0.2s" values="1;13"></animate><animate id="svgSpinnersBlocksShuffle31" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle38.end" dur="0.2s" values="1;13"></animate><animate id="svgSpinnersBlocksShuffle32" fill="freeze" attributeName="x" begin="svgSpinnersBlocksShuffle39.end" dur="0.2s" values="13;1"></animate><animate id="svgSpinnersBlocksShuffle33" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle3a.end" dur="0.2s" values="13;1"></animate></rect><rect width="10" height="10" x="1" y="13" fill="currentColor" rx="1"><animate id="svgSpinnersBlocksShuffle34" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle30.end" dur="0.2s" values="13;1"></animate><animate id="svgSpinnersBlocksShuffle35" fill="freeze" attributeName="x" begin="svgSpinnersBlocksShuffle31.end" dur="0.2s" values="1;13"></animate><animate id="svgSpinnersBlocksShuffle36" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle32.end" dur="0.2s" values="1;13"></animate><animate id="svgSpinnersBlocksShuffle37" fill="freeze" attributeName="x" begin="svgSpinnersBlocksShuffle33.end" dur="0.2s" values="13;1"></animate></rect><rect width="10" height="10" x="13" y="13" fill="currentColor" rx="1"><animate id="svgSpinnersBlocksShuffle38" fill="freeze" attributeName="x" begin="svgSpinnersBlocksShuffle34.end" dur="0.2s" values="13;1"></animate><animate id="svgSpinnersBlocksShuffle39" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle35.end" dur="0.2s" values="13;1"></animate><animate id="svgSpinnersBlocksShuffle3a" fill="freeze" attributeName="x" begin="svgSpinnersBlocksShuffle36.end" dur="0.2s" values="1;13"></animate><animate id="svgSpinnersBlocksShuffle3b" fill="freeze" attributeName="y" begin="svgSpinnersBlocksShuffle37.end" dur="0.2s" values="1;13"></animate></rect></svg></div>
-      )
+        <div className="h-screen grid place-items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="10rem"
+            height="10rem"
+            viewBox="0 0 24 24"
+          >
+            <rect width="10" height="10" x="1" y="1" fill="currentColor" rx="1">
+              <animate
+                id="svgSpinnersBlocksShuffle30"
+                fill="freeze"
+                attributeName="x"
+                begin="0;svgSpinnersBlocksShuffle3b.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle31"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle38.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle32"
+                fill="freeze"
+                attributeName="x"
+                begin="svgSpinnersBlocksShuffle39.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle33"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle3a.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+            </rect>
+            <rect
+              width="10"
+              height="10"
+              x="1"
+              y="13"
+              fill="currentColor"
+              rx="1"
+            >
+              <animate
+                id="svgSpinnersBlocksShuffle34"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle30.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle35"
+                fill="freeze"
+                attributeName="x"
+                begin="svgSpinnersBlocksShuffle31.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle36"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle32.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle37"
+                fill="freeze"
+                attributeName="x"
+                begin="svgSpinnersBlocksShuffle33.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+            </rect>
+            <rect
+              width="10"
+              height="10"
+              x="13"
+              y="13"
+              fill="currentColor"
+              rx="1"
+            >
+              <animate
+                id="svgSpinnersBlocksShuffle38"
+                fill="freeze"
+                attributeName="x"
+                begin="svgSpinnersBlocksShuffle34.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle39"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle35.end"
+                dur="0.2s"
+                values="13;1"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle3a"
+                fill="freeze"
+                attributeName="x"
+                begin="svgSpinnersBlocksShuffle36.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+              <animate
+                id="svgSpinnersBlocksShuffle3b"
+                fill="freeze"
+                attributeName="y"
+                begin="svgSpinnersBlocksShuffle37.end"
+                dur="0.2s"
+                values="1;13"
+              ></animate>
+            </rect>
+          </svg>
+        </div>
+      );
     }
   }
   if (!user) {
