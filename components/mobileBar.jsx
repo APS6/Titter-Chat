@@ -13,7 +13,8 @@ export default function MobileBar() {
       try {
         const usersData = await fetchData("User");
         const acc = usersData.find((u) => u.id === user.uid);
-        setAccount(acc);
+        if (acc){
+        setAccount(acc);}
       } catch (error) {
         console.error("Error fetching users:", error);
       }

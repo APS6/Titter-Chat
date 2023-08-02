@@ -111,7 +111,7 @@ export default function GlobalPost({ post, sender }) {
         </svg>
       )}
       </Link>
-      <div className="w-[95%]">
+      <div className="w-[92%]">
         <div className="flex items-center gap-2">
         <Link href={`/profile/${sender?.username}`}>
           <h3 className="text-lg font-raleway font-semibold leading-none">
@@ -120,7 +120,7 @@ export default function GlobalPost({ post, sender }) {
           </Link>
           <span className="text-sm text-lightwht">{formattedPostedAt}</span>
         </div>
-        <p className="mb-1">{post?.content ?? "Could not find post"}</p>
+        <p className="mb-1 break-words">{post?.content ?? "Could not find post"}</p>
         <div className="flex">
           <div className="flex gap-1 items-center">
             {liked ? (

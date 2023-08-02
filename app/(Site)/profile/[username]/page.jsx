@@ -56,7 +56,7 @@ export default function Profile() {
   return (
     <div>
       <div>
-        <div className="flex justify-center md:justify-between items-start gap-4 md:gap-8">
+        <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
           {userProfile?.pfpURL ? (
             <Image
               className="w-12 h-12 md:w-32 md:h-32 rounded-full"
@@ -82,7 +82,7 @@ export default function Profile() {
           <div className="flex flex-col w-full">
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="font-mont text-3xl md:text-4xl leading-none">
+                <h2 className="font-mont text-2xl dm: text-3xl md:text-4xl leading-none">
                   {username}
                 </h2>
                 <span className="text-sm">69 friends</span>
@@ -105,7 +105,7 @@ export default function Profile() {
               )}
             </div>
             <div className="md:w-[70%]">
-              <p>{userProfile?.bio}</p>
+              <p className="break-words">{userProfile?.bio}</p>
             </div>
           </div>
         </div>

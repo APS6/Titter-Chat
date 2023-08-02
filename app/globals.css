@@ -29,3 +29,29 @@
   background-color: #6B01B8;
   border-radius: 4px;
 }
+
+@keyframes loading {
+  0% {
+    background: linear-gradient(to right, #6B01B8 0%, #0f0d0d 0%);
+  }
+  100% {
+    background: linear-gradient(to right, #6B01B8 60%, #0f0d0d 60%);
+  }
+}
+
+@keyframes loaded {
+  0% {
+    background: linear-gradient(to right, #6B01B8 60%, #0f0d0d 60%);
+  }
+  100% {
+    background: linear-gradient(to right, #6B01B8 100%, #0f0d0d 100%);
+  }
+}
+
+.animate-loading {
+  animation: loading 1s ease forwards;
+}
+
+.animate-loaded {
+  animation: loaded .5s ease forwards;
+}

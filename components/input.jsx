@@ -6,6 +6,8 @@ export default function Input() {
   const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
 
   const messageHandler = (e) => {
     setMessage(e.target.value);
@@ -16,6 +18,8 @@ export default function Input() {
         content: message,
         postedById: user.uid,
       };
+      setLoading(true)
+      setShowLoading(true);
       try {
         const response = await fetch("/api/Posts", {
           method: "POST",
@@ -24,9 +28,17 @@ export default function Input() {
         });
         if (response.status !== 200) {
           console.log("something went wrong");
+          setLoading(false)
+          const timer = setTimeout(() => {
+            setShowLoading(false);
+          }, 500);
         } else {
           console.log("Created Post successfully");
           setMessage("");
+          setLoading(false)
+          const timer = setTimeout(() => {
+            setShowLoading(false);
+          }, 500);
         }
       } catch (error) {
         console.log("there was an error submitting", error);
@@ -35,6 +47,7 @@ export default function Input() {
   };
 
   return (
+    <>
     <div className={`relative bg-grey rounded outline-none ${typing ? "outline-1 outline-lightwht outline-offset-0" : ''}`}>
       <input
         onFocus={() => setTyping(true)}
@@ -64,5 +77,7 @@ export default function Input() {
         </svg>
       </div>
     </div>
+    <div className={`fixed w-full top-0 left-0 right-0 h-1 ${showLoading ? "block" : "hidden"} ${loading ? "animate-loading" : "animate-loaded"}`}></div>
+    </>
   );
 }
