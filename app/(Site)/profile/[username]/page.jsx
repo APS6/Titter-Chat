@@ -9,7 +9,7 @@ import fetchData from "@/app/lib/fetchData";
 import GlobalPost from "@/components/globalPost";
 
 export default function Profile() {
-  const { user } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const { username } = useParams();
   const [userProfile, setUserProfile] = useState({});
   const [userPosts, setUserPosts] = useState([]);
@@ -17,6 +17,8 @@ export default function Profile() {
   const [users, setUsers] = useState([]);
   const [showLikes, setShowLikes] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [following, setFollowing] = useState(false);
+  const [followedBy, setFollowedBy] = useState(false)
   const sortPosts = (posts) => {
     return [...posts].sort(
       (a, b) => new Date(b.postedAt) - new Date(a.postedAt)
@@ -37,6 +39,14 @@ export default function Profile() {
         setUserPosts(sortPosts(userData.posts));
         setUserLikes(sortLikedPosts(userData.likes));
         setLoading(false);
+        const checkFollowing = userData.followedBy.find(
+          (u) => u.followerId === user.uid
+        );
+        const checkFollowedBy = userData.following.find(
+          (u) => u.followingId === user.uid
+        );
+        setFollowing(checkFollowing);
+        setFollowedBy(checkFollowedBy);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -53,6 +63,51 @@ export default function Profile() {
     fetchUsers();
   }, []);
 
+  const followHandler = async () => {
+    if (!following) {
+      setFollowing(true)
+      const body = {
+        followerId: user.uid,
+        followingId: userProfile.id,
+      }
+      try {
+        const response = await fetch("/api/Follow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
+          body: JSON.stringify(body),
+        })
+        if (response.status !== 200) {
+          console.log("something went wrong");
+          setFollowing(false);
+        } else {
+          console.log("Followed");
+        }
+      } catch (error) {
+        console.log("there was an error following", error);
+      }
+    } else if (following) {
+      setFollowing(false)
+      const body = {
+        followerId: user.uid,
+        followingId: userProfile.id,
+      }
+      try {
+        const response = await fetch("/api/Follow", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
+          body: JSON.stringify(body),
+        })
+        if (response.status !== 200) {
+          console.log("something went wrong");
+          setFollowing(true);
+        } else {
+          console.log("Unfollowed");
+        }
+      } catch (error) {
+        console.log("there was an error following", error);
+      }
+    }
+  }
   return (
     <div>
       <div>
@@ -82,10 +137,17 @@ export default function Profile() {
           <div className="flex flex-col w-full">
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="font-mont text-2xl dm: text-3xl md:text-4xl leading-none">
+                <h2 className="font-mont text-2xl sm:text-3xl md:text-4xl leading-none">
                   {username}
                 </h2>
-                <span className="text-sm">69 friends</span>
+                <div className="flex gap-4">
+                  <span className="text-sm">
+                    {userProfile.followedBy?.length} Followers
+                  </span>
+                  <span className="text-sm">
+                    {userProfile.following?.length} Following
+                  </span>
+                </div>
               </div>
               {user.uid === userProfile?.id ? (
                 <Link className="md:mt-4" href="/profile/edit">
@@ -95,11 +157,11 @@ export default function Profile() {
                 </Link>
               ) : (
                 <div className="flex gap-1 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
-                  <button className=" bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
+                  {followedBy ? <Link href={`/DMs/${username}`}> <button className=" bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
                     Message
-                  </button>
-                  <button className=" bg-purple rounded-2xl py-1 px-3">
-                    Add Friend
+                  </button> </Link> : ""}
+                  <button onClick={() => followHandler()} className=" bg-purple rounded-2xl py-1 px-3">
+                    {following ? "Following" : followedBy ? "Follow Back" : "Follow"}
                   </button>
                 </div>
               )}
@@ -111,20 +173,24 @@ export default function Profile() {
         </div>
         <div className="flex font-mont font-bold border-b-[1px] border-[#7b7b7b] items-center h-10 mt-6">
           <div
-            className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${!showLikes ? "active" : ""}`}
+            className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${
+              !showLikes ? "active" : ""
+            }`}
             onClick={() => setShowLikes(false)}
           >
             <span>Post</span>
           </div>
           <div
-            className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${showLikes ? "active" : ""}`}
+            className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${
+              showLikes ? "active" : ""
+            }`}
             onClick={() => setShowLikes(true)}
           >
             <span>Likes</span>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-2 scroll-smooth h-[60svh] overflow-scroll mt-2">
+      <div className="flex flex-col gap-3 scroll-smooth h-[60svh] overflow-y-scroll mt-4">
         {loading ? (
           <div className="h-full w-full grid place-items-center">
             <svg

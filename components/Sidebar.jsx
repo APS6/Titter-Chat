@@ -6,12 +6,19 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { getAuth, signOut } from "firebase/auth";
 import { initFirebase } from "@/firebase/app";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  differenceInMonths,
+  differenceInYears,
+} from "date-fns";
 
 export default function Sidebar() {
   const [account, setAccount] = useState({});
   const { user } = useAuthContext();
+  const [conversations, setConversations] = useState([]);
+
   const auth = getAuth();
   const handleSignOut = async () => {
     try {
@@ -21,13 +28,48 @@ export default function Sidebar() {
     }
   };
 
+  const getLatestMessage = (userConvo) => {
+    const filter1 = userConvo.sentDM.filter(
+      (message) => message.sentToId === user.uid
+    );
+    const filter2 = userConvo.receivedDM.filter(
+      (message) => message.sentById === user.uid
+    );
+
+    const allMessages = [...filter1, ...filter2];
+    const sorted = allMessages.sort(
+      (a, b) => new Date(b.sentAt) - new Date(a.sentAt)
+    );
+    return sorted[0];
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const usersData = await fetchData("User");
+        const usersData = await fetchData("UsersMessages");
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
+
+          const userIDs = [
+            ...new Set([
+              ...acc.receivedDM.map((message) => message.sentById),
+              ...acc.sentDM.map((message) => message.sentToId),
+            ]),
+          ];
+
+          const conversationsData = userIDs.map((userID) => {
+            const userConvo = usersData.find((u) => u.id === userID);
+            const lastMessage = getLatestMessage(userConvo);
+            return { user: userConvo, lastMessage };
+          });
+
+          const sortedData = conversationsData.sort(
+            (a, b) =>
+              new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
+          );
+          const firstFiveConversations = sortedData.slice(0, 3);
+          setConversations(firstFiveConversations);
         }
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -39,13 +81,13 @@ export default function Sidebar() {
   return (
     <div className="hidden md:flex h-full bg-grey w-48 flex-col items-center justify-between py-4 rounded">
       <div className="flex flex-col items-center">
-        <Link href={"/"}>
-          <div className="flex items-center mb-8 gap-2">
+        <Link className="mb-8" href={"/"}>
+          <div className="flex items-center gap-2">
             <Image src="/birblogo.png" alt="Logo" width="34" height="25" />
             <h3 className="text-3xl">Titter</h3>
           </div>
         </Link>
-        <Link href="/Home">
+        <Link className="w-full" href="/Home">
           <div className="flex items-center gap-2">
             <div>
               <svg
@@ -61,9 +103,97 @@ export default function Sidebar() {
                 />
               </svg>
             </div>
-            <span className=" text-2xl font-mont font-bold">Home</span>
+            <span className=" text-[22px] font-mont font-bold">Home</span>
           </div>
         </Link>
+        <Link className="w-full mt-2" href="/DMs">
+          <div className="flex items-center gap-2">
+            <div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="white"
+                  d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5l-8-5h16zm0 12H4V8l8 5l8-5v10z"
+                ></path>
+              </svg>
+            </div>
+            <span className=" text-[22px] font-mont font-bold">Messages</span>
+          </div>
+        </Link>
+        <div className="flex flex-col items-center mt-8">
+          <h3 className="font-mont font-bold text-2xl">Chats</h3>
+          <div>
+            {conversations
+              ? conversations.map((convo) => {
+                  const sentAt = new Date(convo.lastMessage.sentAt);
+                  const currentDate = new Date();
+
+                  let formattedDistance = "";
+                  const minutesDifference = differenceInMinutes(
+                    currentDate,
+                    sentAt
+                  );
+                  const hoursDifference = differenceInHours(
+                    currentDate,
+                    sentAt
+                  );
+                  const daysDifference = differenceInDays(currentDate, sentAt);
+                  const monthsDifference = differenceInMonths(
+                    currentDate,
+                    sentAt
+                  );
+                  const yearsDifference = differenceInYears(
+                    currentDate,
+                    sentAt
+                  );
+
+                  if (minutesDifference < 60) {
+                    formattedDistance = `${minutesDifference}m`;
+                  } else if (hoursDifference < 24) {
+                    formattedDistance = `${hoursDifference}h`;
+                  } else if (daysDifference < 365) {
+                    formattedDistance = `${daysDifference}d`;
+                  } else if (monthsDifference < 12) {
+                    formattedDistance = `${monthsDifference}mon`;
+                  } else {
+                    formattedDistance = `${yearsDifference}y`;
+                  }
+
+                  return (
+                    <Link
+                      href={`/DMs/${convo.user.username}`}
+                      key={convo.user.id}
+                    >
+                      <div className="mt-4 flex items-center justify-center gap-2 w-40">
+                        <Image
+                          className="rounded-full"
+                          src={convo.user.pfpURL}
+                          alt="PFP"
+                          width="35"
+                          height="35"
+                        />
+                        <div className="flex flex-col max-w-[80%]">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className=" text-[1.15rem] text-bold">
+                              {convo.user.username}
+                            </h4>
+                            <span className="text-sm text-lightwht">
+                              {formattedDistance}
+                            </span>
+                          </div>
+                          <span className="whitespace-nowrap overflow-hidden text-ellipsis">{conversations ? convo.lastMessage.content : ""}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })
+              : ""}
+          </div>
+        </div>
       </div>
       <div className="flex gap-2">
         {account.pfpURL ? (
@@ -90,9 +220,7 @@ export default function Sidebar() {
           </svg>
         )}
         <Link href={`/profile/${account?.username}`}>
-          <h2 className="font-mont text-xl">
-            {account?.username || <Skeleton />}
-          </h2>
+          <h2 className="font-mont text-xl">{account?.username ?? "You"}</h2>
         </Link>
         <svg
           onClick={() => handleSignOut()}

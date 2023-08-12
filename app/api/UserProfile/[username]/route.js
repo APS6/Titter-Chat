@@ -17,7 +17,9 @@ export async function GET(req, {params}) {
                     include: {
                         likes: true,
                     }
-                }
+                },
+                followedBy: true,
+                following: true,
             },
             where: {
                 username: username,

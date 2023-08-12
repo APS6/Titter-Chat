@@ -9,13 +9,17 @@ datasource db {
 }
 
 model User {
-  id       String @id
-  username String @unique
-  email    String @unique
-  bio      String?
-  pfpURL   String
-  posts    Post[] @relation("UserPosts")
-  likes    Like[]
+  id         String          @id
+  username   String          @unique
+  email      String          @unique
+  bio        String?
+  pfpURL     String
+  posts      Post[]          @relation("UserPosts")
+  likes      Like[]
+  followedBy Follows[] @relation("following")
+  following  Follows[] @relation("follower")
+  sentDM     DirectMessage[] @relation("sentby")
+  receivedDM DirectMessage[] @relation("sentto")
 }
 
 model Post {
@@ -38,4 +42,28 @@ model Like {
   @@id([postId, userId])
   @@index([postId])
   @@index([userId])
+}
+
+model Follows {
+  follower    User @relation("follower", fields: [followerId], references: [id])
+  followerId  String
+  following   User @relation("following", fields: [followingId], references: [id])
+  followingId String
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model DirectMessage {
+  id       String   @id @unique @default(uuid())
+  content  String   @db.Text
+  sentAt   DateTime @default(now())
+  sentBy   User     @relation("sentby", fields: [sentById], references: [id])
+  sentById String
+  sentTo   User     @relation("sentto", fields: [sentToId], references: [id])
+  sentToId String
+
+  @@index([sentById])
+  @@index([sentToId])
 }
