@@ -18,6 +18,7 @@ export default function Sidebar() {
   const [account, setAccount] = useState({});
   const { user } = useAuthContext();
   const [conversations, setConversations] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   const auth = getAuth();
   const handleSignOut = async () => {
@@ -69,6 +70,7 @@ export default function Sidebar() {
               new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
           );
           const firstFiveConversations = sortedData.slice(0, 3);
+          setFetching(false);
           setConversations(firstFiveConversations);
         }
       } catch (error) {
@@ -126,73 +128,119 @@ export default function Sidebar() {
         </Link>
         <div className="flex flex-col items-center mt-8">
           <h3 className="font-mont font-bold text-2xl">Chats</h3>
-          <div>
-            {conversations
-              ? conversations.map((convo) => {
-                  const sentAt = new Date(convo.lastMessage.sentAt);
-                  const currentDate = new Date();
+          {fetching ? (
+            <div className="h-full w-full grid place-items-center mt-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="2rem"
+                height="2rem"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="4" cy="12" r="3" fill="currentColor">
+                  <animate
+                    id="svgSpinners3DotsFade0"
+                    fill="freeze"
+                    attributeName="opacity"
+                    begin="0;svgSpinners3DotsFade1.end-0.25s"
+                    dur="0.75s"
+                    values="1;.2"
+                  ></animate>
+                </circle>
+                <circle cx="12" cy="12" r="3" fill="currentColor" opacity=".4">
+                  <animate
+                    fill="freeze"
+                    attributeName="opacity"
+                    begin="svgSpinners3DotsFade0.begin+0.15s"
+                    dur="0.75s"
+                    values="1;.2"
+                  ></animate>
+                </circle>
+                <circle cx="20" cy="12" r="3" fill="currentColor" opacity=".3">
+                  <animate
+                    id="svgSpinners3DotsFade1"
+                    fill="freeze"
+                    attributeName="opacity"
+                    begin="svgSpinners3DotsFade0.begin+0.3s"
+                    dur="0.75s"
+                    values="1;.2"
+                  ></animate>
+                </circle>
+              </svg>
+            </div>
+          ) : (
+            <div>
+              {conversations
+                ? conversations.map((convo) => {
+                    const sentAt = new Date(convo.lastMessage.sentAt);
+                    const currentDate = new Date();
 
-                  let formattedDistance = "";
-                  const minutesDifference = differenceInMinutes(
-                    currentDate,
-                    sentAt
-                  );
-                  const hoursDifference = differenceInHours(
-                    currentDate,
-                    sentAt
-                  );
-                  const daysDifference = differenceInDays(currentDate, sentAt);
-                  const monthsDifference = differenceInMonths(
-                    currentDate,
-                    sentAt
-                  );
-                  const yearsDifference = differenceInYears(
-                    currentDate,
-                    sentAt
-                  );
+                    let formattedDistance = "";
+                    const minutesDifference = differenceInMinutes(
+                      currentDate,
+                      sentAt
+                    );
+                    const hoursDifference = differenceInHours(
+                      currentDate,
+                      sentAt
+                    );
+                    const daysDifference = differenceInDays(
+                      currentDate,
+                      sentAt
+                    );
+                    const monthsDifference = differenceInMonths(
+                      currentDate,
+                      sentAt
+                    );
+                    const yearsDifference = differenceInYears(
+                      currentDate,
+                      sentAt
+                    );
 
-                  if (minutesDifference < 60) {
-                    formattedDistance = `${minutesDifference}m`;
-                  } else if (hoursDifference < 24) {
-                    formattedDistance = `${hoursDifference}h`;
-                  } else if (daysDifference < 365) {
-                    formattedDistance = `${daysDifference}d`;
-                  } else if (monthsDifference < 12) {
-                    formattedDistance = `${monthsDifference}mon`;
-                  } else {
-                    formattedDistance = `${yearsDifference}y`;
-                  }
+                    if (minutesDifference < 60) {
+                      formattedDistance = `${minutesDifference}m`;
+                    } else if (hoursDifference < 24) {
+                      formattedDistance = `${hoursDifference}h`;
+                    } else if (daysDifference < 365) {
+                      formattedDistance = `${daysDifference}d`;
+                    } else if (monthsDifference < 12) {
+                      formattedDistance = `${monthsDifference}mon`;
+                    } else {
+                      formattedDistance = `${yearsDifference}y`;
+                    }
 
-                  return (
-                    <Link
-                      href={`/DMs/${convo.user.username}`}
-                      key={convo.user.id}
-                    >
-                      <div className="mt-4 flex items-center justify-center gap-2 w-40">
-                        <Image
-                          className="rounded-full"
-                          src={convo.user.pfpURL}
-                          alt="PFP"
-                          width="35"
-                          height="35"
-                        />
-                        <div className="flex flex-col max-w-[80%]">
-                          <div className="flex items-center justify-between gap-1">
-                            <h4 className=" text-[1.15rem] text-bold">
-                              {convo.user.username}
-                            </h4>
-                            <span className="text-sm text-lightwht">
-                              {formattedDistance}
+                    return (
+                      <Link
+                        href={`/DMs/${convo.user.username}`}
+                        key={convo.user.id}
+                      >
+                        <div className="mt-4 flex items-center justify-center gap-2 w-40">
+                          <Image
+                            className="rounded-full"
+                            src={convo.user.pfpURL}
+                            alt="PFP"
+                            width="35"
+                            height="35"
+                          />
+                          <div className="flex flex-col max-w-[80%]">
+                            <div className="flex items-center justify-between gap-1">
+                              <h4 className=" font-raleway font-semibold text-[1.15rem] text-bold">
+                                {convo.user.username}
+                              </h4>
+                              <span className="text-sm text-lightwht">
+                                {formattedDistance}
+                              </span>
+                            </div>
+                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                              {conversations ? convo.lastMessage.content : ""}
                             </span>
                           </div>
-                          <span className="whitespace-nowrap overflow-hidden text-ellipsis">{conversations ? convo.lastMessage.content : ""}</span>
                         </div>
-                      </div>
-                    </Link>
-                  );
-                })
-              : ""}
-          </div>
+                      </Link>
+                    );
+                  })
+                : <div className="grid place-items-center w-full pt-2"><span>No Chats</span></div>}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex gap-2">

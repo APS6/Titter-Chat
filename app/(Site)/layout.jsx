@@ -7,7 +7,7 @@ import { Suspense } from "react";
 export const metadata = {
   title: "Titter | The chat app",
   description:
-    "Titter is a new birb chat app which is completely different than its competitors twitter, discord and threads? Titter is just better than all of them",
+    "Start chatting with your friends. Titter is a new birb chat app which is completely different than its competitors twitter, discord and threads? Titter is just better than all of them",
 };
 
 export default function RootLayout({ children }) {
