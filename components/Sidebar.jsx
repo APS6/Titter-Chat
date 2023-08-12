@@ -169,7 +169,7 @@ export default function Sidebar() {
             </div>
           ) : (
             <div>
-              {conversations
+              {conversations.length !== 0
                 ? conversations.map((convo) => {
                     const sentAt = new Date(convo.lastMessage.sentAt);
                     const currentDate = new Date();
@@ -238,7 +238,7 @@ export default function Sidebar() {
                       </Link>
                     );
                   })
-                : <div className="grid place-items-center w-full pt-2"><span>No Chats</span></div>}
+                : <div className="grid place-items-center w-full mt-4"><span>No Chats</span></div>}
             </div>
           )}
         </div>
