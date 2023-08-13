@@ -36,7 +36,6 @@ export default function DMInput({sendingTo, username}) {
             setShowLoading(false);
           }, 500);
         } else {
-          console.log("Sent message successfully");
           setMessage("");
           setLoading(false)
           const timer = setTimeout(() => {

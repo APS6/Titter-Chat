@@ -24,6 +24,7 @@ export default function Sidebar() {
   const [conversations, setConversations] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [users, setUsers] = useState([]);
+  const [newMessage, setNewMessage] = useState();
 
   const auth = getAuth();
   const handleSignOut = async () => {
@@ -64,13 +65,11 @@ export default function Sidebar() {
               ...acc.sentDM.map((message) => message.sentToId),
             ]),
           ];
-
           const conversationsData = userIDs.map((userID) => {
             const userConvo = usersData.find((u) => u.id === userID);
             const lastMessage = getLatestMessage(userConvo);
             return { user: userConvo, lastMessage };
           });
-
           const sortedData = conversationsData.sort(
             (a, b) =>
               new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
@@ -88,61 +87,70 @@ export default function Sidebar() {
 
   useEffect(() => {
     // messages the user received
-    console.log("pain")
     channel.subscribe(`mr_${user.uid}`, (data) => {
-      const newMessage = data.data;
-      const userIndex = conversations.findIndex(
-        (convo) => convo.user.id === newMessage.sentById
-      );
-      const sender = users.find((u) => u.id === newMessage.sentById);
-      const newConvo = { user: sender, lastMessage: newMessage };
-
-      if (userIndex === -1) {
-        if (conversations.length === 3) {
-          const cut = conversations.slice(0, -1);
-          const newConversation = [newConvo, ...cut];
-          setConversations(newConversation);
-        } else {
-          const newConversation = [newConvo, ...conversations];
-          setConversations(newConversation);
-        }
-      } else {
-        const updatedConversations = [
-          newConvo,
-          ...conversations.slice(0, userIndex),
-          ...conversations.slice(userIndex + 1),
-        ];
-        setConversations(updatedConversations);
-      }
+      const newMsg = data.data;
+      setNewMessage(newMsg)
     });
-
     // messages the user sent
     channel.subscribe(`ms_${user.uid}`, (data) => {
-      const newMessage = data.data;
-      const userIndex = conversations.findIndex(
-        (convo) => convo.user.id === newMessage.sentToId
-      );
-      const receiver = users.find((u) => u.id === newMessage.sentToId);
-      const newConvo = { user: receiver, lastMessage: newMessage };
-      if (userIndex === -1) {
-        if (conversations.length === 3) {
-          const cut = conversations.slice(0, -1);
-          const newConversation = [newConvo, ...cut];
-          setConversations(newConversation);
-        } else {
-          const newConversation = [newConvo, ...conversations];
-          setConversations(newConversation);
-        }
-      } else {
-        const updatedConversations = [
-          newConvo,
-          ...conversations.slice(0, userIndex),
-          ...conversations.slice(userIndex + 1),
-        ];
-        setConversations(updatedConversations);
-      }
+      const newMsg = data.data;
+      setNewMessage(newMsg);
     });
   }, []);
+
+  useEffect(() => {
+    if (newMessage && users) {
+      if (newMessage.sentById === user.uid) {
+        const userIndex = conversations.findIndex(
+          (convo) => convo.user.id === newMessage.sentToId
+        );
+        const receiver = users.find((u) => u.id === newMessage.sentToId);
+        const newConvo = { user: receiver, lastMessage: newMessage };
+
+        if (userIndex === -1) {
+          if (conversations.length === 3) {
+            const cut = conversations.slice(0, -1);
+            const newConversation = [newConvo, ...cut];
+            setConversations(newConversation);
+          } else {
+            const newConversation = [newConvo, ...conversations];
+            setConversations(newConversation);
+          }
+        } else {
+          const updatedConversations = [
+            newConvo,
+            ...conversations.slice(0, userIndex),
+            ...conversations.slice(userIndex + 1),
+          ];
+          setConversations(updatedConversations);
+        }
+      } else if (newMessage.sentToId === user.id) {
+        const userIndex = conversations.findIndex(
+          (convo) => convo.user.id === newMessage.sentById
+        );
+        const sender = users.find((u) => u.id === newMessage.sentById);
+        const newConvo = { user: sender, lastMessage: newMessage };
+
+        if (userIndex === -1) {
+          if (conversations.length === 3) {
+            const cut = conversations.slice(0, -1);
+            const newConversation = [newConvo, ...cut];
+            setConversations(newConversation);
+          } else {
+            const newConversation = [newConvo, ...conversations];
+            setConversations(newConversation);
+          }
+        } else {
+          const updatedConversations = [
+            newConvo,
+            ...conversations.slice(0, userIndex),
+            ...conversations.slice(userIndex + 1),
+          ];
+          setConversations(updatedConversations);
+        }
+      }
+    }
+  }, [newMessage]);
 
   return (
     <div className="hidden md:flex h-full bg-grey w-48 flex-col items-center justify-between py-4 rounded">

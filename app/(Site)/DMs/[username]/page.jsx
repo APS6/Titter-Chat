@@ -89,9 +89,11 @@ export default function DMUser({ params }) {
       const newMessage = data.data;
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
-    channel.subscribe(`m_${username}_${user.uid}`, (data) => {
+    channel.subscribe(`m_${user.id}`, (data) => {
       const newMessage = data.data;
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      if (newMessage.sentById === chatUser.id) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
     });
 
     return () => {
