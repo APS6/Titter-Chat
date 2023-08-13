@@ -7,6 +7,7 @@ import DMInput from "@/components/dmInput";
 import { format } from "date-fns";
 import Ably from "ably";
 import Image from "next/image";
+import Link from "next/link";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("dm");
@@ -40,6 +41,14 @@ export default function DMUser({ params }) {
         if (!exist) {
           router.push("/SignIn");
         }
+        if (!user2) {
+          setFetching(false);
+          return (
+            <div className="h-full w-full grid place-items-center text-4xl">
+              <span>User Does Not Exist</span>
+            </div>
+          );
+        }
         setCurrentUser(exist);
         setChatUser(user2);
       } catch (error) {
@@ -56,10 +65,13 @@ export default function DMUser({ params }) {
           const messageData = await fetchData(
             `DM/${accessToken}/${chatUser.id}`
           );
-          setMessages(sortMessages(messageData));
+          if (messageData.length !== 0) {
+            setMessages(sortMessages(messageData));
+          }
           setFetching(false);
         }
       } catch (error) {
+        setFetching(false);
         console.error("Error fetching Messages", error);
       }
     };
@@ -92,20 +104,20 @@ export default function DMUser({ params }) {
     <div className="flex flex-col h-full justify-between">
       <div>
         <Link href={`/profile/${username}`}>
-        <div className="mb-8 flex gap-4 items-center">
-          {chatUser.pfpURL ? (
-            <Image
-              src={chatUser.pfpURL}
-              alt={"PFP"}
-              width={35}
-              height={35}
-              className="rounded-full"
-            />
-          ) : (
-            ""
-          )}
-          <h2 className="font-bold font-mont text-4xl">{username}</h2>
-        </div>
+          <div className="mb-8 flex gap-4 items-center">
+            {chatUser.pfpURL ? (
+              <Image
+                src={chatUser.pfpURL}
+                alt={"PFP"}
+                width={35}
+                height={35}
+                className="rounded-full"
+              />
+            ) : (
+              ""
+            )}
+            <h2 className="font-bold font-mont text-4xl">{username}</h2>
+          </div>
         </Link>
         <div
           className="flex flex-col gap-4 scroll-smooth h-[70svh] overflow-y-scroll"
@@ -290,7 +302,7 @@ export default function DMUser({ params }) {
           )}
         </div>
       </div>
-      <DMInput sendingTo={chatUser.id} username={username}/>
+      <DMInput sendingTo={chatUser.id} username={username} />
     </div>
   );
 }

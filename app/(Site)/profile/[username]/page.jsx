@@ -18,7 +18,7 @@ export default function Profile() {
   const [showLikes, setShowLikes] = useState(false);
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
-  const [followedBy, setFollowedBy] = useState(false)
+  const [followedBy, setFollowedBy] = useState(false);
   const sortPosts = (posts) => {
     return [...posts].sort(
       (a, b) => new Date(b.postedAt) - new Date(a.postedAt)
@@ -65,17 +65,20 @@ export default function Profile() {
 
   const followHandler = async () => {
     if (!following) {
-      setFollowing(true)
+      setFollowing(true);
       const body = {
         followerId: user.uid,
         followingId: userProfile.id,
-      }
+      };
       try {
         const response = await fetch("/api/Follow", {
           method: "POST",
-          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: accessToken,
+          },
           body: JSON.stringify(body),
-        })
+        });
         if (response.status !== 200) {
           console.log("something went wrong");
           setFollowing(false);
@@ -86,17 +89,20 @@ export default function Profile() {
         console.log("there was an error following", error);
       }
     } else if (following) {
-      setFollowing(false)
+      setFollowing(false);
       const body = {
         followerId: user.uid,
         followingId: userProfile.id,
-      }
+      };
       try {
         const response = await fetch("/api/Follow", {
           method: "DELETE",
-          headers: { "Content-Type": "application/json", 'Authorization': accessToken, },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: accessToken,
+          },
           body: JSON.stringify(body),
-        })
+        });
         if (response.status !== 200) {
           console.log("something went wrong");
           setFollowing(true);
@@ -107,7 +113,7 @@ export default function Profile() {
         console.log("there was an error following", error);
       }
     }
-  }
+  };
   return (
     <div>
       <div>
@@ -140,7 +146,7 @@ export default function Profile() {
                 <h2 className="font-mont text-2xl sm:text-3xl md:text-4xl leading-none">
                   {username}
                 </h2>
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                   <span className="text-sm">
                     {userProfile.followedBy?.length} Followers
                   </span>
@@ -156,12 +162,68 @@ export default function Profile() {
                   </button>
                 </Link>
               ) : (
-                <div className="flex gap-1 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
-                  {followedBy ? <Link href={`/DMs/${username}`}> <button className=" bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
-                    Message
-                  </button> </Link> : ""}
-                  <button onClick={() => followHandler()} className=" bg-purple rounded-2xl py-1 px-3">
-                    {following ? "Following" : followedBy ? "Follow Back" : "Follow"}
+                <div className="flex gap-2 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
+                  {followedBy ? (
+                    <Link href={`/DMs/${username}`}>
+                      <button className="hidden sm:block bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
+                        Message
+                      </button>
+                      {/* mobile button */}
+                      <div className="sm:hidden border border-lightwht rounded-full p-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="25"
+                          height="25"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="white"
+                            d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5l-8-5h16zm0 12H4V8l8 5l8-5v10z"
+                          ></path>
+                        </svg>
+                      </div>
+                    </Link>
+                  ) : (
+                    ""
+                  )}
+                   {/* mobile buttons */}
+                  <div className="md:hidden border border-lightwht rounded-full p-1">
+                    {following ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="25"
+                        height="25"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M14 14.252V22H4a8 8 0 0 1 10-7.748ZM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6s6 2.685 6 6s-2.685 6-6 6Zm7 3.586l2.121-2.121l1.415 1.414L20.413 18l2.121 2.121l-1.414 1.415L19 19.413l-2.121 2.121l-1.415-1.414L17.587 18l-2.121-2.121l1.414-1.415L19 16.587Z"
+                        ></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="25"
+                        height="25"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M13 14.062V22H4a8 8 0 0 1 9-7.938ZM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6s6 2.685 6 6s-2.685 6-6 6Zm5.793 6.914l3.535-3.535l1.415 1.414l-4.95 4.95l-3.536-3.536l1.415-1.414l2.12 2.121Z"
+                        ></path>
+                      </svg>
+                    )}
+                  </div>
+                  {/* desktop buttons */}
+                  <button
+                    onClick={() => followHandler()}
+                    className="hidden sm:block bg-purple rounded-2xl py-1 px-3"
+                  >
+                    {following
+                      ? "Following"
+                      : followedBy
+                      ? "Follow Back"
+                      : "Follow"}
                   </button>
                 </div>
               )}

@@ -13,12 +13,17 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
+import Ably from "ably";
+
+const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
+const channel = client.channels.get("dm");
 
 export default function Sidebar() {
   const [account, setAccount] = useState({});
   const { user } = useAuthContext();
   const [conversations, setConversations] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const [users, setUsers] = useState([]);
 
   const auth = getAuth();
   const handleSignOut = async () => {
@@ -48,6 +53,7 @@ export default function Sidebar() {
     const fetchUsers = async () => {
       try {
         const usersData = await fetchData("UsersMessages");
+        setUsers(usersData);
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
@@ -78,6 +84,64 @@ export default function Sidebar() {
       }
     };
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    // messages the user received
+    console.log("pain")
+    channel.subscribe(`mr_${user.uid}`, (data) => {
+      const newMessage = data.data;
+      const userIndex = conversations.findIndex(
+        (convo) => convo.user.id === newMessage.sentById
+      );
+      const sender = users.find((u) => u.id === newMessage.sentById);
+      const newConvo = { user: sender, lastMessage: newMessage };
+
+      if (userIndex === -1) {
+        if (conversations.length === 3) {
+          const cut = conversations.slice(0, -1);
+          const newConversation = [newConvo, ...cut];
+          setConversations(newConversation);
+        } else {
+          const newConversation = [newConvo, ...conversations];
+          setConversations(newConversation);
+        }
+      } else {
+        const updatedConversations = [
+          newConvo,
+          ...conversations.slice(0, userIndex),
+          ...conversations.slice(userIndex + 1),
+        ];
+        setConversations(updatedConversations);
+      }
+    });
+
+    // messages the user sent
+    channel.subscribe(`ms_${user.uid}`, (data) => {
+      const newMessage = data.data;
+      const userIndex = conversations.findIndex(
+        (convo) => convo.user.id === newMessage.sentToId
+      );
+      const receiver = users.find((u) => u.id === newMessage.sentToId);
+      const newConvo = { user: receiver, lastMessage: newMessage };
+      if (userIndex === -1) {
+        if (conversations.length === 3) {
+          const cut = conversations.slice(0, -1);
+          const newConversation = [newConvo, ...cut];
+          setConversations(newConversation);
+        } else {
+          const newConversation = [newConvo, ...conversations];
+          setConversations(newConversation);
+        }
+      } else {
+        const updatedConversations = [
+          newConvo,
+          ...conversations.slice(0, userIndex),
+          ...conversations.slice(userIndex + 1),
+        ];
+        setConversations(updatedConversations);
+      }
+    });
   }, []);
 
   return (
@@ -169,76 +233,77 @@ export default function Sidebar() {
             </div>
           ) : (
             <div>
-              {conversations.length !== 0
-                ? conversations.map((convo) => {
-                    const sentAt = new Date(convo.lastMessage.sentAt);
-                    const currentDate = new Date();
+              {conversations.length !== 0 ? (
+                conversations.map((convo) => {
+                  const sentAt = new Date(convo.lastMessage.sentAt);
+                  const currentDate = new Date();
 
-                    let formattedDistance = "";
-                    const minutesDifference = differenceInMinutes(
-                      currentDate,
-                      sentAt
-                    );
-                    const hoursDifference = differenceInHours(
-                      currentDate,
-                      sentAt
-                    );
-                    const daysDifference = differenceInDays(
-                      currentDate,
-                      sentAt
-                    );
-                    const monthsDifference = differenceInMonths(
-                      currentDate,
-                      sentAt
-                    );
-                    const yearsDifference = differenceInYears(
-                      currentDate,
-                      sentAt
-                    );
+                  let formattedDistance = "";
+                  const minutesDifference = differenceInMinutes(
+                    currentDate,
+                    sentAt
+                  );
+                  const hoursDifference = differenceInHours(
+                    currentDate,
+                    sentAt
+                  );
+                  const daysDifference = differenceInDays(currentDate, sentAt);
+                  const monthsDifference = differenceInMonths(
+                    currentDate,
+                    sentAt
+                  );
+                  const yearsDifference = differenceInYears(
+                    currentDate,
+                    sentAt
+                  );
 
-                    if (minutesDifference < 60) {
-                      formattedDistance = `${minutesDifference}m`;
-                    } else if (hoursDifference < 24) {
-                      formattedDistance = `${hoursDifference}h`;
-                    } else if (daysDifference < 365) {
-                      formattedDistance = `${daysDifference}d`;
-                    } else if (monthsDifference < 12) {
-                      formattedDistance = `${monthsDifference}mon`;
-                    } else {
-                      formattedDistance = `${yearsDifference}y`;
-                    }
+                  if (minutesDifference < 60) {
+                    formattedDistance = `${minutesDifference}m`;
+                  } else if (hoursDifference < 24) {
+                    formattedDistance = `${hoursDifference}h`;
+                  } else if (daysDifference < 365) {
+                    formattedDistance = `${daysDifference}d`;
+                  } else if (monthsDifference < 12) {
+                    formattedDistance = `${monthsDifference}mon`;
+                  } else {
+                    formattedDistance = `${yearsDifference}y`;
+                  }
 
-                    return (
-                      <Link
-                        href={`/DMs/${convo.user.username}`}
-                        key={convo.user.id}
-                      >
-                        <div className="mt-4 flex items-center justify-center gap-2 w-40">
-                          <Image
-                            className="rounded-full"
-                            src={convo.user.pfpURL}
-                            alt="PFP"
-                            width="35"
-                            height="35"
-                          />
-                          <div className="flex flex-col max-w-[80%]">
-                            <div className="flex items-center justify-between gap-1">
-                              <h4 className=" font-raleway font-semibold text-[1.15rem] text-bold">
-                                {convo.user.username}
-                              </h4>
-                              <span className="text-sm text-lightwht">
-                                {formattedDistance}
-                              </span>
-                            </div>
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                              {conversations ? convo.lastMessage.content : ""}
+                  return (
+                    <Link
+                      href={`/DMs/${convo.user.username}`}
+                      key={convo.user.id}
+                    >
+                      <div className="mt-4 flex items-center justify-center gap-2 w-40">
+                        <Image
+                          className="rounded-full"
+                          src={convo.user.pfpURL}
+                          alt="PFP"
+                          width="35"
+                          height="35"
+                        />
+                        <div className="flex flex-col max-w-[80%]">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className=" font-raleway font-semibold text-[1.20rem]">
+                              {convo.user.username}
+                            </h4>
+                            <span className="text-sm text-lightwht">
+                              {formattedDistance}
                             </span>
                           </div>
+                          <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                            {conversations ? convo.lastMessage.content : ""}
+                          </span>
                         </div>
-                      </Link>
-                    );
-                  })
-                : <div className="grid place-items-center w-full mt-4"><span>No Chats</span></div>}
+                      </div>
+                    </Link>
+                  );
+                })
+              ) : (
+                <div className="grid place-items-center w-full mt-4">
+                  <span>No Chats</span>
+                </div>
+              )}
             </div>
           )}
         </div>

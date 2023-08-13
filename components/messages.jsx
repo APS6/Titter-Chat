@@ -70,7 +70,7 @@ export default function Messages() {
 
   return (
     <div
-      className="flex flex-col gap-3 scroll-smooth h-[70svh] overflow-y-scroll"
+      className="flex flex-col gap-[.4rem] scroll-smooth h-[70svh] overflow-y-scroll"
       ref={messagesRef}
     >
       {posts.length !== 0 && users.length !== 0 ? (

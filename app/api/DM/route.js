@@ -28,6 +28,8 @@ export async function POST(req) {
                 }
             })
             channel.publish(`m_${body.sentById}_${body.sentToUsername}`, newMessage);
+            channel.publish(`ms_${body.sentById}`, newMessage);
+            channel.publish(`mr_${body.sentToId}`, newMessage);
             return NextResponse.json(newMessage, { success: true }, { status: 200 });
         }
         else {
