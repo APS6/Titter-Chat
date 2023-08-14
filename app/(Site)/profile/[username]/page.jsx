@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
 import GlobalPost from "@/components/globalPost";
+import { useRouter } from "next/navigation";
 
 export default function Profile() {
   const { user, accessToken } = useAuthContext();
@@ -19,6 +20,11 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
   const [followedBy, setFollowedBy] = useState(false);
+  const router = useRouter()
+
+  if (!user){
+    router.push("/SignIn")
+  }
   const sortPosts = (posts) => {
     return [...posts].sort(
       (a, b) => new Date(b.postedAt) - new Date(a.postedAt)

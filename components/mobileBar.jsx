@@ -4,10 +4,16 @@ import Image from "next/image";
 import fetchData from "@/app/lib/fetchData";
 import { useAuthContext } from "@/context/authContext";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 export default function MobileBar() {
   const { user } = useAuthContext();
   const [account, setAccount] = useState({});
+  const router = useRouter()
+  if (user) {
+    router.push("/SignIn")
+  }
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -15,6 +21,8 @@ export default function MobileBar() {
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
+        } else {
+          router.push("SignIn")
         }
       } catch (error) {
         console.error("Error fetching users:", error);

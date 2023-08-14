@@ -38,7 +38,7 @@ export default function DMUser({ params }) {
         setUsers(usersData);
         const exist = usersData.find((u) => u.id === user.uid);
         const user2 = usersData.find((u) => u.username === username);
-        if (!exist) {
+        if (!exist || !user) {
           router.push("/SignIn");
         }
         if (!user2) {
@@ -85,11 +85,11 @@ export default function DMUser({ params }) {
   }, [messages]);
 
   useEffect(() => {
-    channel.subscribe(`m_${user.uid}_${username}`, (data) => {
+    channel.subscribe(`m_${user?.uid}_${username}`, (data) => {
       const newMessage = data.data;
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
-    channel.subscribe(`m_${user.id}`, (data) => {
+    channel.subscribe(`m_${user?.uid}`, (data) => {
       const newMessage = data.data;
       if (newMessage.sentById === chatUser.id) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);

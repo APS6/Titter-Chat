@@ -70,15 +70,15 @@ export default function EditProfile() {
 
   const usernameHandler = (e) => {
     let value = e.target.value;
-    if (value.length >= 3 && value.length <= 10 && bio.length < 61) {
+    if (value.length >= 3 && value.length <= 9 && bio.length < 61) {
       setDisabled(false);
       setTip("");
     } else if (value.length < 3) {
       setDisabled(true);
       setTip("Username must be minimum 3 characters.");
-    } else if (value.length > 10) {
+    } else if (value.length > 9) {
       setDisabled(true);
-      setTip("Username must be maximum 10 characters.");
+      setTip("Username must be maximum 9 characters.");
     } else {
       setTip("Bio cannot be longer than 60 characters");
     }
@@ -87,7 +87,7 @@ export default function EditProfile() {
 
   const bioHandler = (e) => {
     let value = e.target.value;
-    if (username.length >= 3 && username.length <= 10 && value.length < 61) {
+    if (username.length >= 3 && username.length <= 9 && value.length < 61) {
       setDisabled(false);
       setTip("");
     } else if (value.length > 60) {
@@ -96,9 +96,9 @@ export default function EditProfile() {
     } else if (username.length < 3) {
       setDisabled(true);
       setTip("Username must be minimum 3 characters.");
-    } else if (username.length > 10) {
+    } else if (username.length > 9) {
       setDisabled(true);
-      setTip("Username must be maximum 10 characters.");
+      setTip("Username must be maximum 9 characters.");
     }
     setBio(value);
   };

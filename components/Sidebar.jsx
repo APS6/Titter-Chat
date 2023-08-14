@@ -14,6 +14,7 @@ import {
   differenceInYears,
 } from "date-fns";
 import Ably from "ably";
+import { useRouter } from "next/navigation";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("dm");
@@ -25,7 +26,7 @@ export default function Sidebar() {
   const [fetching, setFetching] = useState(true);
   const [users, setUsers] = useState([]);
   const [newMessage, setNewMessage] = useState();
-
+  const router = useRouter()
   const auth = getAuth();
   const handleSignOut = async () => {
     try {
@@ -49,7 +50,9 @@ export default function Sidebar() {
     );
     return sorted[0];
   };
-
+  if (!user){
+    router.push("/SignIn")
+  }
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -58,7 +61,6 @@ export default function Sidebar() {
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
-
           const userIDs = [
             ...new Set([
               ...acc.receivedDM.map((message) => message.sentById),
@@ -77,6 +79,8 @@ export default function Sidebar() {
           const firstFiveConversations = sortedData.slice(0, 3);
           setFetching(false);
           setConversations(firstFiveConversations);
+        } else {
+          router.push("/SignIn")
         }
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -87,12 +91,12 @@ export default function Sidebar() {
 
   useEffect(() => {
     // messages the user received
-    channel.subscribe(`mr_${user.uid}`, (data) => {
+    channel.subscribe(`mr_${user?.uid}`, (data) => {
       const newMsg = data.data;
       setNewMessage(newMsg)
     });
     // messages the user sent
-    channel.subscribe(`ms_${user.uid}`, (data) => {
+    channel.subscribe(`ms_${user?.uid}`, (data) => {
       const newMsg = data.data;
       setNewMessage(newMsg);
     });
@@ -282,7 +286,7 @@ export default function Sidebar() {
                       href={`/DMs/${convo.user.username}`}
                       key={convo.user.id}
                     >
-                      <div className="mt-4 flex items-center justify-center gap-2 w-40">
+                      <div className="mt-4 flex items-center gap-2 w-40">
                         <Image
                           className="rounded-full"
                           src={convo.user.pfpURL}
@@ -291,7 +295,7 @@ export default function Sidebar() {
                           height="35"
                         />
                         <div className="flex flex-col max-w-[80%]">
-                          <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center justify-between gap-2">
                             <h4 className=" font-raleway font-semibold text-[1.20rem]">
                               {convo.user.username}
                             </h4>
