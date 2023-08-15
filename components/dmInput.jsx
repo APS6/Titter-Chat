@@ -2,7 +2,7 @@
 import { useAuthContext } from "@/context/authContext";
 import { useState } from "react";
 
-export default function DMInput({sendingTo, username}) {
+export default function DMInput({sendingTo, cUsername, username}) {
   const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
@@ -19,7 +19,8 @@ export default function DMInput({sendingTo, username}) {
         content: message,
         sentById: user.uid,
         sentToId: sendingTo,
-        sentToUsername: username,
+        sentToUsername: cUsername,
+        sentByUsername: username,
       };
       setLoading(true)
       setShowLoading(true);

@@ -243,7 +243,7 @@ export default function DMs() {
                       key={convo.user.id}
                       className="w-full p-2 bg-grey rounded"
                     >
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Image
                           className="rounded-full"
                           src={convo.user.pfpURL}

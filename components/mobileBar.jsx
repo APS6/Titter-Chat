@@ -11,7 +11,7 @@ export default function MobileBar() {
   const { user } = useAuthContext();
   const [account, setAccount] = useState({});
   const router = useRouter()
-  if (user) {
+  if (!user) {
     router.push("/SignIn")
   }
   useEffect(() => {

@@ -85,16 +85,18 @@ export default function DMUser({ params }) {
   }, [messages]);
 
   useEffect(() => {
-    channel.subscribe(`m_${user?.uid}_${username}`, (data) => {
+    if (user){
+    channel.subscribe(`m_${user.uid}_${username}`, (data) => {
       const newMessage = data.data;
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
-    channel.subscribe(`m_${user?.uid}`, (data) => {
+    channel.subscribe(`m_${user.uid}`, (data) => {
       const newMessage = data.data;
-      if (newMessage.sentById === chatUser.id) {
+      console.log(newMessage)
+      if (newMessage.sentByUsername === username) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
-    });
+    });}
 
     return () => {
       channel.unsubscribe();
@@ -304,7 +306,7 @@ export default function DMUser({ params }) {
           )}
         </div>
       </div>
-      <DMInput sendingTo={chatUser.id} username={username} />
+      <DMInput sendingTo={chatUser.id} cUsername={username} username={currentUser?.username}/>
     </div>
   );
 }

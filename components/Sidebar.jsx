@@ -31,6 +31,7 @@ export default function Sidebar() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      router.push("/SignIn")
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -61,6 +62,7 @@ export default function Sidebar() {
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
+          console.log(usersData)
           const userIDs = [
             ...new Set([
               ...acc.receivedDM.map((message) => message.sentById),
@@ -72,11 +74,14 @@ export default function Sidebar() {
             const lastMessage = getLatestMessage(userConvo);
             return { user: userConvo, lastMessage };
           });
+          console.log(conversationsData)
           const sortedData = conversationsData.sort(
             (a, b) =>
               new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
           );
+          console.log(sortedData)
           const firstFiveConversations = sortedData.slice(0, 3);
+          console.log(firstFiveConversations)
           setFetching(false);
           setConversations(firstFiveConversations);
         } else {
@@ -90,16 +95,17 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
+    if (user){
     // messages the user received
-    channel.subscribe(`mr_${user?.uid}`, (data) => {
+    channel.subscribe(`mr_${user.uid}`, (data) => {
       const newMsg = data.data;
       setNewMessage(newMsg)
     });
     // messages the user sent
-    channel.subscribe(`ms_${user?.uid}`, (data) => {
+    channel.subscribe(`ms_${user.uid}`, (data) => {
       const newMsg = data.data;
       setNewMessage(newMsg);
-    });
+    });}
   }, []);
 
   useEffect(() => {
@@ -128,7 +134,7 @@ export default function Sidebar() {
           ];
           setConversations(updatedConversations);
         }
-      } else if (newMessage.sentToId === user.id) {
+      } else if (newMessage.sentToId === user.uid) {
         const userIndex = conversations.findIndex(
           (convo) => convo.user.id === newMessage.sentById
         );
