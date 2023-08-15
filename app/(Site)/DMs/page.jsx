@@ -251,7 +251,7 @@ export default function DMs() {
                           width="50"
                           height="50"
                         />
-                        <div className="flex flex-col max-w-[80%]">
+                        <div className="flex flex-col w-[80%]">
                           <div className="flex items-center justify-between gap-1">
                             <h4 className=" text-xl text-bold">
                               {convo.user.username}

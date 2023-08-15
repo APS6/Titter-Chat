@@ -62,7 +62,6 @@ export default function Sidebar() {
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
-          console.log(usersData)
           const userIDs = [
             ...new Set([
               ...acc.receivedDM.map((message) => message.sentById),
@@ -74,14 +73,11 @@ export default function Sidebar() {
             const lastMessage = getLatestMessage(userConvo);
             return { user: userConvo, lastMessage };
           });
-          console.log(conversationsData)
           const sortedData = conversationsData.sort(
             (a, b) =>
               new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
           );
-          console.log(sortedData)
           const firstFiveConversations = sortedData.slice(0, 3);
-          console.log(firstFiveConversations)
           setFetching(false);
           setConversations(firstFiveConversations);
         } else {

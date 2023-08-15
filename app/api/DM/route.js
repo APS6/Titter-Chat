@@ -28,7 +28,6 @@ export async function POST(req) {
                 }
             })
             newMessage.sentByUsername = body.sentByUsername
-            console.log(newMessage)
             channel.publish(`m_${body.sentById}_${body.sentToUsername}`, newMessage);
             channel.publish(`m_${body.sentToId}`, newMessage);
 

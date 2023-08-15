@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic'
 export default async function fetchData(endpoint) {
     try {
         const response = await fetch(`/api/${endpoint}`, {
-            method: "GET"
+            method: "GET",
+            cache: "no-store"
         });
         if (response.status !== 200) {
             console.log("something went wrong");

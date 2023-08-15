@@ -92,7 +92,6 @@ export default function DMUser({ params }) {
     });
     channel.subscribe(`m_${user.uid}`, (data) => {
       const newMessage = data.data;
-      console.log(newMessage)
       if (newMessage.sentByUsername === username) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
