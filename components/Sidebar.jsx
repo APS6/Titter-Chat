@@ -22,10 +22,11 @@ const channel = client.channels.get("dm");
 export const dynamic = 'force-dynamic'
 export default function Sidebar() {
   const [account, setAccount] = useState({});
-  const { user } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const [conversations, setConversations] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [users, setUsers] = useState([]);
+  const [messages, setMessages] = useState()
   const [newMessage, setNewMessage] = useState();
   const router = useRouter()
   const auth = getAuth();
@@ -39,11 +40,11 @@ export default function Sidebar() {
   };
 
   const getLatestMessage = (userConvo) => {
-    const filter1 = userConvo.sentDM.filter(
-      (message) => message.sentToId === user.uid
+    const filter1 = messages.filter(
+      (message) => message.sentToId === userConvo.id
     );
-    const filter2 = userConvo.receivedDM.filter(
-      (message) => message.sentById === user.uid
+    const filter2 = messages.filter(
+      (message) => message.sentById === userConvo.id
     );
 
     const allMessages = [...filter1, ...filter2];
@@ -52,37 +53,19 @@ export default function Sidebar() {
     );
     return sorted[0];
   };
+
   if (!user){
     router.push("/SignIn")
   }
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const usersData = await fetchData("UsersMessages");
-        setUsers(usersData);
+        const usersData = await fetchData("User");
         const acc = usersData.find((u) => u.id === user.uid);
         if (acc) {
           setAccount(acc);
-          const userIDs = [
-            ...new Set([
-              ...acc.receivedDM.map((message) => message.sentById),
-              ...acc.sentDM.map((message) => message.sentToId),
-            ]),
-          ];
-          const conversationsData = userIDs.map((userID) => {
-            const userConvo = usersData.find((u) => u.id === userID);
-            const lastMessage = getLatestMessage(userConvo);
-            return { user: userConvo, lastMessage };
-          });
-          const sortedData = conversationsData.sort(
-            (a, b) =>
-              new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
-          );
-          const firstFiveConversations = sortedData.slice(0, 3);
-          setFetching(false);
-          setConversations(firstFiveConversations);
-        } else {
-          router.push("/SignIn")
+          setUsers(usersData)
         }
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -90,6 +73,41 @@ export default function Sidebar() {
     };
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (accessToken.length > 1){
+      try {
+        const messagesData = await fetchData(`messages/${accessToken}`)
+        setMessages(messagesData)
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }}
+    };
+    fetchMessages();
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (messages && users){
+    const userIDs = [
+      ...new Set([
+        ...messages.map((message) => message.sentById === user.uid ? message.sentToId : message.sentById),
+      ]),
+    ];
+    const conversationsData = userIDs.map((userID) => {
+      const userConvo = users.find((u) => u.id === userID);
+      const lastMessage = getLatestMessage(userConvo);
+      return { user: userConvo, lastMessage };
+    });
+    const sortedData = conversationsData.sort(
+      (a, b) =>
+        new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
+    );
+    const firstThree = sortedData.slice(0, 3)
+    setConversations(firstThree);
+    setFetching(false);
+  }
+  }, [messages])
 
   useEffect(() => {
     if (user){
