@@ -12,6 +12,7 @@ import {
   differenceInYears,
 } from "date-fns";
 
+export const dynamic = 'force-dynamic'
 export default function DMs() {
   const { user } = useAuthContext();
   const [account, setAccount] = useState({});
@@ -36,7 +37,9 @@ export default function DMs() {
     const fetchUsers = async () => {
       try {
         const usersData = await fetchData("UsersMessages");
+        console.log(usersData)
         const acc = usersData.find((u) => u.id === user.uid);
+        console.log(acc.sentDM);
         if (acc) {
           setAccount(acc);
 

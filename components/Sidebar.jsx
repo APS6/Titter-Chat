@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("dm");
 
+export const dynamic = 'force-dynamic'
 export default function Sidebar() {
   const [account, setAccount] = useState({});
   const { user } = useAuthContext();
