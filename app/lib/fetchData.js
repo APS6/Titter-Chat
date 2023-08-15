@@ -8,7 +8,7 @@ export default async function fetchData(endpoint) {
         if (response.status !== 200) {
             console.log("something went wrong");
         }
-        console.log(response.json())
+        console.log("fetched")
         return response.json()
     } catch (error) {
         console.log("there was an error fetching users", error);
