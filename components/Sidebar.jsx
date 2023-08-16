@@ -309,7 +309,7 @@ export default function Sidebar() {
                     >
                       <div className="mt-4 flex items-center gap-2 w-40">
                         <Image
-                          className="rounded-full"
+                          className="rounded-full w-[35px] h-[35px] object-cover"
                           src={convo.user.pfpURL}
                           alt="PFP"
                           width="35"
@@ -349,7 +349,7 @@ export default function Sidebar() {
               alt="User Image"
               width="30"
               height="30"
-              className="rounded-full"
+              className="rounded-full w-[30px] h-[30px] object-cover"
             />
           </Link>
         ) : (

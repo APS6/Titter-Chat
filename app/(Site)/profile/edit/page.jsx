@@ -5,6 +5,7 @@ import fetchData from "@/app/lib/fetchData";
 import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { UploadButton } from "@uploadthing/react";
 
 export default function EditProfile() {
   const [users, setUsers] = useState([]);
@@ -14,6 +15,7 @@ export default function EditProfile() {
   const [disabled, setDisabled] = useState(true);
   const { user, accessToken } = useAuthContext();
   const [tip, setTip] = useState("");
+  const [pfp, setPfp] = useState()
   const router = useRouter();
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function EditProfile() {
   useEffect(() => {
     const foundUser = users.find((u) => u.id === user?.uid);
     setUserProfile(foundUser);
+    setPfp(foundUser?.pfpURL)
     setUsername(foundUser?.username);
     setBio(foundUser?.bio);
   }, [users, user]);
@@ -46,6 +49,7 @@ export default function EditProfile() {
         id: user.uid,
         username,
         bio,
+        pfp,
       };
       try {
         const response = await fetch("/api/EditProfile", {
@@ -123,14 +127,55 @@ export default function EditProfile() {
           </Link>
         </div>
         <div className="flex flex-col items-center justify-center py-8">
-          {userProfile?.pfpURL ? (
-            <Image
-              className=" rounded-full"
-              src={userProfile?.pfpURL}
-              alt="PFP"
-              width={80}
-              height={80}
-            />
+          {pfp ? (
+            <div className="relative grid ">
+              <Image
+                className="rounded-full w-20 h-20 object-cover"
+                src={pfp}
+                alt="PFP"
+                width={80}
+                height={80}
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 grid place-items-center w-8 h-8 rounded-full bg-[#000000bd]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="white"
+                    d="M11 13Zm-8 8q-.825 0-1.413-.588T1 19V7q0-.825.588-1.413T3 5h3.15L7.4 3.65q.275-.3.663-.475T8.874 3H13q.425 0 .713.288T14 4q0 .425-.288.713T13 5H8.875L7.05 7H3v12h16v-8q0-.425.288-.713T20 10q.425 0 .713.288T21 11v8q0 .825-.588 1.413T19 21H3ZM19 5h-1q-.425 0-.713-.288T17 4q0-.425.288-.713T18 3h1V2q0-.425.288-.713T20 1q.425 0 .713.288T21 2v1h1q.425 0 .713.288T23 4q0 .425-.288.713T22 5h-1v1q0 .425-.288.713T20 7q-.425 0-.713-.288T19 6V5Zm-8 12.5q1.875 0 3.188-1.313T15.5 13q0-1.875-1.313-3.188T11 8.5q-1.875 0-3.188 1.313T6.5 13q0 1.875 1.313 3.188T11 17.5Zm0-2q-1.05 0-1.775-.725T8.5 13q0-1.05.725-1.775T11 10.5q1.05 0 1.775.725T13.5 13q0 1.05-.725 1.775T11 15.5Z"
+                  ></path>
+                </svg>
+              </div>
+              <UploadButton
+              className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    // Do something with the response
+                    console.log(res[0].url);
+                    setPfp(res[0].url)
+                    if (username.length >= 3 && username.length <= 9 && bio.length < 61) {
+                      setDisabled(false);
+                      setTip("");
+                    } else if (bio.length > 60) {
+                      setDisabled(true);
+                      setTip("Bio cannot be longer than 60 characters");
+                    } else if (username.length < 3) {
+                      setDisabled(true);
+                      setTip("Username must be minimum 3 characters.");
+                    } else if (username.length > 9) {
+                      setDisabled(true);
+                      setTip("Username must be maximum 9 characters.");
+                    }
+                  }}
+                  onUploadError={(error) => {
+                    // Do something with the error.
+                    alert(`ERROR! ${error.message}`);
+                  }}
+                />
+            </div>
           ) : (
             <svg
               className="w-8 h-8 md:w-32 md:h-32"

@@ -24,6 +24,7 @@ export async function POST(req) {
                     data: {
                         username: body.username,
                         bio: body.bio,
+                        pfpURL: body.pfp,
                     }
                 })
                 return NextResponse.json(newUser, { success: true }, { status: 200 });

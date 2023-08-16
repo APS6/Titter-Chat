@@ -263,7 +263,7 @@ export default function DMs() {
                     >
                       <div className="flex items-center gap-3">
                         <Image
-                          className="rounded-full"
+                          className="rounded-full w-[50px] h-[50px] object-cover"
                           src={convo.user.pfpURL}
                           alt="PFP"
                           width="50"

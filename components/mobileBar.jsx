@@ -71,7 +71,7 @@ export default function MobileBar() {
               alt="User Image"
               width="30"
               height="30"
-              className="rounded-full"
+              className="rounded-full w-[30px] h-[30px] object-cover"
             />
           </Link>
         ) : (

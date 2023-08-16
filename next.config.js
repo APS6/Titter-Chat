@@ -7,7 +7,7 @@ const nextConfig = {
                 hostname: "lh3.googleusercontent.com"
             }
         ],
-        domains: ['example.com']
+        domains: ['example.com', 'uploadthing.com']
     }
 }
 

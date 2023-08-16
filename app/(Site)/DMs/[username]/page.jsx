@@ -114,7 +114,7 @@ export default function DMUser({ params }) {
                 alt={"PFP"}
                 width={35}
                 height={35}
-                className="rounded-full"
+                className="rounded-full w-[35px] h-[35px] object-cover"
               />
             ) : (
               ""

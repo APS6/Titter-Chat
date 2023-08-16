@@ -95,7 +95,7 @@ export default function GlobalPost({ post, sender }) {
           alt="D"
           width="30"
           height="30"
-          className="rounded-full"
+          className="rounded-full w-[30px] h-[30px] object-cover"
         />
       ) : (
         <svg

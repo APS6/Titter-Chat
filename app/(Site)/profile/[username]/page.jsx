@@ -126,7 +126,7 @@ export default function Profile() {
         <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
           {userProfile?.pfpURL ? (
             <Image
-              className="w-12 h-12 md:w-32 md:h-32 rounded-full"
+              className="w-12 h-12 md:w-32 md:h-32 object-cover rounded-full"
               src={userProfile?.pfpURL}
               alt="PFP"
               width={130}
