@@ -153,8 +153,6 @@ export default function EditProfile() {
               className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
                   endpoint="imageUploader"
                   onClientUploadComplete={(res) => {
-                    // Do something with the response
-                    console.log(res[0].url);
                     setPfp(res[0].url)
                     if (username.length >= 3 && username.length <= 9 && bio.length < 61) {
                       setDisabled(false);
