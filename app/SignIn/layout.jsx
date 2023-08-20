@@ -5,7 +5,7 @@ import { AuthContextProvider } from '@/context/authContext'
 
 export const metadata = {
   title: 'SignIn | Titter the birb app',
-  description: 'SignIn to Titter.Titter is a new birb chat app which is completely different than its competitors twitter discord and threads? Titter is just better than all of them',
+  description: 'SignIn to Titter Chat. Titter is a new birb chat app which is completely different than its competitors twitter discord and threads? Titter is just better than all of them',
 }
 
 export default function RootLayout({ children }) {

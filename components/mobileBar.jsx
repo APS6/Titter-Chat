@@ -34,7 +34,7 @@ export default function MobileBar() {
   return (
     <div className="flex md:hidden justify-between p-2 bg-grey items-center rounded">
       <Link href="/">
-        <Image src="/birblogo.png" alt="Logo" width="34" height="25" />
+        <Image src="/birblogo.png" alt="Titter Logo" width="34" height="25" />
       </Link>
       <div className="flex gap-2 items-center">
         <Link href="/Home">
@@ -64,10 +64,10 @@ export default function MobileBar() {
             ></path>
           </svg>
         </Link>
-        {account ? (
+        {account.pfpURL ? (
           <Link href={`/profile/${account?.username}`}>
             <Image
-              src={account?.pfpURL ?? "/birblogo.png"}
+              src={account?.pfpURL}
               alt="User Image"
               width="30"
               height="30"

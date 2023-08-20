@@ -182,7 +182,7 @@ export default function Sidebar() {
       <div className="flex flex-col items-center">
         <Link className="mb-8" href={"/"}>
           <div className="flex items-center gap-2">
-            <Image src="/birblogo.png" alt="Logo" width="34" height="25" />
+            <Image src="/birblogo.png" alt="Titter Logo" width="34" height="25" />
             <h3 className="text-3xl">Titter</h3>
           </div>
         </Link>
@@ -316,10 +316,11 @@ export default function Sidebar() {
                           height="35"
                         />
                         <div className="flex flex-col max-w-[80%]">
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1">
                             <h4 className=" font-raleway font-semibold text-[1.20rem]">
                               {convo.user.username}
                             </h4>
+                            <span>·</span>
                             <span className="text-sm text-lightwht">
                               {formattedDistance}
                             </span>
