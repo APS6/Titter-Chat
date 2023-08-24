@@ -20,10 +20,11 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
   const [followedBy, setFollowedBy] = useState(false);
-  const router = useRouter()
+  const [found, setFound] = useState(true);
+  const router = useRouter();
 
-  if (!user){
-    router.push("/SignIn")
+  if (!user) {
+    router.push("/SignIn");
   }
   const sortPosts = (posts) => {
     return [...posts].sort(
@@ -41,18 +42,23 @@ export default function Profile() {
       try {
         document.title = `${username} | Titter The Chat App`;
         const userData = await fetchData(`UserProfile/${username}`);
-        setUserProfile(userData);
-        setUserPosts(sortPosts(userData.posts));
-        setUserLikes(sortLikedPosts(userData.likes));
-        setLoading(false);
-        const checkFollowing = userData.followedBy.find(
-          (u) => u.followerId === user.uid
-        );
-        const checkFollowedBy = userData.following.find(
-          (u) => u.followingId === user.uid
-        );
-        setFollowing(checkFollowing);
-        setFollowedBy(checkFollowedBy);
+        if (!userData) {
+          setFound(false);
+          setLoading(false);
+        } else {
+          setUserProfile(userData);
+          setUserPosts(sortPosts(userData.posts));
+          setUserLikes(sortLikedPosts(userData.likes));
+          setLoading(false);
+          const checkFollowing = userData.followedBy.find(
+            (u) => u.followerId === user.uid
+          );
+          const checkFollowedBy = userData.following.find(
+            (u) => u.followingId === user.uid
+          );
+          setFollowing(checkFollowing);
+          setFollowedBy(checkFollowedBy);
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -120,6 +126,19 @@ export default function Profile() {
       }
     }
   };
+
+  if (!found) {
+    return (
+      <div className="w-full h-full flex flex-col justify-center items-center gap-8">
+        <h2 className="text-4xl">User not found</h2>
+        <button
+          className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
+          onClick={() => router.back()}
+        >
+          Go Back
+        </button>
+      </div>)
+  } else {
   return (
     <div>
       <div>
@@ -192,7 +211,7 @@ export default function Profile() {
                   ) : (
                     ""
                   )}
-                   {/* mobile buttons */}
+                  {/* mobile buttons */}
                   <div className="md:hidden border border-lightwht rounded-full p-1">
                     {following ? (
                       <svg
@@ -418,5 +437,5 @@ export default function Profile() {
         )}
       </div>
     </div>
-  );
+  );}
 }

@@ -62,8 +62,13 @@ export default function Messages() {
       setPosts((prevPosts) => [...prevPosts, newPost]);
     });
 
+    ably.connection.on('disconnected', () => {
+      alert("Realtime disconnected. Try checking network and refreshing")
+  });
+
     return () => {
       channel.unsubscribe();
+      ably.connection.off();
       ably.close();
     };
   }, []);
