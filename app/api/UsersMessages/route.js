@@ -9,6 +9,13 @@ export async function GET(req) {
             include:{
                 sentDM: true,
                 receivedDM: true,
+            },
+            select: {
+                id: true,
+                username: true,
+                pfpURL: true,
+                email: false,
+                bio: false,
             }
         });
         return NextResponse.json(users, { status: 200 });

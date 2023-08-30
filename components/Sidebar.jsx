@@ -88,7 +88,7 @@ export default function Sidebar() {
   }, [accessToken]);
 
   useEffect(() => {
-    if (messages && users){
+    if (messages && users.length > 0){
     const userIDs = [
       ...new Set([
         ...messages.map((message) => message.sentById === user.uid ? message.sentToId : message.sentById),
@@ -107,7 +107,7 @@ export default function Sidebar() {
     setConversations(firstThree);
     setFetching(false);
   }
-  }, [messages])
+  }, [messages, users])
 
   useEffect(() => {
     if (user){

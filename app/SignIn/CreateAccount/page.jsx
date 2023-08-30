@@ -271,7 +271,7 @@ export default function CreateAccount() {
               </div>
               <UploadButton
                 className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
-                endpoint="imageUploader"
+                endpoint="pfpUploader"
                 onClientUploadComplete={(res) => {
                   setPfp(res[0].url);
                   if (
@@ -294,6 +294,9 @@ export default function CreateAccount() {
                 }}
                 onUploadError={(error) => {
                   alert(`ERROR! ${error.message}`);
+                }}
+                onUploadBegin={(name) => {
+                  setDisabled(true);
                 }}
               />
             </div>

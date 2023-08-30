@@ -10,7 +10,7 @@ const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("global");
 
 export default function Messages() {
-  const { user } = useAuthContext();
+  const { user, shrink } = useAuthContext();
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
@@ -47,7 +47,6 @@ export default function Messages() {
     };
     fetchPosts();
     fetchUsers();
-    
   }, []);
 
   useEffect(() => {
@@ -55,6 +54,11 @@ export default function Messages() {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [posts]);
+  const scroll = () => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
+  };
 
   useEffect(() => {
     channel.subscribe("new_post", (data) => {
@@ -62,9 +66,9 @@ export default function Messages() {
       setPosts((prevPosts) => [...prevPosts, newPost]);
     });
 
-    ably.connection.on('disconnected', () => {
-      alert("Realtime disconnected. Try checking network and refreshing")
-  });
+    ably.connection.on("disconnected", () => {
+      alert("Realtime disconnected. Try checking network and refreshing");
+    });
 
     return () => {
       channel.unsubscribe();
@@ -75,7 +79,9 @@ export default function Messages() {
 
   return (
     <div
-      className="flex flex-col gap-[.4rem] scroll-smooth h-[70svh] overflow-y-scroll"
+      className={`flex flex-col gap-[.4rem] scroll-smooth overflow-y-scroll ${
+        shrink ? "h-[65vh] sm:h-[60vh]" : "h-[70svh]"
+      }`}
       ref={messagesRef}
     >
       {posts.length !== 0 && users.length !== 0 ? (
@@ -83,7 +89,15 @@ export default function Messages() {
           const sender = users.find((u) => u.id === post.postedById) || {
             username: "DELETED",
           };
-          return <GlobalPost key={post.id} post={post} sender={sender} />;
+          return (
+            <GlobalPost
+              key={post.id}
+              post={post}
+              sender={sender}
+              images={post.images}
+              scroll = {scroll}
+            />
+          );
         })
       ) : (
         <div className="h-full w-full grid place-items-center">

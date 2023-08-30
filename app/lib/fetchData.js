@@ -7,6 +7,7 @@ export default async function fetchData(endpoint) {
         });
         if (response.status !== 200) {
             console.log("something went wrong");
+            throw new Error("Error fetching data")
         }
         return response.json()
     } catch (error) {

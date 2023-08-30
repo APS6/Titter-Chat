@@ -44,7 +44,15 @@ export async function POST(req) {
 
 export async function GET() {
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                pfpURL: true,
+                email: false,
+                bio: false,
+            }
+        });
         return NextResponse.json(users, { status: 200 });
     } catch (error) {
         console.error('Error retrieving users', error);

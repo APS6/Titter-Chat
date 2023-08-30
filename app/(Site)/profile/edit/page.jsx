@@ -15,7 +15,7 @@ export default function EditProfile() {
   const [disabled, setDisabled] = useState(true);
   const { user, accessToken } = useAuthContext();
   const [tip, setTip] = useState("");
-  const [pfp, setPfp] = useState()
+  const [pfp, setPfp] = useState();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function EditProfile() {
   useEffect(() => {
     const foundUser = users.find((u) => u.id === user?.uid);
     setUserProfile(foundUser);
-    setPfp(foundUser?.pfpURL)
+    setPfp(foundUser?.pfpURL);
     setUsername(foundUser?.username);
     setBio(foundUser?.bio);
   }, [users, user]);
@@ -150,29 +150,35 @@ export default function EditProfile() {
                 </svg>
               </div>
               <UploadButton
-              className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
-                  endpoint="imageUploader"
-                  onClientUploadComplete={(res) => {
-                    setPfp(res[0].url)
-                    if (username.length >= 3 && username.length <= 9 && bio.length < 61) {
-                      setDisabled(false);
-                      setTip("");
-                    } else if (bio.length > 60) {
-                      setDisabled(true);
-                      setTip("Bio cannot be longer than 60 characters");
-                    } else if (username.length < 3) {
-                      setDisabled(true);
-                      setTip("Username must be minimum 3 characters.");
-                    } else if (username.length > 9) {
-                      setDisabled(true);
-                      setTip("Username must be maximum 9 characters.");
-                    }
-                  }}
-                  onUploadError={(error) => {
-                    // Do something with the error.
-                    alert(`ERROR! ${error.message}`);
-                  }}
-                />
+                className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
+                endpoint="pfpUploader"
+                onClientUploadComplete={(res) => {
+                  setPfp(res[0].url);
+                  if (
+                    username.length >= 3 &&
+                    username.length <= 9 &&
+                    bio.length < 61
+                  ) {
+                    setDisabled(false);
+                    setTip("");
+                  } else if (bio.length > 60) {
+                    setDisabled(true);
+                    setTip("Bio cannot be longer than 60 characters");
+                  } else if (username.length < 3) {
+                    setDisabled(true);
+                    setTip("Username must be minimum 3 characters.");
+                  } else if (username.length > 9) {
+                    setDisabled(true);
+                    setTip("Username must be maximum 9 characters.");
+                  }
+                }}
+                onUploadError={(error) => {
+                  alert(`ERROR! ${error.message}`);
+                }}
+                onUploadBegin={() => {
+                  setDisabled(true)
+                }}
+              />
             </div>
           ) : (
             <svg

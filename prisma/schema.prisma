@@ -25,12 +25,22 @@ model User {
 model Post {
   id         String   @id @unique @default(uuid())
   content    String   @db.Text
+  images Image[]  
   postedAt   DateTime @default(now())
   postedBy   User     @relation("UserPosts", fields: [postedById], references: [id])
   postedById String
   likes      Like[]
 
   @@index([postedById])
+}
+
+model Image {
+  id        String @id @unique @default(uuid())
+  imageUrl  String
+  post      Post   @relation(fields: [postId], references: [id])
+  postId    String
+
+  @@index([postId])
 }
 
 model Like {

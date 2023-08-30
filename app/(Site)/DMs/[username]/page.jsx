@@ -25,6 +25,8 @@ export default function DMUser({ params }) {
   const [fetching, setFetching] = useState(true);
   const messagesRef = useRef(null);
   const [found, setFound] = useState(true);
+  const [inputDisabled, setInputDisabled] = useState(false);
+
   const sortMessages = (Messages) => {
     return [...Messages].sort(
       (a, b) => new Date(a.sentAt) - new Date(b.sentAt)
@@ -54,7 +56,7 @@ export default function DMUser({ params }) {
               setCurrentUser(currentU);
               setChatUser(chatU);
             } else {
-              router.back();
+              setInputDisabled(true);
             }
           }
         } catch (error) {
@@ -119,9 +121,14 @@ export default function DMUser({ params }) {
   if (!found) {
     return (
       <div className="w-full h-full flex flex-col justify-center items-center gap-8">
-      <h2 className="text-4xl">User does not exist</h2>
-      <button className="text-lg bg-purple rounded-md text-lightwht py-2 px-4" onClick={() => router.back()}>Go Back</button>
-    </div>
+        <h2 className="text-4xl">User does not exist</h2>
+        <button
+          className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
+          onClick={() => router.back()}
+        >
+          Go Back
+        </button>
+      </div>
     );
   } else {
     return (
@@ -330,6 +337,7 @@ export default function DMUser({ params }) {
           sendingTo={chatUser.id}
           cUsername={username}
           username={currentUser?.username}
+          disabled={inputDisabled}
         />
       </div>
     );

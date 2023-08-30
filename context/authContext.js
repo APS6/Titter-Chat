@@ -11,34 +11,35 @@ const AuthContext = createContext();
 
 
 const useAuthContext = () => {
-    return useContext(AuthContext);
-  };
+  return useContext(AuthContext);
+};
 
-  
+
 const AuthContextProvider = ({ children }) => {
-    const [user, loading, error] = useAuthState(auth);
-    const [accessToken, setAccessToken] = useState("");
-
-    useEffect(() => {
-      if (user) {
-        user.getIdToken().then((token) => {
-          setAccessToken(token);
-        }).catch((error) => {
-          console.error('Error getting access token:', error);
-        });
-      }
-    }, [user]);
-
-    if (loading) {
-      return null;
+  const [user, loading, error] = useAuthState(auth);
+  const [accessToken, setAccessToken] = useState("");
+  // Not so auth stuff
+  const [shrink, setShrink] = useState(false)
+  useEffect(() => {
+    if (user) {
+      user.getIdToken().then((token) => {
+        setAccessToken(token);
+      }).catch((error) => {
+        console.error('Error getting access token:', error);
+      });
     }
-  
-    if (error) {
-      console.error('Authentication Error:', error);
-    }
+  }, [user]);
+
+  if (loading) {
+    return null;
+  }
+
+  if (error) {
+    console.error('Authentication Error:', error);
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, accessToken }}>
+    <AuthContext.Provider value={{ user, loading, accessToken, shrink, setShrink }}>
       {children}
     </AuthContext.Provider>
   );

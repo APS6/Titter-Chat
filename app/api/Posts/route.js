@@ -20,12 +20,24 @@ export async function POST(req) {
         if (!userId) {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
         } else if (userId === body.postedById) {
-            const newPost = await prisma.post.create({
-                data: {
-                    content: body.content,
-                    postedById: body.postedById,
+            const postData = {
+                content: body.content,
+                postedById: body.postedById,
+            }
+            if (body.images.length > 0) {
+                postData.images = {
+                    create:
+                        images.map((img) => { imageUrl = img.imageUrl })
+                    ,
                 }
-            })
+            }
+            const newPost = await prisma.post.create({
+                data: postData,
+                include: {
+                    images: true,
+                }
+            }
+            )
             channel.publish('new_post', newPost);
             return NextResponse.json(newPost, { success: true }, { status: 200 });
         }
@@ -43,6 +55,7 @@ export async function GET() {
         const posts = await prisma.post.findMany({
             include: {
                 likes: true,
+                images: true,
             }
         });
         return NextResponse.json(posts, { status: 200 });
