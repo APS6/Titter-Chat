@@ -16,6 +16,7 @@ export async function GET(req, {params}) {
                 posts: {
                     include: {
                         likes: true,
+                        images: true,
                     }
                 },
                 followedBy: true,

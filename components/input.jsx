@@ -62,7 +62,7 @@ export default function Input() {
         (img) => img.imageUrl !== image.imageUrl
       );
       setImages(filteredImages);
-      if (images.length === 0) {
+      if (filteredImages.length === 0) {
         setShrink(false)
       }
       const body = {

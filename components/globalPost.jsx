@@ -172,7 +172,7 @@ export default function GlobalPost({ post, sender, images, scroll }) {
               return (
                 <a key={image.id} href={image.imageUrl} target="blank">
                   <Image
-                    onLoadingComplete={() => scroll()}
+                    onLoadingComplete={scroll ? () => scroll() : ""}
                     src={image.imageUrl}
                     alt="Posted Image"
                     width={imageDimensions}

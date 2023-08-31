@@ -18,15 +18,15 @@ export default function CreateAccount() {
   const [pfp, setPfp] = useState(user.photoURL);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsernames = async () => {
       try {
-        const usersData = await fetchData("User");
+        const usersData = await fetchData("UsernamesId");
         setUsers(usersData);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
-    fetchUsers();
+    fetchUsernames();
   }, []);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function CreateAccount() {
     } else {
       setLoading(false);
     }
-  }, [users, user]);
+  }, [user]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -270,7 +270,13 @@ export default function CreateAccount() {
                 </svg>
               </div>
               <UploadButton
-                className="absolute top-1/2 left-1/2 -translate-y-[28%] -translate-x-1/2 w-7 opacity-0 overflow-hidden cursor-default rounded-full"
+               appearance={{
+                button:
+                  "text-[1px] w-full h-full",
+                container: "",
+                allowedContent: "hidden",
+              }}
+                className="absolute top-1/2 left-1/2 -translate-y-[50%] -translate-x-1/2 w-7 h-7 opacity-0 overflow-hidden cursor-default rounded-full"
                 endpoint="pfpUploader"
                 onClientUploadComplete={(res) => {
                   setPfp(res[0].url);

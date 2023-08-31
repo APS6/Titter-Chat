@@ -421,13 +421,13 @@ export default function Profile() {
               username: "DELETED",
             };
             return (
-              <GlobalPost key={like.post.id} post={like.post} sender={sender} />
+              <GlobalPost key={like.post.id} post={like.post} sender={sender} images={like.post.images}/>
             );
           })
         ) : !showLikes ? (
           userPosts.map((post) => {
             return (
-              <GlobalPost key={post.id} post={post} sender={userProfile} />
+              <GlobalPost key={post.id} post={post} sender={userProfile} images={post.images}/>
             );
           })
         ) : (
