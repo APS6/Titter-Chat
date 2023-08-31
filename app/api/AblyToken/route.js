@@ -17,3 +17,5 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Error generating Web Socket Token', success: false }, { status: 500 });
     }
 }
+
+// this does not work lmk if can make it work

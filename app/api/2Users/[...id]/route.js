@@ -24,15 +24,13 @@ export async function GET(req, { params }) {
                         },
                     ]
                 },
-                include: {
-                    followedBy: true,
-                },
                 select: {
                     id: true,
                     username: true,
                     pfpURL: true,
                     email: false,
                     bio: false,
+                    followedBy: true,
                 }
             }
             );

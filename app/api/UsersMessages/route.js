@@ -6,16 +6,14 @@ const prisma = new PrismaClient()
 export async function GET(req) {
     try {
         const users = await prisma.user.findMany({
-            include:{
-                sentDM: true,
-                receivedDM: true,
-            },
             select: {
                 id: true,
                 username: true,
                 pfpURL: true,
                 email: false,
                 bio: false,
+                sentDM: true,
+                receivedDM: true,
             }
         });
         return NextResponse.json(users, { status: 200 });
