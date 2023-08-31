@@ -3,6 +3,7 @@ import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
 import Loading from "./loading";
 import { Suspense } from "react";
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
   title: "Titter | The chat app",
@@ -18,7 +19,10 @@ export default function RootLayout({ children }) {
           <div className="h-[100svh] w-full p-4 flex flex-col md:flex-row gap-4">
             <Navigation />
             <main className="w-full md:w-3/4 max-w-4xl m-auto md:px-5 h-full">
-              <Suspense fallback={<Loading />}>{children}</Suspense>
+              <Suspense fallback={<Loading />}>
+                {children}
+                <Analytics />
+              </Suspense>
             </main>
           </div>
         </AuthContextProvider>

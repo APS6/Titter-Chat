@@ -25,12 +25,14 @@ export async function POST(req) {
                 postedById: body.postedById,
             }
             if (body.images.length > 0) {
+                const imageArray = body.images.map((img) => { return { imageUrl: img.imageUrl } })
                 postData.images = {
                     create:
-                        images.map((img) => { imageUrl = img.imageUrl })
+                        imageArray
                     ,
                 }
             }
+            console.log(postData)
             const newPost = await prisma.post.create({
                 data: postData,
                 include: {
