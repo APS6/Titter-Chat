@@ -80,7 +80,7 @@ export default function Messages() {
   return (
     <div
       className={`flex flex-col gap-[.4rem] scroll-smooth overflow-y-scroll ${
-        shrink ? "h-[65vh] sm:h-[60vh]" : "h-[70svh]"
+        shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
       }`}
       ref={messagesRef}
     >

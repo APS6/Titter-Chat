@@ -115,14 +115,14 @@ export default function Input() {
         ""
       )}
       <div
-        className={`bg-grey rounded outline-none flex items-center gap-2 px-2 ${
+        className={`bg-grey py-1 rounded outline-none flex items-center gap-2 px-2 ${
           typing ? "outline-1 outline-lightwht outline-offset-0" : ""
         }`}
       >
         <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
           <Dialog.Trigger
             disabled={images.length === 4}
-            className={images.length === 4 ? "text-[#a5a5a5] cursor-not-allowed" : ""}
+            className={`hover:bg-[#343434] rounded-full p-1 ${images.length === 4 ? "text-[#a5a5a5] cursor-not-allowed" : ""}`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -203,11 +203,11 @@ export default function Input() {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           type="text"
           placeholder="Write a tit"
-          className="rounded w-full py-2 bg-grey outline-none"
+          className="rounded w-full bg-grey outline-none"
         />
         <div
           onClick={() => sendMessage()}
-          className={`cursor-pointer ${
+          className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 ${
             message.length === 0 && images.length === 0
               ? "text-[#a5a5a5] cursor-not-allowed"
               : "text-lightwht"

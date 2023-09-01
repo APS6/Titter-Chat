@@ -196,7 +196,7 @@ export default function Sidebar() {
           </div>
         </Link>
         <Link className="w-full" href="/Home">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hover:bg-[#343434] rounded-full px-2">
             <div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -215,7 +215,7 @@ export default function Sidebar() {
           </div>
         </Link>
         <Link className="w-full mt-2" href="/DMs">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hover:bg-[#343434] rounded-full px-2">
             <div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -316,7 +316,7 @@ export default function Sidebar() {
                       href={`/DMs/${convo.user.username}`}
                       key={convo.user.id}
                     >
-                      <div className="mt-4 flex items-center gap-2 w-40">
+                      <div className="mt-4 flex items-center gap-2 w-44 px-1 hover:bg-[#343434] rounded-lg">
                         <Image
                           className="rounded-full w-[35px] h-[35px] object-cover"
                           src={convo.user.pfpURL}
@@ -351,8 +351,11 @@ export default function Sidebar() {
           )}
         </div>
       </div>
-      <div className="flex gap-2">
-        <Link href={`/profile/${account?.username}`}>
+      <div className="flex items-center">
+        <Link
+          className="flex gap-2 p-2 rounded-full hover:bg-[#343434]"
+          href={`/profile/${account?.username}`}
+        >
           {account.pfpURL ? (
             <Image
               src={account?.pfpURL}
@@ -376,20 +379,20 @@ export default function Sidebar() {
           )}
           <h2 className="font-mont text-xl">{account?.username ?? "You"}</h2>
         </Link>
-        <svg
-          onClick={() => handleSignOut()}
-          className="cursor-pointer"
-          xmlns="http://www.w3.org/2000/svg"
-          width="25"
-          height="25"
-          viewBox="0 0 25 25"
-          fill="none"
-        >
-          <path
-            d="M5.20833 5.20833H12.5V3.125H5.20833C4.0625 3.125 3.125 4.0625 3.125 5.20833V19.7917C3.125 20.9375 4.0625 21.875 5.20833 21.875H12.5V19.7917H5.20833V5.20833ZM21.875 12.5L17.7083 8.33333V11.4583H9.375V13.5417H17.7083V16.6667L21.875 12.5Z"
-            fill="white"
-          />
-        </svg>
+        <div onClick={() => handleSignOut()} className="cursor-pointer py-2 px-1 rounded-full hover:bg-[#343434]">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="25"
+            height="25"
+            viewBox="0 0 30 30"
+            fill="none"
+          >
+            <path
+              d="M5.20833 5.20833H12.5V3.125H5.20833C4.0625 3.125 3.125 4.0625 3.125 5.20833V19.7917C3.125 20.9375 4.0625 21.875 5.20833 21.875H12.5V19.7917H5.20833V5.20833ZM21.875 12.5L17.7083 8.33333V11.4583H9.375V13.5417H17.7083V16.6667L21.875 12.5Z"
+              fill="white"
+            />
+          </svg>
+        </div>
       </div>
     </div>
   );
