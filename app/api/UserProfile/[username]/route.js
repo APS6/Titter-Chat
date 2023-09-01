@@ -10,7 +10,12 @@ export async function GET(req, {params}) {
             include: {
                 likes: {
                     include: {
-                        post: true,
+                        post: {
+                            include: {
+                                likes: true,
+                                images: true,
+                            }
+                        },
                     }
                 },
                 posts: {
