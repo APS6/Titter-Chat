@@ -382,9 +382,9 @@ export default function Sidebar() {
         <div onClick={() => handleSignOut()} className="cursor-pointer py-2 px-1 rounded-full hover:bg-[#343434]">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="25"
-            height="25"
-            viewBox="0 0 30 30"
+            width="30"
+            height="30"
+            viewBox="0 0 25 25"
             fill="none"
           >
             <path
