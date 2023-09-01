@@ -277,7 +277,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-3 scroll-smooth h-[60svh] overflow-y-scroll mt-4">
+      <div className="flex flex-col gap-[.4rem] scroll-smooth h-[60svh] overflow-y-scroll mt-4">
         {loading ? (
           <div className="h-full w-full grid place-items-center">
             <svg
