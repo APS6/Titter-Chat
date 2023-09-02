@@ -7,18 +7,18 @@
 @layer base {
   body {
     font-family: "Source Sans 3", sans-serif;
-    color: #EDE4E4;
+    color: #ede4e4;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: 'Montserrat', sans-serif;
+    font-family: "Montserrat", sans-serif;
     color: #ffffff;
   }
 }
-.active::after{
+.active::after {
   content: "";
   position: absolute;
   bottom: -1px;
@@ -26,25 +26,25 @@
   right: 0;
   width: 100%;
   height: 4px;
-  background-color: #6B01B8;
+  background-color: #6b01b8;
   border-radius: 4px;
 }
 
 @keyframes loading {
   0% {
-    background: linear-gradient(to right, #6B01B8 0%, #0f0d0d 0%);
+    background: linear-gradient(to right, #6b01b8 0%, #0f0d0d 0%);
   }
   100% {
-    background: linear-gradient(to right, #6B01B8 60%, #0f0d0d 60%);
+    background: linear-gradient(to right, #6b01b8 60%, #0f0d0d 60%);
   }
 }
 
 @keyframes loaded {
   0% {
-    background: linear-gradient(to right, #6B01B8 60%, #0f0d0d 60%);
+    background: linear-gradient(to right, #6b01b8 60%, #0f0d0d 60%);
   }
   100% {
-    background: linear-gradient(to right, #6B01B8 100%, #0f0d0d 100%);
+    background: linear-gradient(to right, #6b01b8 100%, #0f0d0d 100%);
   }
 }
 
@@ -53,5 +53,18 @@
 }
 
 .animate-loaded {
-  animation: loaded .5s ease forwards;
+  animation: loaded 0.5s ease forwards;
+}
+
+.gradient::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  top: 0%;
+  bottom: 10%;
+  width: 150%;
+  left: -25%;
+  background: linear-gradient(83.21deg, #3245ff 0%, #bc52ee 100%);
+  -webkit-mask-image: radial-gradient(rgba(0, 0, 0, 0.45), transparent 70%);
+  mask-image: radial-gradient(rgba(0, 0, 0, 0.45), transparent 70%);
 }

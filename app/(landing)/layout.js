@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className='bg-[#000]'>
         <Nav />
-        <main className='w-full max-w-5xl m-auto px-5'>
+        <main className='w-full max-w-5xl m-auto px-5 gradient overflow-x-hidden'>
             {children}
         </main>
       </body>
