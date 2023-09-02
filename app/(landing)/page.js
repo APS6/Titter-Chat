@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="h-screen grid place-items-center">
       <div className="flex flex-col items-center md:w-3/4">
-      <h1 className="text-5xl sm:text-7xl text-center text-bold">
+      <h1 className="text-5xl sm:text-7xl text-center font-bold">
         Titter Chat <br /> The Birb App
       </h1>
       <p className="mt-10 mb-8 text-lg md:text-xl text-center">
