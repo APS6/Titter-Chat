@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import Ably from "ably";
 import Image from "next/image";
 import Link from "next/link";
+import * as Dialog from "@radix-ui/react-dialog";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("dm");
@@ -27,11 +28,14 @@ export default function DMUser({ params }) {
   const [found, setFound] = useState(true);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [shrink, setShrink] = useState(false);
+  const [selectedUrl, setSelectedUrl] = useState("");
+
   const sortMessages = (Messages) => {
     return [...Messages].sort(
       (a, b) => new Date(a.sentAt) - new Date(b.sentAt)
     );
   };
+
   useEffect(() => {
     if (accessToken.length > 1) {
       const fetchUsers = async () => {
@@ -92,7 +96,7 @@ export default function DMUser({ params }) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
-  
+
   const scroll = () => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
@@ -197,13 +201,13 @@ export default function DMUser({ params }) {
                     ) : (
                       ""
                     )}
-                    {images
-                      ? images.map((image) => {
+                    {images ? (
+                      <Dialog.Root>
+                        {images.map((image) => {
                           return (
-                            <Link
-                              href={image.imageUrl}
+                            <Dialog.Trigger
+                              onClick={() => setSelectedUrl(image.imageUrl)}
                               key={image.id}
-                              className="w-full"
                             >
                               <Image
                                 className="object-contain rounded w-full h-auto"
@@ -214,10 +218,33 @@ export default function DMUser({ params }) {
                                 sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 474px"
                                 onLoadingComplete={scroll()}
                               />
-                            </Link>
+                            </Dialog.Trigger>
                           );
-                        })
-                      : ""}
+                        })}
+                        <Dialog.Portal>
+                          <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90" />
+                          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                            <Image
+                              className="object-contain"
+                              src={selectedUrl}
+                              alt="Image"
+                              width="1000"
+                              height="1000"
+                              sizes="95vw"
+                            />
+                            <a
+                              className="text-md text-[#4270d1] mt-1"
+                              href={selectedUrl}
+                              target="blank"
+                            >
+                              Open in Browser
+                            </a>
+                          </Dialog.Content>
+                        </Dialog.Portal>
+                      </Dialog.Root>
+                    ) : (
+                      ""
+                    )}
                     <div
                       className={`flex ${
                         received ? "justify-start ml-1" : "justify-end mr-1"
