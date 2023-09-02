@@ -78,6 +78,7 @@ export default function Input() {
       }
     }
   };
+
   return (
     <div className="flex flex-col gap-2 bg-grey rounded">
       {images.length > 0 ? (
@@ -185,9 +186,6 @@ export default function Input() {
                   }}
                   onUploadError={(error) => {
                     alert(`ERROR! ${error.message}`);
-                  }}
-                  onUploadBegin={(name) => {
-                    console.log("Uploading: ", name);
                   }}
                 />
               </div>

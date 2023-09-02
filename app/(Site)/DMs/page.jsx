@@ -17,9 +17,8 @@ export default function DMs() {
   const [account, setAccount] = useState({});
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState()
-  const [messages, setMessages] = useState()
-
+  const [users, setUsers] = useState();
+  const [messages, setMessages] = useState();
 
   const getLatestMessage = (userConvo) => {
     const filter1 = messages.filter(
@@ -41,7 +40,7 @@ export default function DMs() {
       try {
         const usersData = await fetchData("User");
         const acc = usersData.find((u) => u.id === user.uid);
-        setUsers(usersData)
+        setUsers(usersData);
         if (acc) {
           setAccount(acc);
         }
@@ -54,37 +53,40 @@ export default function DMs() {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (accessToken.length > 1){
-      try {
-        const messagesData = await fetchData(`messages/${accessToken}`)
-        setMessages(messagesData)
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }} 
+      if (accessToken.length > 1) {
+        try {
+          const messagesData = await fetchData(`messages/${accessToken}`);
+          setMessages(messagesData);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      }
     };
     fetchMessages();
   }, [accessToken]);
 
   useEffect(() => {
-    if (messages && users){
-    const userIDs = [
-      ...new Set([
-        ...messages.map((message) => message.sentById === user.uid ? message.sentToId : message.sentById),
-      ]),
-    ];
-    const conversationsData = userIDs.map((userID) => {
-      const userConvo = users.find((u) => u.id === userID);
-      const lastMessage = getLatestMessage(userConvo);
-      return { user: userConvo, lastMessage };
-    });
-    const sortedData = conversationsData.sort(
-      (a, b) =>
-        new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
-    );
-    setConversations(sortedData);
-    setLoading(false);
-  }
-  }, [messages, users])
+    if (messages && users) {
+      const userIDs = [
+        ...new Set([
+          ...messages.map((message) =>
+            message.sentById === user.uid ? message.sentToId : message.sentById
+          ),
+        ]),
+      ];
+      const conversationsData = userIDs.map((userID) => {
+        const userConvo = users.find((u) => u.id === userID);
+        const lastMessage = getLatestMessage(userConvo);
+        return { user: userConvo, lastMessage };
+      });
+      const sortedData = conversationsData.sort(
+        (a, b) =>
+          new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
+      );
+      setConversations(sortedData);
+      setLoading(false);
+    }
+  }, [messages, users]);
 
   return (
     <>
@@ -225,6 +227,11 @@ export default function DMs() {
                   const sentAt = new Date(convo.lastMessage.sentAt);
                   const currentDate = new Date();
 
+                  let content = convo.lastMessage.content;
+                  if (content.length === 0) {
+                    content = "(image)";
+                  }
+
                   let formattedDistance = "";
                   const minutesDifference = differenceInMinutes(
                     currentDate,
@@ -279,7 +286,7 @@ export default function DMs() {
                             </span>
                           </div>
                           <span className="w-full whitespace-nowrap overflow-hidden text-ellipsis">
-                            {conversations ? convo.lastMessage.content : ""}
+                            {conversations ? content : ""}
                           </span>
                         </div>
                       </div>

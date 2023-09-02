@@ -20,17 +20,26 @@ export async function POST(req) {
         if (!userId) {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
         } else if (userId === body.sentById) {
+            const messageData = {
+                content: body.content,
+                sentById: body.sentById,
+                sentToId: body.sentToId
+            }
+            if (body.images.length > 0) {
+                const imageArray = body.images.map((img) => { return { imageUrl: img.imageUrl } })
+                messageData.images = {
+                    create: imageArray,
+                }
+            }
             const newMessage = await prisma.directMessage.create({
-                data: {
-                    content: body.content,
-                    sentById: body.sentById,
-                    sentToId: body.sentToId
+                data: messageData,
+                include: {
+                    images: true,
                 }
             })
             newMessage.sentByUsername = body.sentByUsername
             channel.publish(`m_${body.sentById}_${body.sentToUsername}`, newMessage);
             channel.publish(`m_${body.sentToId}`, newMessage);
-
             channel.publish(`ms_${body.sentById}`, newMessage);
             channel.publish(`mr_${body.sentToId}`, newMessage);
             return NextResponse.json(newMessage, { success: true }, { status: 200 });

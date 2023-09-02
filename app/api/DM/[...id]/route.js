@@ -13,7 +13,7 @@ export async function GET(req, {params}) {
         if (!userId) {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
         } else if (userId){
-        const posts = await prisma.directMessage.findMany({
+        const messages = await prisma.directMessage.findMany({
             where: {
                 OR: [
                     {
@@ -25,10 +25,13 @@ export async function GET(req, {params}) {
                         sentToId: userId,
                     },
                 ]
+            },
+            include: {
+                images: true,
             }
         }
         );
-        return NextResponse.json(posts, { status: 200 });}
+        return NextResponse.json(messages, { status: 200 });}
     } catch (error) {
         console.error('Error retrieving messages', error);
         return NextResponse.json({ error: 'Error retrieving messages', success: false }, { status: 500 });

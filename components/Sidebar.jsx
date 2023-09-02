@@ -279,7 +279,10 @@ export default function Sidebar() {
                 conversations.map((convo) => {
                   const sentAt = new Date(convo.lastMessage.sentAt);
                   const currentDate = new Date();
-
+                  let content = convo.lastMessage.content
+                  if (content.length === 0) {
+                    content = "(image)"
+                  }
                   let formattedDistance = "";
                   const minutesDifference = differenceInMinutes(
                     currentDate,
@@ -335,7 +338,7 @@ export default function Sidebar() {
                             </span>
                           </div>
                           <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                            {conversations ? convo.lastMessage.content : ""}
+                            {conversations ? content : ""}
                           </span>
                         </div>
                       </div>

@@ -26,7 +26,7 @@ export default function DMUser({ params }) {
   const messagesRef = useRef(null);
   const [found, setFound] = useState(true);
   const [inputDisabled, setInputDisabled] = useState(false);
-
+  const [shrink, setShrink] = useState(false);
   const sortMessages = (Messages) => {
     return [...Messages].sort(
       (a, b) => new Date(a.sentAt) - new Date(b.sentAt)
@@ -92,7 +92,12 @@ export default function DMUser({ params }) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages]);
-
+  
+  const scroll = () => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
+  };
   useEffect(() => {
     if (user) {
       channel.subscribe(`m_${user.uid}_${username}`, (data) => {
@@ -151,7 +156,9 @@ export default function DMUser({ params }) {
             </div>
           </Link>
           <div
-            className="flex flex-col gap-4 scroll-smooth h-[70svh] overflow-y-scroll"
+            className={`flex flex-col gap-4 scroll-smooth overflow-y-scroll ${
+              shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
+            }`}
             ref={messagesRef}
           >
             {!fetching ? (
@@ -168,6 +175,7 @@ export default function DMUser({ params }) {
                   localPostedAt,
                   "MMM, d, yyyy, hh:mm aa"
                 );
+                const images = message.images;
                 return (
                   <div
                     key={message.id}
@@ -175,16 +183,41 @@ export default function DMUser({ params }) {
                       received ? "self-start items-start" : "self-end items-end"
                     }`}
                   >
-                    <div
-                      className={`bg-grey rounded-3xl px-4 py-4 max-w-full
+                    {message.content.length !== 0 ? (
+                      <div
+                        className={`bg-grey rounded-3xl px-4 py-4 max-w-full
                     ${
                       received
                         ? "rounded-bl-[4px]"
                         : " bg-purple rounded-br-[4px]"
                     }`}
-                    >
-                      <p className="break-words">{message.content}</p>
-                    </div>
+                      >
+                        <p className="break-words">{message.content}</p>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                    {images
+                      ? images.map((image) => {
+                          return (
+                            <Link
+                              href={image.imageUrl}
+                              key={image.id}
+                              className="w-full"
+                            >
+                              <Image
+                                className="object-contain rounded w-full h-auto"
+                                src={image.imageUrl}
+                                alt="Image"
+                                width="300"
+                                height="300"
+                                sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 474px"
+                                onLoadingComplete={scroll()}
+                              />
+                            </Link>
+                          );
+                        })
+                      : ""}
                     <div
                       className={`flex ${
                         received ? "justify-start ml-1" : "justify-end mr-1"
@@ -338,6 +371,7 @@ export default function DMUser({ params }) {
           cUsername={username}
           username={currentUser?.username}
           disabled={inputDisabled}
+          setShrink={setShrink}
         />
       </div>
     );

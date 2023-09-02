@@ -16,8 +16,8 @@ model User {
   pfpURL     String
   posts      Post[]          @relation("UserPosts")
   likes      Like[]
-  followedBy Follows[] @relation("following")
-  following  Follows[] @relation("follower")
+  followedBy Follows[]       @relation("following")
+  following  Follows[]       @relation("follower")
   sentDM     DirectMessage[] @relation("sentby")
   receivedDM DirectMessage[] @relation("sentto")
 }
@@ -25,7 +25,7 @@ model User {
 model Post {
   id         String   @id @unique @default(uuid())
   content    String   @db.Text
-  images Image[]  
+  images     Image[]
   postedAt   DateTime @default(now())
   postedBy   User     @relation("UserPosts", fields: [postedById], references: [id])
   postedById String
@@ -35,10 +35,10 @@ model Post {
 }
 
 model Image {
-  id        String @id @unique @default(uuid())
-  imageUrl  String
-  post      Post   @relation(fields: [postId], references: [id])
-  postId    String
+  id       String @id @unique @default(uuid())
+  imageUrl String
+  post     Post   @relation(fields: [postId], references: [id])
+  postId   String
 
   @@index([postId])
 }
@@ -55,9 +55,9 @@ model Like {
 }
 
 model Follows {
-  follower    User @relation("follower", fields: [followerId], references: [id])
+  follower    User   @relation("follower", fields: [followerId], references: [id])
   followerId  String
-  following   User @relation("following", fields: [followingId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id])
   followingId String
 
   @@id([followerId, followingId])
@@ -66,14 +66,24 @@ model Follows {
 }
 
 model DirectMessage {
-  id       String   @id @unique @default(uuid())
-  content  String   @db.Text
-  sentAt   DateTime @default(now())
-  sentBy   User     @relation("sentby", fields: [sentById], references: [id])
+  id       String    @id @unique @default(uuid())
+  content  String    @db.Text
+  sentAt   DateTime  @default(now())
+  sentBy   User      @relation("sentby", fields: [sentById], references: [id])
   sentById String
-  sentTo   User     @relation("sentto", fields: [sentToId], references: [id])
+  sentTo   User      @relation("sentto", fields: [sentToId], references: [id])
   sentToId String
+  images   DMImage[]
 
   @@index([sentById])
   @@index([sentToId])
+}
+
+model DMImage {
+  id        String        @id @unique @default(uuid())
+  imageUrl  String
+  message   DirectMessage @relation(fields: [messageId], references: [id])
+  messageId String
+
+  @@index([messageId])
 }

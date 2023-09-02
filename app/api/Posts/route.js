@@ -32,7 +32,6 @@ export async function POST(req) {
                     ,
                 }
             }
-            console.log(postData)
             const newPost = await prisma.post.create({
                 data: postData,
                 include: {
