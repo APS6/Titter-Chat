@@ -15,6 +15,8 @@ export default function Messages() {
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
   const messagesRef = useRef(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  
   if (!user) {
     router.push("/SignIn");
   }
@@ -49,16 +51,56 @@ export default function Messages() {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
-  }, [posts]);
-  const scroll = () => {
-    if (messagesRef.current) {
+useEffect(() => {
+  const scrollToBottom = () => {
+    if (!userScrolledUp && messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   };
+
+  // Scroll to the bottom whenever posts change
+  scrollToBottom();
+
+  const images = messagesRef.current?.querySelectorAll('img');
+
+  const handleImageLoad = () => {
+    // Scroll to the bottom when an image finishes loading
+    scrollToBottom();
+  };
+
+  if (images) {
+    // Attach a load event listener to each image element
+    images.forEach(img => {
+      img.addEventListener('load', handleImageLoad);
+    });
+  }
+
+  const handleScroll = () => {
+    // Check if the user has scrolled up
+    if (messagesRef.current) {
+      setUserScrolledUp(messagesRef.current.scrollTop > 50);
+    }
+  };
+
+  // Attach a scroll event listener to detect user scrolling
+  if (messagesRef.current) {
+    messagesRef.current.addEventListener('scroll', handleScroll);
+  }
+
+  // Cleanup: remove load and scroll event listeners when the component unmounts
+  return () => {
+    if (images) {
+      images.forEach(img => {
+        img.removeEventListener('load', handleImageLoad);
+      });
+    }
+
+    if (messagesRef.current) {
+      messagesRef.current.removeEventListener('scroll', handleScroll);
+    }
+  };
+}, [posts]);
+  
 
   useEffect(() => {
     channel.subscribe("new_post", (data) => {
@@ -95,7 +137,6 @@ export default function Messages() {
               post={post}
               sender={sender}
               images={post.images}
-              scroll = {scroll}
             />
           );
         })

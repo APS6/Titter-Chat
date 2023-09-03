@@ -25,6 +25,7 @@ export default function DMUser({ params }) {
   const [chatUser, setChatUser] = useState({});
   const [fetching, setFetching] = useState(true);
   const messagesRef = useRef(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [found, setFound] = useState(true);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [shrink, setShrink] = useState(false);
@@ -91,10 +92,55 @@ export default function DMUser({ params }) {
     fetchMessages();
   }, [chatUser]);
 
+
   useEffect(() => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    const scrollToBottom = () => {
+      if (!userScrolledUp && messagesRef.current) {
+        messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+      }
+    };
+  
+    // Scroll to the bottom whenever posts change
+    scrollToBottom();
+  
+    const images = messagesRef.current?.querySelectorAll('img');
+  
+    const handleImageLoad = () => {
+      // Scroll to the bottom when an image finishes loading
+      scrollToBottom();
+    };
+  
+    if (images) {
+      // Attach a load event listener to each image element
+      images.forEach(img => {
+        img.addEventListener('load', handleImageLoad);
+      });
     }
+  
+    const handleScroll = () => {
+      // Check if the user has scrolled up
+      if (messagesRef.current) {
+        setUserScrolledUp(messagesRef.current.scrollTop > 50);
+      }
+    };
+  
+    // Attach a scroll event listener to detect user scrolling
+    if (messagesRef.current) {
+      messagesRef.current.addEventListener('scroll', handleScroll);
+    }
+  
+    // Cleanup: remove load and scroll event listeners when the component unmounts
+    return () => {
+      if (images) {
+        images.forEach(img => {
+          img.removeEventListener('load', handleImageLoad);
+        });
+      }
+  
+      if (messagesRef.current) {
+        messagesRef.current.removeEventListener('scroll', handleScroll);
+      }
+    };
   }, [messages]);
 
   const scroll = () => {
@@ -213,8 +259,8 @@ export default function DMUser({ params }) {
                                 className="object-contain rounded w-full h-auto"
                                 src={image.imageUrl}
                                 alt="Image"
-                                width="300"
-                                height="300"
+                                width="500"
+                                height="500"
                                 sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 474px"
                                 onLoadingComplete={scroll()}
                               />

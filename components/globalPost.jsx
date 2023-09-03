@@ -9,7 +9,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("likes");
 
-export default function GlobalPost({ post, sender, images, scroll }) {
+export default function GlobalPost({ post, sender, images, }) {
   const { user, accessToken } = useAuthContext();
   const [liked, setLiked] = useState(
     post.likes ? post.likes.some((like) => like.userId === user.uid) : false
@@ -179,7 +179,7 @@ export default function GlobalPost({ post, sender, images, scroll }) {
                     key={image.id}
                   >
                     <Image
-                      onLoadingComplete={scroll ? () => scroll() : ""}
+
                       src={image.imageUrl}
                       alt="Posted Image"
                       width={imageDimensions}
