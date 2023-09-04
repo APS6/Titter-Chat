@@ -143,11 +143,6 @@ export default function DMUser({ params }) {
     };
   }, [messages]);
 
-  const scroll = () => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
-  };
   useEffect(() => {
     if (user) {
       channel.subscribe(`m_${user.uid}_${username}`, (data) => {
@@ -262,8 +257,7 @@ export default function DMUser({ params }) {
                                 width="500"
                                 height="500"
                                 sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 474px"
-                                onLoadingComplete={scroll()}
-                              />
+                              />\
                             </Dialog.Trigger>
                           );
                         })}
