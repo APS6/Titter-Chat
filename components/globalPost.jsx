@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import Ably from "ably";
+import * as Dialog from "@radix-ui/react-dialog";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("likes");

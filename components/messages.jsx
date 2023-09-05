@@ -5,7 +5,6 @@ import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import GlobalPost from "./globalPost";
 import Ably from "ably";
-import * as Dialog from "@radix-ui/react-dialog";
 
 const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("global");
