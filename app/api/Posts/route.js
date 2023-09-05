@@ -25,7 +25,11 @@ export async function POST(req) {
                 postedById: body.postedById,
             }
             if (body.images.length > 0) {
-                const imageArray = body.images.map((img) => { return { imageUrl: img.imageUrl } })
+                const imageArray = body.images.map((img) => {
+                    return {
+                        imageUrl: img.imageUrl, width: img.width, height: img.height
+                    }
+                })
                 postData.images = {
                     create:
                         imageArray

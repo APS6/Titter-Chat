@@ -5,6 +5,7 @@ import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import GlobalPost from "./globalPost";
 import Ably from "ably";
+import * as Dialog from "@radix-ui/react-dialog";
 
 const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("global");
@@ -12,10 +13,16 @@ const channel = ably.channels.get("global");
 export default function Messages() {
   const { user, shrink } = useAuthContext();
   const router = useRouter();
+
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
+
   const messagesRef = useRef(null);
+  const bottomRef = useRef(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [isInitial, setIsInitial] = useState(true);
+
+
   
   if (!user) {
     router.push("/SignIn");
@@ -51,55 +58,48 @@ export default function Messages() {
     fetchUsers();
   }, []);
 
-useEffect(() => {
-  const scrollToBottom = () => {
-    if (!userScrolledUp && messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  useEffect(() => {
+    const chatContainer = messagesRef.current;
+
+    const handleScroll = () => {
+      const isAtBottom =
+        chatContainer.scrollHeight -
+          chatContainer.scrollTop -
+          chatContainer.clientHeight <=
+        100;
+
+      setUserScrolledUp(!isAtBottom);
+    };
+
+    chatContainer.addEventListener("scroll", handleScroll);
+
+    return () => {
+      chatContainer.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesRef.current && !userScrolledUp && !isInitial) {
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: "smooth",
+          });
+        }, 100);
+      } else if (isInitial && messagesRef.current) {
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: "instant",
+          });
+          setIsInitial(false);
+        }, 100);
+      }
+    };
+
+    if (posts.length > 0) {
+      scrollToBottom();
     }
-  };
-
-  // Scroll to the bottom whenever posts change
-  scrollToBottom();
-
-  const images = messagesRef.current?.querySelectorAll('img');
-
-  const handleImageLoad = () => {
-    // Scroll to the bottom when an image finishes loading
-    scrollToBottom();
-  };
-
-  if (images) {
-    // Attach a load event listener to each image element
-    images.forEach(img => {
-      img.addEventListener('load', handleImageLoad);
-    });
-  }
-
-  const handleScroll = () => {
-    // Check if the user has scrolled up
-    if (messagesRef.current) {
-      setUserScrolledUp(messagesRef.current.scrollTop > 50);
-    }
-  };
-
-  // Attach a scroll event listener to detect user scrolling
-  if (messagesRef.current) {
-    messagesRef.current.addEventListener('scroll', handleScroll);
-  }
-
-  // Cleanup: remove load and scroll event listeners when the component unmounts
-  return () => {
-    if (images) {
-      images.forEach(img => {
-        img.removeEventListener('load', handleImageLoad);
-      });
-    }
-
-    if (messagesRef.current) {
-      messagesRef.current.removeEventListener('scroll', handleScroll);
-    }
-  };
-}, [posts]);
+  }, [posts]);
   
 
   useEffect(() => {
@@ -121,7 +121,7 @@ useEffect(() => {
 
   return (
     <div
-      className={`flex flex-col gap-[.4rem] scroll-smooth overflow-y-scroll ${
+      className={`flex flex-col gap-[.4rem] overflow-y-scroll ${
         shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
       }`}
       ref={messagesRef}
@@ -137,6 +137,8 @@ useEffect(() => {
               post={post}
               sender={sender}
               images={post.images}
+              setDialogOpen={setDialogOpen}
+              setSelectedUrl={setSelectedUrl}
             />
           );
         })
@@ -267,6 +269,7 @@ useEffect(() => {
           </svg>
         </div>
       )}
+       <div ref={bottomRef}></div>
     </div>
   );
 }

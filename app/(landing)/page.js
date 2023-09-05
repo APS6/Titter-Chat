@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="h-screen grid place-items-center">
+    <div className="h-screen grid place-items-center gradient relative">
       <div className="flex flex-col items-center md:w-3/4">
       <h1 className="text-5xl sm:text-7xl text-center font-bold">
         Titter Chat <br /> The Birb App

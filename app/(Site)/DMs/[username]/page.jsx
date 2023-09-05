@@ -17,6 +17,7 @@ export default function DMUser({ params }) {
   const { username } = params;
   const router = useRouter();
   document.title = `${username} DM | Titter The Chat App`;
+
   const { user, accessToken } = useAuthContext();
 
   const [messages, setMessages] = useState([]);
@@ -24,12 +25,17 @@ export default function DMUser({ params }) {
   const [currentUser, setCurrentUser] = useState({});
   const [chatUser, setChatUser] = useState({});
   const [fetching, setFetching] = useState(true);
-  const messagesRef = useRef(null);
-  const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [found, setFound] = useState(true);
+
+  const messagesRef = useRef(null);
+  const bottomRef = useRef(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [isInitial, setIsInitial] = useState(true);
+
   const [inputDisabled, setInputDisabled] = useState(false);
   const [shrink, setShrink] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState("");
+  const [dialogOpen, setDialogOpen] = useState();
 
   const sortMessages = (Messages) => {
     return [...Messages].sort(
@@ -92,55 +98,47 @@ export default function DMUser({ params }) {
     fetchMessages();
   }, [chatUser]);
 
+  useEffect(() => {
+    const chatContainer = messagesRef.current;
+
+    const handleScroll = () => {
+      const isAtBottom =
+        chatContainer.scrollHeight -
+          chatContainer.scrollTop -
+          chatContainer.clientHeight <=
+        100;
+
+      setUserScrolledUp(!isAtBottom);
+    };
+
+    chatContainer.addEventListener("scroll", handleScroll);
+
+    return () => {
+      chatContainer.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const scrollToBottom = () => {
-      if (!userScrolledUp && messagesRef.current) {
-        messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+      if (messagesRef.current && !userScrolledUp && !isInitial) {
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: "smooth",
+          });
+        }, 100);
+      } else if (isInitial && messagesRef.current) {
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: "instant",
+          });
+          setIsInitial(false);
+        }, 100);
       }
     };
-  
-    // Scroll to the bottom whenever posts change
-    scrollToBottom();
-  
-    const images = messagesRef.current?.querySelectorAll('img');
-  
-    const handleImageLoad = () => {
-      // Scroll to the bottom when an image finishes loading
+
+    if (messages.length > 0) {
       scrollToBottom();
-    };
-  
-    if (images) {
-      // Attach a load event listener to each image element
-      images.forEach(img => {
-        img.addEventListener('load', handleImageLoad);
-      });
     }
-  
-    const handleScroll = () => {
-      // Check if the user has scrolled up
-      if (messagesRef.current) {
-        setUserScrolledUp(messagesRef.current.scrollTop > 50);
-      }
-    };
-  
-    // Attach a scroll event listener to detect user scrolling
-    if (messagesRef.current) {
-      messagesRef.current.addEventListener('scroll', handleScroll);
-    }
-  
-    // Cleanup: remove load and scroll event listeners when the component unmounts
-    return () => {
-      if (images) {
-        images.forEach(img => {
-          img.removeEventListener('load', handleImageLoad);
-        });
-      }
-  
-      if (messagesRef.current) {
-        messagesRef.current.removeEventListener('scroll', handleScroll);
-      }
-    };
   }, [messages]);
 
   useEffect(() => {
@@ -201,7 +199,7 @@ export default function DMUser({ params }) {
             </div>
           </Link>
           <div
-            className={`flex flex-col gap-4 scroll-smooth overflow-y-scroll ${
+            className={`flex flex-col gap-4 overflow-y-scroll ${
               shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
             }`}
             ref={messagesRef}
@@ -242,49 +240,26 @@ export default function DMUser({ params }) {
                     ) : (
                       ""
                     )}
-                    {images ? (
-                      <Dialog.Root>
-                        {images.map((image) => {
+                    {images
+                      ? images.map((image) => {
                           return (
-                            <Dialog.Trigger
-                              onClick={() => setSelectedUrl(image.imageUrl)}
-                              key={image.id}
-                            >
+                            <div key={image.id} className="rounded bg-grey">
                               <Image
-                                className="object-contain rounded w-full h-auto"
+                                onClick={() => (
+                                  setSelectedUrl(image.imageUrl),
+                                  setDialogOpen(true)
+                                )}
+                                className="object-contain rounded max-w-300px cursor-pointer"
                                 src={image.imageUrl}
                                 alt="Image"
-                                width="500"
-                                height="500"
-                                sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 474px"
-                              />\
-                            </Dialog.Trigger>
+                                width="300"
+                                height="300"
+                                sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
+                              />
+                            </div>
                           );
-                        })}
-                        <Dialog.Portal>
-                          <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90" />
-                          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <Image
-                              className="object-contain"
-                              src={selectedUrl}
-                              alt="Image"
-                              width="1000"
-                              height="1000"
-                              sizes="95vw"
-                            />
-                            <a
-                              className="text-md text-[#4270d1] mt-1"
-                              href={selectedUrl}
-                              target="blank"
-                            >
-                              Open in Browser
-                            </a>
-                          </Dialog.Content>
-                        </Dialog.Portal>
-                      </Dialog.Root>
-                    ) : (
-                      ""
-                    )}
+                        })
+                      : ""}
                     <div
                       className={`flex ${
                         received ? "justify-start ml-1" : "justify-end mr-1"
@@ -431,6 +406,7 @@ export default function DMUser({ params }) {
                 </svg>
               </div>
             )}
+            <div ref={bottomRef}></div>
           </div>
         </div>
         <DMInput
@@ -440,6 +416,28 @@ export default function DMUser({ params }) {
           disabled={inputDisabled}
           setShrink={setShrink}
         />
+        <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <Image
+                className="object-contain"
+                src={selectedUrl}
+                alt="Image"
+                width="1000"
+                height="1000"
+                sizes="95vw"
+              />
+              <a
+                className="text-md text-[#4270d1] mt-1"
+                href={selectedUrl}
+                target="blank"
+              >
+                Open in Browser
+              </a>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
     );
   }

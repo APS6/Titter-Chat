@@ -39,6 +39,8 @@ model Image {
   imageUrl String
   post     Post   @relation(fields: [postId], references: [id])
   postId   String
+  width    String?
+  height   String?
 
   @@index([postId])
 }
