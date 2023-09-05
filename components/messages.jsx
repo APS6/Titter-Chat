@@ -137,8 +137,6 @@ export default function Messages() {
               post={post}
               sender={sender}
               images={post.images}
-              setDialogOpen={setDialogOpen}
-              setSelectedUrl={setSelectedUrl}
             />
           );
         })
