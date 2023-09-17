@@ -1,4 +1,3 @@
-import '../globals.css'
 import Loading from './loading'
 import { Suspense } from 'react'
 import { AuthContextProvider } from '@/context/authContext'
@@ -10,7 +9,6 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
       <body className='bg-[#000]'>
         <main className='w-full max-w-5xl m-auto px-5'>
         <Suspense fallback={<Loading />}>
@@ -20,6 +18,5 @@ export default function RootLayout({ children }) {
           </Suspense>
         </main>
         </body>
-    </html>
   )
 }

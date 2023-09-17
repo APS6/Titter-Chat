@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import fetchData from "@/app/lib/fetchData";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { getAuth, signOut } from "firebase/auth";
 import { initFirebase } from "@/firebase/app";
@@ -15,21 +15,21 @@ import {
 } from "date-fns";
 import Ably from "ably";
 import { useRouter } from "next/navigation";
+import Loader from "./svg/loader";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("dm");
 
 export const dynamic = "force-dynamic";
+
 export default function Sidebar() {
-  const [account, setAccount] = useState({});
   const { user, accessToken } = useAuthContext();
-  const [conversations, setConversations] = useState([]);
-  const [fetching, setFetching] = useState(true);
-  const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState();
-  const [newMessage, setNewMessage] = useState();
+
   const router = useRouter();
+
   const auth = getAuth();
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -39,147 +39,61 @@ export default function Sidebar() {
     }
   };
 
-  const getLatestMessage = (userConvo) => {
-    const filter1 = messages.filter(
-      (message) => message.sentToId === userConvo.id
-    );
-    const filter2 = messages.filter(
-      (message) => message.sentById === userConvo.id
-    );
-
-    const allMessages = [...filter1, ...filter2];
-    const sorted = allMessages.sort(
-      (a, b) => new Date(b.sentAt) - new Date(a.sentAt)
-    );
-    return sorted[0];
-  };
-
   if (!user) {
     router.push("/SignIn");
   }
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const usersData = await fetchData("User");
-        const acc = usersData.find((u) => u.id === user.uid);
-        if (acc) {
-          setAccount(acc);
-          setUsers(usersData);
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchUsers();
-  }, []);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (accessToken.length > 1) {
-        try {
-          const messagesData = await fetchData(`messages/${accessToken}`);
-          setMessages(messagesData);
-        } catch (error) {
-          console.error("Error fetching messages:", error);
-        }
-      }
-    };
-    fetchMessages();
-  }, [accessToken]);
+  const { data, error, isError, isLoading } = useQuery({
+    queryKey: [user.uid, "userMessages"],
+    queryFn: () => fetchData(`/messages/${accessToken}`),
+    enabled: !!accessToken,
+  });
 
-  useEffect(() => {
-    if (messages && users.length > 0) {
-      const userIDs = [
-        ...new Set([
-          ...messages.map((message) =>
-            message.sentById === user.uid ? message.sentToId : message.sentById
-          ),
-        ]),
+  const updateMessages = (newMessage) => {
+    const userIndex = data.messages.findIndex(
+      (msg) => msg.id === newMessage.id
+    );
+    let messages = data.messages;
+    if (userIndex === -1) {
+      if (messages.length === 3) {
+        const slicedMessages = messages.slice(0, -1);
+        messages = [newMessage, ...slicedMessages];
+      } else {
+        messages = [newMessage, ...messages];
+      }
+    } else {
+      messages = [
+        newMessage,
+        ...messages.slice(0, userIndex),
+        ...messages.slice(userIndex + 1),
       ];
-      const conversationsData = userIDs.map((userID) => {
-        const userConvo = users.find((u) => u.id === userID);
-        const lastMessage = getLatestMessage(userConvo);
-        return { user: userConvo, lastMessage };
-      });
-      const sortedData = conversationsData.sort(
-        (a, b) =>
-          new Date(b.lastMessage.sentAt) - new Date(a.lastMessage.sentAt)
-      );
-      const firstThree = sortedData.slice(0, 3);
-      setConversations(firstThree);
-      setFetching(false);
     }
-  }, [messages, users]);
+
+    queryClient.setQueryData([user.uid, "userMessages"], (data) => {
+      return { user: data.user, messages: messages };
+    });
+  };
 
   useEffect(() => {
     if (user) {
       // messages the user received
-      channel.subscribe(`mr_${user.uid}`, (data) => {
-        const newMsg = data.data;
-        setNewMessage(newMsg);
+      channel.subscribe(`mr_${user.uid}`, (newM) => {
+        const newMessage = newM.data;
+        updateMessages(newMessage);
       });
       // messages the user sent
-      channel.subscribe(`ms_${user.uid}`, (data) => {
-        const newMsg = data.data;
-        setNewMessage(newMsg);
+      channel.subscribe(`ms_${user.uid}`, (newM) => {
+        const newMessage = newM.data;
+        updateMessages(newMessage);
       });
     }
-  }, []);
+  }, [user]);
 
-  useEffect(() => {
-    if (newMessage && users) {
-      if (newMessage.sentById === user.uid) {
-        const userIndex = conversations.findIndex(
-          (convo) => convo.user.id === newMessage.sentToId
-        );
-        const receiver = users.find((u) => u.id === newMessage.sentToId);
-        const newConvo = { user: receiver, lastMessage: newMessage };
-
-        if (userIndex === -1) {
-          if (conversations.length === 3) {
-            const cut = conversations.slice(0, -1);
-            const newConversation = [newConvo, ...cut];
-            setConversations(newConversation);
-          } else {
-            const newConversation = [newConvo, ...conversations];
-            setConversations(newConversation);
-          }
-        } else {
-          const updatedConversations = [
-            newConvo,
-            ...conversations.slice(0, userIndex),
-            ...conversations.slice(userIndex + 1),
-          ];
-          setConversations(updatedConversations);
-        }
-      } else if (newMessage.sentToId === user.uid) {
-        const userIndex = conversations.findIndex(
-          (convo) => convo.user.id === newMessage.sentById
-        );
-        const sender = users.find((u) => u.id === newMessage.sentById);
-        const newConvo = { user: sender, lastMessage: newMessage };
-
-        if (userIndex === -1) {
-          if (conversations.length === 3) {
-            const cut = conversations.slice(0, -1);
-            const newConversation = [newConvo, ...cut];
-            setConversations(newConversation);
-          } else {
-            const newConversation = [newConvo, ...conversations];
-            setConversations(newConversation);
-          }
-        } else {
-          const updatedConversations = [
-            newConvo,
-            ...conversations.slice(0, userIndex),
-            ...conversations.slice(userIndex + 1),
-          ];
-          setConversations(updatedConversations);
-        }
-      }
-    }
-  }, [newMessage]);
+  if (isError) {
+    console.log("failed fetching", error);
+  }
 
   return (
     <div className="hidden md:flex h-full bg-grey w-48 flex-col items-center justify-between py-4 rounded">
@@ -187,12 +101,12 @@ export default function Sidebar() {
         <Link className="mb-8" href={"/"}>
           <div className="flex items-center gap-2">
             <Image
-              src="/birblogo.png"
+              src="/newlogo.png"
               alt="Titter Logo"
-              width="34"
-              height="25"
+              width="36"
+              height="30"
             />
-            <h3 className="text-3xl">Titter</h3>
+            <h3 className="text-3xl font-bold">Titter</h3>
           </div>
         </Link>
         <Link className="w-full" href="/Home">
@@ -234,54 +148,19 @@ export default function Sidebar() {
         </Link>
         <div className="flex flex-col items-center mt-8">
           <h3 className="font-mont font-bold text-2xl">Chats</h3>
-          {fetching ? (
+          {isLoading ? (
             <div className="h-full w-full grid place-items-center mt-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="2rem"
-                height="2rem"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="4" cy="12" r="3" fill="currentColor">
-                  <animate
-                    id="svgSpinners3DotsFade0"
-                    fill="freeze"
-                    attributeName="opacity"
-                    begin="0;svgSpinners3DotsFade1.end-0.25s"
-                    dur="0.75s"
-                    values="1;.2"
-                  ></animate>
-                </circle>
-                <circle cx="12" cy="12" r="3" fill="currentColor" opacity=".4">
-                  <animate
-                    fill="freeze"
-                    attributeName="opacity"
-                    begin="svgSpinners3DotsFade0.begin+0.15s"
-                    dur="0.75s"
-                    values="1;.2"
-                  ></animate>
-                </circle>
-                <circle cx="20" cy="12" r="3" fill="currentColor" opacity=".3">
-                  <animate
-                    id="svgSpinners3DotsFade1"
-                    fill="freeze"
-                    attributeName="opacity"
-                    begin="svgSpinners3DotsFade0.begin+0.3s"
-                    dur="0.75s"
-                    values="1;.2"
-                  ></animate>
-                </circle>
-              </svg>
+              <Loader />
             </div>
           ) : (
             <div>
-              {conversations.length !== 0 ? (
-                conversations.map((convo) => {
-                  const sentAt = new Date(convo.lastMessage.sentAt);
+              {data?.messages.length !== 0 ? (
+                data?.messages.map((convo) => {
+                  const sentAt = new Date(convo.sentAt);
                   const currentDate = new Date();
-                  let content = convo.lastMessage.content
+                  let content = convo.content;
                   if (content.length === 0) {
-                    content = "(image)"
+                    content = "(image)";
                   }
                   let formattedDistance = "";
                   const minutesDifference = differenceInMinutes(
@@ -315,14 +194,11 @@ export default function Sidebar() {
                   }
 
                   return (
-                    <Link
-                      href={`/DMs/${convo.user.username}`}
-                      key={convo.user.id}
-                    >
+                    <Link href={`/DMs/${convo.username}`} key={convo.id}>
                       <div className="mt-4 flex items-center gap-2 w-44 px-1 hover:bg-[#343434] rounded-lg">
                         <Image
                           className="rounded-full w-[35px] h-[35px] object-cover"
-                          src={convo.user.pfpURL}
+                          src={convo.pfpURL}
                           alt="PFP"
                           width="35"
                           height="35"
@@ -330,7 +206,7 @@ export default function Sidebar() {
                         <div className="flex flex-col max-w-[80%]">
                           <div className="flex items-center gap-1">
                             <h4 className=" font-raleway font-semibold text-[1.20rem]">
-                              {convo.user.username}
+                              {convo.username}
                             </h4>
                             <span>·</span>
                             <span className="text-sm text-lightwht">
@@ -338,7 +214,7 @@ export default function Sidebar() {
                             </span>
                           </div>
                           <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                            {conversations ? content : ""}
+                            {content}
                           </span>
                         </div>
                       </div>
@@ -357,11 +233,11 @@ export default function Sidebar() {
       <div className="flex items-center">
         <Link
           className="flex gap-2 p-2 rounded-full hover:bg-[#343434]"
-          href={`/profile/${account?.username}`}
+          href={`/profile/${data?.user.username}`}
         >
-          {account.pfpURL ? (
+          {data?.user.pfpURL ? (
             <Image
-              src={account?.pfpURL}
+              src={data?.user.pfpURL}
               alt="User Image"
               width="30"
               height="30"
@@ -380,9 +256,12 @@ export default function Sidebar() {
               ></path>
             </svg>
           )}
-          <h2 className="font-mont text-xl">{account?.username ?? "You"}</h2>
+          <h2 className="font-mont text-xl">{data?.user.username ?? "You"}</h2>
         </Link>
-        <div onClick={() => handleSignOut()} className="cursor-pointer py-2 px-1 rounded-full hover:bg-[#343434]">
+        <div
+          onClick={() => handleSignOut()}
+          className="cursor-pointer py-2 px-1 rounded-full hover:bg-[#343434]"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="30"

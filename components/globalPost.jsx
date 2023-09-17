@@ -102,7 +102,7 @@ export default function GlobalPost({
   };
 
   return (
-    <div className="bg-grey flex items-start gap-2 p-2 rounded" key={post.id}>
+    <div className="bg-grey flex items-start gap-2 p-2 pb-1 rounded" key={post.id}>
       <Link href={`/profile/${sender?.username}`}>
         {sender.pfpURL ? (
           <Image
@@ -175,7 +175,7 @@ export default function GlobalPost({
                     width={width}
                     height={height}
                     sizes="(max-width: 768px) 85vw, 70vw"
-                    className="rounded w-auto h-full cursor-pointer min-w-2/3"
+                    className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434]"
                   />
                 </div>
               );

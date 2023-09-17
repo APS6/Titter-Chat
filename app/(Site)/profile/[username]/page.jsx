@@ -4,85 +4,70 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { useAuthContext } from "@/context/authContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import fetchData from "@/app/lib/fetchData";
 import GlobalPost from "@/components/globalPost";
-import { useRouter } from "next/navigation";
+import BlockLoader from "@/components/svg/blockLoader";
 
 export default function Profile() {
   const { user, accessToken } = useAuthContext();
   const { username } = useParams();
-  const [userProfile, setUserProfile] = useState({});
-  const [userPosts, setUserPosts] = useState([]);
-  const [userLikes, setUserLikes] = useState([]);
-  const [users, setUsers] = useState([]);
+  document.title = `${username} | Titter The Chat App`;
   const [showLikes, setShowLikes] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [following, setFollowing] = useState(false);
-  const [followedBy, setFollowedBy] = useState(false);
-  const [found, setFound] = useState(true);
+
   const router = useRouter();
 
   if (!user) {
     router.push("/SignIn");
   }
-  const sortPosts = (posts) => {
-    return [...posts].sort(
-      (a, b) => new Date(b.postedAt) - new Date(a.postedAt)
-    );
-  };
-  const sortLikedPosts = (posts) => {
-    return [...posts].sort(
-      (a, b) => new Date(b.post.postedAt) - new Date(a.post.postedAt)
-    );
-  };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        document.title = `${username} | Titter The Chat App`;
-        const userData = await fetchData(`UserProfile/${username}`);
-        if (!userData) {
-          setFound(false);
-          setLoading(false);
-        } else {
-          setUserProfile(userData);
-          setUserPosts(sortPosts(userData.posts));
-          setUserLikes(sortLikedPosts(userData.likes));
-          setLoading(false);
-          const checkFollowing = userData.followedBy.find(
-            (u) => u.followerId === user.uid
-          );
-          const checkFollowedBy = userData.following.find(
-            (u) => u.followingId === user.uid
-          );
-          setFollowing(checkFollowing);
-          setFollowedBy(checkFollowedBy);
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
+  const queryClient = useQueryClient();
+
+  const { data, isError, isLoading, error } = useQuery({
+    queryKey: ["Profile", username],
+    queryFn: () => fetchData(`UserProfile/${username}/${user.uid}`),
+    enabled: !!user,
+  });
+
+  const follow = useMutation({
+    mutationFn: () => followHandler(),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["Profile", username] })
+      const previousData = queryClient.getQueryData(["Profile", username])
+      if (data.following) {
+        queryClient.setQueryData(["Profile", username], (old) => {
+          let newData = previousData
+          newData.following = false
+          return newData
+        })
+      } else {
+        queryClient.setQueryData(["Profile", username], (old) => {
+          let newData = old
+          newData.following = true
+          return newData
+        })
       }
-    };
-    const fetchUsers = async () => {
-      try {
-        const usersData = await fetchData("User");
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchUser();
-    fetchUsers();
-  }, []);
+      return { previousData }
+    },
+    onError: (err, v, context) => {
+      console.log(err)
+      queryClient.setQueryData(["Profile", username], context.previousData)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["Profile", username] })
+    },
+  });
 
   const followHandler = async () => {
-    if (!following) {
-      setFollowing(true);
+    if (data.following) {
       const body = {
         followerId: user.uid,
-        followingId: userProfile.id,
+        followingId: data.user.id,
       };
-      try {
         const response = await fetch("/api/Follow", {
           method: "POST",
           headers: {
@@ -91,22 +76,14 @@ export default function Profile() {
           },
           body: JSON.stringify(body),
         });
-        if (response.status !== 200) {
-          console.log("something went wrong");
-          setFollowing(false);
-        } else {
-          console.log("Followed");
-        }
-      } catch (error) {
-        console.log("there was an error following", error);
-      }
-    } else if (following) {
-      setFollowing(false);
+        return response;
+
+    } else if (!data.following) {
+
       const body = {
         followerId: user.uid,
-        followingId: userProfile.id,
+        followingId: data.user.id,
       };
-      try {
         const response = await fetch("/api/Follow", {
           method: "DELETE",
           headers: {
@@ -115,19 +92,20 @@ export default function Profile() {
           },
           body: JSON.stringify(body),
         });
-        if (response.status !== 200) {
-          console.log("something went wrong");
-          setFollowing(true);
-        } else {
-          console.log("Unfollowed");
-        }
-      } catch (error) {
-        console.log("there was an error following", error);
-      }
+        return response;
     }
   };
 
-  if (!found) {
+  if (isLoading) {
+    return (
+      <div className="h-full w-full grid place-items-center">
+        <BlockLoader />
+      </div>
+    );
+  }
+
+  if (isError) {
+    console.log(error);
     return (
       <div className="w-full h-full flex flex-col justify-center items-center gap-8">
         <h2 className="text-4xl">User not found</h2>
@@ -137,16 +115,18 @@ export default function Profile() {
         >
           Go Back
         </button>
-      </div>)
-  } else {
+      </div>
+    );
+  }
+
   return (
     <div>
       <div>
         <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
-          {userProfile?.pfpURL ? (
+          {data?.user.pfpURL ? (
             <Image
               className="w-12 h-12 md:w-32 md:h-32 object-cover rounded-full"
-              src={userProfile?.pfpURL}
+              src={data?.user.pfpURL}
               alt="PFP"
               width={130}
               height={130}
@@ -173,14 +153,14 @@ export default function Profile() {
                 </h2>
                 <div className="flex gap-2">
                   <span className="text-sm">
-                    {userProfile.followedBy?.length} Followers
+                    {data?.followerCount} Followers
                   </span>
                   <span className="text-sm">
-                    {userProfile.following?.length} Following
+                    {data?.followingCount} Following
                   </span>
                 </div>
               </div>
-              {user.uid === userProfile?.id ? (
+              {user.uid === data?.user.id ? (
                 <Link className="md:mt-4" href="/profile/edit">
                   <button className=" bg-purple rounded-2xl py-1 px-3">
                     Edit Profile
@@ -188,7 +168,7 @@ export default function Profile() {
                 </Link>
               ) : (
                 <div className="flex gap-2 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
-                  {followedBy ? (
+                  {data?.followedBy && data?.following ? (
                     <Link href={`/DMs/${username}`}>
                       <button className="hidden sm:block bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
                         Message
@@ -212,8 +192,11 @@ export default function Profile() {
                     ""
                   )}
                   {/* mobile buttons */}
-                  <div className="md:hidden border border-lightwht rounded-full p-1">
-                    {following ? (
+                  <div
+                    onClick={() => follow.mutate()}
+                    className="sm:hidden border border-lightwht rounded-full p-1 cursor-pointer"
+                  >
+                    {data?.following ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="25"
@@ -241,12 +224,12 @@ export default function Profile() {
                   </div>
                   {/* desktop buttons */}
                   <button
-                    onClick={() => followHandler()}
+                    onClick={() => follow.mutate()}
                     className="hidden sm:block bg-purple rounded-2xl py-1 px-3"
                   >
-                    {following
+                    {data?.following
                       ? "Following"
-                      : followedBy
+                      : data?.followedBy
                       ? "Follow Back"
                       : "Follow"}
                   </button>
@@ -254,7 +237,7 @@ export default function Profile() {
               )}
             </div>
             <div className="md:w-[70%]">
-              <p className="break-words">{userProfile?.bio}</p>
+              <p className="break-words">{data?.user.bio}</p>
             </div>
           </div>
         </div>
@@ -278,156 +261,30 @@ export default function Profile() {
         </div>
       </div>
       <div className="flex flex-col gap-[.4rem] scroll-smooth h-[60svh] overflow-y-scroll mt-4">
-        {loading ? (
-          <div className="h-full w-full grid place-items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="5rem"
-              height="5rem"
-              viewBox="0 0 24 24"
-            >
-              <rect
-                width="10"
-                height="10"
-                x="1"
-                y="1"
-                fill="currentColor"
-                rx="1"
-              >
-                <animate
-                  id="svgSpinnersBlocksShuffle30"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="0;svgSpinnersBlocksShuffle3b.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle31"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle38.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle32"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="svgSpinnersBlocksShuffle39.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle33"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle3a.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-              </rect>
-              <rect
-                width="10"
-                height="10"
-                x="1"
-                y="13"
-                fill="currentColor"
-                rx="1"
-              >
-                <animate
-                  id="svgSpinnersBlocksShuffle34"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle30.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle35"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="svgSpinnersBlocksShuffle31.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle36"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle32.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle37"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="svgSpinnersBlocksShuffle33.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-              </rect>
-              <rect
-                width="10"
-                height="10"
-                x="13"
-                y="13"
-                fill="currentColor"
-                rx="1"
-              >
-                <animate
-                  id="svgSpinnersBlocksShuffle38"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="svgSpinnersBlocksShuffle34.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle39"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle35.end"
-                  dur="0.2s"
-                  values="13;1"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle3a"
-                  fill="freeze"
-                  attributeName="x"
-                  begin="svgSpinnersBlocksShuffle36.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-                <animate
-                  id="svgSpinnersBlocksShuffle3b"
-                  fill="freeze"
-                  attributeName="y"
-                  begin="svgSpinnersBlocksShuffle37.end"
-                  dur="0.2s"
-                  values="1;13"
-                ></animate>
-              </rect>
-            </svg>
-          </div>
-        ) : showLikes && userLikes.length === 0 ? (
+        {showLikes && data?.likes.length === 0 ? (
           <div className="w-full h-full grid place-items-center">
             <span className="text-2xl">Nothing to see here</span>
           </div>
         ) : showLikes ? (
-          userLikes.map((like) => {
-            const sender = users.find((u) => u.id === like.post.postedById) || {
-              username: "DELETED",
-            };
+          data?.likes.map((like) => {
             return (
-              <GlobalPost key={like.post.id} post={like.post} sender={sender} images={like.post.images}/>
+              <GlobalPost
+                key={like.post.id}
+                post={like.post}
+                sender={like.post.postedBy}
+                images={like.post.images}
+              />
             );
           })
         ) : !showLikes ? (
-          userPosts.map((post) => {
+          data?.posts.map((post) => {
             return (
-              <GlobalPost key={post.id} post={post} sender={userProfile} images={post.images}/>
+              <GlobalPost
+                key={post.id}
+                post={post}
+                sender={post.postedBy}
+                images={post.images}
+              />
             );
           })
         ) : (
@@ -437,5 +294,5 @@ export default function Profile() {
         )}
       </div>
     </div>
-  );}
+  );
 }

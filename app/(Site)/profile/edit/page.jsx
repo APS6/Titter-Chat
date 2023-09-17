@@ -6,57 +6,47 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { UploadButton } from "@uploadthing/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function EditProfile() {
-  const [users, setUsers] = useState([]);
-  const [username, setUsername] = useState("");
-  const [prevUsername, setPrevUsername] = useState("");
-  const [bio, setBio] = useState("");
-  const [disabled, setDisabled] = useState(true);
   const { user, accessToken } = useAuthContext();
-  const [uploading, setUploading] = useState(false);
-  const [tip, setTip] = useState("");
-  const [pfp, setPfp] = useState();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUsernames = async () => {
-      try {
-        const usersData = await fetchData("Usernames");
-        setUsers(usersData);
-        document.title = "Edit Profile | Titter The Chat App";
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchUsernames();
-  }, []);
+  const [disabled, setDisabled] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  const [tip, setTip] = useState("");
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [pfp, setPfp] = useState();
+
+  document.title = "Edit Profile | Titter The Chat App";
+
+  const queryClient = useQueryClient();
+
+  const oldData = useQuery({
+    queryKey: ["userInfo"],
+    queryFn: () => fetchData(`UserWBio/${user.uid}`),
+    enabled: !!user,
+  });
+
+  const usernames = useQuery({
+    queryKey: ["usernames"],
+    queryFn: () => fetchData("Usernames"),
+  });
 
   useEffect(() => {
-    if (user){
-      const fetchUser = async () => {
-        try {
-          const userData = await fetchData(`EditProfile/${user.uid}`);
-          if (userData.username) {
-            setPfp(userData.pfpURL);
-            setPrevUsername(userData.username)
-            setUsername(userData.username);
-            setBio(userData.bio);
-          } else {
-            router.push("SignIn")
-          }
-        } catch (error) {
-          console.error("Error fetching user:", error);
-        }
-      };
-      fetchUser();
-  }
-  }, [user]);
+    if (oldData.data){
+      setUsername(oldData.data.username)
+      setBio(oldData.data.bio)
+      setPfp(oldData.data.pfpURL)
+    }
+  }, [oldData?.data])
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const exists = users.find((u) => u.username === username);
-    if (exists.username !== prevUsername) {
+    const exists = usernames.data.find((u) => u.username === username);
+    if (exists.username !== oldData.data.username) {
       setTip("Username already exists");
     } else {
       const body = {
@@ -78,6 +68,7 @@ export default function EditProfile() {
           console.log("something went wrong");
         } else {
           console.log("Updated User successfully");
+          queryClient.invalidateQueries([user.uid]);
           router.push(`/profile/${username}`);
         }
       } catch (error) {
@@ -120,6 +111,10 @@ export default function EditProfile() {
     }
     setBio(value);
   };
+
+  if (oldData.isError) {
+    console.log(error);
+  }
 
   return (
     <div className="h-full w-full grid place-items-center">

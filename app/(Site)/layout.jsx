@@ -1,20 +1,20 @@
-import "../globals.css";
+'use client'
+
 import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
 import Loading from "./loading";
 import { Suspense } from "react";
 import { Analytics } from '@vercel/analytics/react';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-export const metadata = {
-  title: "Titter | The chat app",
-  description:
-    "Start chatting with your friends on Titter Chat. Titter is a new birb chat app which is completely different than its competitors twitter, discord and threads? Titter is just better than all of them",
-};
+
+const queryClient = new QueryClient()
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
       <body className="bg-[#000]">
+      <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
           <div className="h-[100svh] w-full p-4 flex flex-col md:flex-row gap-4">
             <Navigation />
@@ -26,7 +26,8 @@ export default function RootLayout({ children }) {
             </main>
           </div>
         </AuthContextProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       </body>
-    </html>
   );
 }

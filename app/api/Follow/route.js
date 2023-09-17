@@ -24,7 +24,7 @@ export async function POST(req) {
                     followingId: body.followingId,
                 }
             })
-            return NextResponse.json(newFollow, { success: true }, { status: 200 });
+            return NextResponse.json({ success: true }, { status: 200 });
         }
         else {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
@@ -54,7 +54,7 @@ export async function DELETE(req) {
                     },
                 },
             })
-            return NextResponse.json(deletedFollow, { success: true }, { status: 200 });
+            return NextResponse.json({ success: true }, { status: 200 });
         } else {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
         }

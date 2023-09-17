@@ -1,10 +1,16 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import fetchData from "@/app/lib/fetchData";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+
 import GlobalPost from "./globalPost";
+
+import Loader from "./svg/loader";
+import BlockLoader from "./svg/blockLoader";
+
 import Ably from "ably";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import qs from "query-string";
 
 const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("global");
@@ -13,102 +19,112 @@ export default function Messages() {
   const { user, shrink } = useAuthContext();
   const router = useRouter();
 
-  const [posts, setPosts] = useState([]);
-  const [users, setUsers] = useState([]);
+  const queryClient = useQueryClient();
 
   const messagesRef = useRef(null);
   const bottomRef = useRef(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
-  const [isInitial, setIsInitial] = useState(true);
+  const [scrollPosition, setScrollPosition] = useState(null);
+  const [preserveScroll, setPreserveScroll] = useState(false);
 
-
-  
   if (!user) {
     router.push("/SignIn");
   }
-  const sortPosts = (posts) => {
-    return [...posts].sort(
-      (a, b) => new Date(a.postedAt) - new Date(b.postedAt)
+
+  const fetchPosts = async ({ pageParam = undefined }) => {
+    const url = qs.stringifyUrl(
+      {
+        url: "/api/Posts",
+        query: {
+          cursor: pageParam,
+        },
+      },
+      { skipNull: true }
     );
+
+    const res = await fetch(url, { method: "GET" });
+    return res.json();
   };
 
+  const {
+    data,
+    error,
+    status,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["posts"],
+    queryFn: fetchPosts,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor,
+  });
+
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const postsData = await fetchData("Posts");
-        setPosts(sortPosts(postsData));
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    const fetchUsers = async () => {
-      try {
-        const usersData = await fetchData("User");
-        setUsers(usersData);
-        const exist = usersData.find((u) => u.id === user.uid);
-        if (!exist) {
-          router.push("/SignIn");
+    const chatContainer = messagesRef?.current;
+    if (chatContainer) {
+      const handleScroll = () => {
+        const isAtBottom = chatContainer.scrollTop >= -200;
+        setUserScrolledUp(!isAtBottom);
+        if (
+          chatContainer.scrollHeight +
+            chatContainer.scrollTop -
+            chatContainer.clientHeight ===
+            0 &&
+          hasNextPage &&
+          !isFetchingNextPage
+        ) {
+          fetchNextPage();
         }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchPosts();
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    const chatContainer = messagesRef.current;
-
-    const handleScroll = () => {
-      const isAtBottom =
-        chatContainer.scrollHeight -
-          chatContainer.scrollTop -
-          chatContainer.clientHeight <=
-        100;
-
-      setUserScrolledUp(!isAtBottom);
-    };
-
-    chatContainer.addEventListener("scroll", handleScroll);
-
-    return () => {
-      chatContainer.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+      };
+      chatContainer.addEventListener("scroll", handleScroll);
+      return () => {
+        chatContainer.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, [messagesRef, status]);
 
   useEffect(() => {
     const scrollToBottom = () => {
-      if (messagesRef.current && !userScrolledUp && !isInitial) {
-        setTimeout(() => {
+      if (messagesRef && !userScrolledUp) {
+        if (preserveScroll && scrollPosition && messagesRef.current.scrollHeight > scrollPosition) {
+          const newScrollTop = messagesRef.current.scrollHeight - scrollPosition
+          messagesRef.scrollTop =  0 - newScrollTop
+        }
+         setTimeout(() => {
+          setPreserveScroll(false)
           bottomRef.current?.scrollIntoView({
             behavior: "smooth",
-          });
-        }, 100);
-      } else if (isInitial && messagesRef.current) {
-        setTimeout(() => {
-          bottomRef.current?.scrollIntoView({
-            behavior: "instant",
-          });
-          setIsInitial(false);
-        }, 100);
+          }); 
+        }, 100); 
       }
     };
-
-    if (posts.length > 0) {
+    if (data?.pages?.length !== 0) {
       scrollToBottom();
     }
-  }, [posts]);
-  
+  }, [data?.pages[0]?.items?.length]);
 
   useEffect(() => {
-    channel.subscribe("new_post", (data) => {
-      const newPost = data.data;
-      setPosts((prevPosts) => [...prevPosts, newPost]);
-    });
+    channel.subscribe("new_post", (post) => {
+      const newPost = post.data;
+      const container = messagesRef.current;
+      if (container.scrollTop === 0){
+      console.log("scrollHeight :",container.scrollHeight);
+      setScrollPosition(container.scrollHeight);
+      setPreserveScroll(true)
+      }
+      
+      queryClient.setQueryData(["posts"], (data) => {
+        let newData = [...data.pages];
+        newData[0] = {
+          ...newData[0],
+          items: [newPost, ...newData[0].items],
+        };
 
-    ably.connection.on("disconnected", () => {
-      alert("Realtime disconnected. Try checking network and refreshing");
+        return {
+          pages: newData,
+          pageParams: data.pageParams,
+        };
+      });
     });
 
     return () => {
@@ -118,155 +134,48 @@ export default function Messages() {
     };
   }, []);
 
+  if (status === "loading") {
+    return (
+      <div className="h-[70vh] w-full grid place-items-center">
+        <BlockLoader />
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    console.error("Error Fetching Posts: ", error);
+    return <div>Error fetching posts</div>;
+  }
+
   return (
     <div
-      className={`flex flex-col gap-[.4rem] overflow-y-scroll ${
+      className={`flex flex-col-reverse scroll-smooth gap-[.4rem] overflow-y-scroll ${
         shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
       }`}
       ref={messagesRef}
     >
-      {posts.length !== 0 && users.length !== 0 ? (
-        posts.map((post) => {
-          const sender = users.find((u) => u.id === post.postedById) || {
-            username: "DELETED",
-          };
-          return (
-            <GlobalPost
-              key={post.id}
-              post={post}
-              sender={sender}
-              images={post.images}
-            />
-          );
-        })
-      ) : (
-        <div className="h-full w-full grid place-items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="5rem"
-            height="5rem"
-            viewBox="0 0 24 24"
-          >
-            <rect width="10" height="10" x="1" y="1" fill="currentColor" rx="1">
-              <animate
-                id="svgSpinnersBlocksShuffle30"
-                fill="freeze"
-                attributeName="x"
-                begin="0;svgSpinnersBlocksShuffle3b.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle31"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle38.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle32"
-                fill="freeze"
-                attributeName="x"
-                begin="svgSpinnersBlocksShuffle39.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle33"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle3a.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-            </rect>
-            <rect
-              width="10"
-              height="10"
-              x="1"
-              y="13"
-              fill="currentColor"
-              rx="1"
-            >
-              <animate
-                id="svgSpinnersBlocksShuffle34"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle30.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle35"
-                fill="freeze"
-                attributeName="x"
-                begin="svgSpinnersBlocksShuffle31.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle36"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle32.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle37"
-                fill="freeze"
-                attributeName="x"
-                begin="svgSpinnersBlocksShuffle33.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-            </rect>
-            <rect
-              width="10"
-              height="10"
-              x="13"
-              y="13"
-              fill="currentColor"
-              rx="1"
-            >
-              <animate
-                id="svgSpinnersBlocksShuffle38"
-                fill="freeze"
-                attributeName="x"
-                begin="svgSpinnersBlocksShuffle34.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle39"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle35.end"
-                dur="0.2s"
-                values="13;1"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle3a"
-                fill="freeze"
-                attributeName="x"
-                begin="svgSpinnersBlocksShuffle36.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-              <animate
-                id="svgSpinnersBlocksShuffle3b"
-                fill="freeze"
-                attributeName="y"
-                begin="svgSpinnersBlocksShuffle37.end"
-                dur="0.2s"
-                values="1;13"
-              ></animate>
-            </rect>
-          </svg>
+      <div ref={bottomRef}></div>
+      {data?.pages?.map((page, i) => {
+        return (
+          <Fragment key={i}>
+            {page?.items?.map((post) => (
+              <GlobalPost
+                key={post.id}
+                post={post}
+                sender={post.postedBy}
+                images={post.images}
+              />
+            ))}
+          </Fragment>
+        );
+      })}
+      {isFetchingNextPage ? (
+        <div className="py-2 w-full grid place-items-center">
+          <Loader />
         </div>
+      ) : (
+        ""
       )}
-       <div ref={bottomRef}></div>
     </div>
   );
 }

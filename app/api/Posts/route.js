@@ -40,6 +40,12 @@ export async function POST(req) {
                 data: postData,
                 include: {
                     images: true,
+                    postedBy: {
+                        select: {
+                            pfpURL: true,
+                            username: true,
+                        }
+                    }
                 }
             }
             )
@@ -55,15 +61,38 @@ export async function POST(req) {
     }
 }
 
-export async function GET() {
+export async function GET(req) {
+
+    const { searchParams } = new URL(req.url);
+    let cursor = searchParams.get("cursor");
     try {
         const posts = await prisma.post.findMany({
             include: {
                 likes: true,
                 images: true,
-            }
+                postedBy: {
+                    select: {
+                        username: true,
+                        pfpURL: true,
+                    }
+                }
+            },
+            orderBy: {
+                postedAt: "desc"
+            },
+            skip: cursor ? 1 : 0,
+            take: 15,
+            cursor: cursor ? {
+                id: cursor,
+            } : undefined
         });
-        return NextResponse.json(posts, { status: 200 });
+
+        let nextCursor = null;
+
+        if (posts.length === 15) {
+            nextCursor = posts[15 - 1].id;
+        }
+        return NextResponse.json({ items: posts, nextCursor }, { status: 200 });
     } catch (error) {
         console.error('Error retrieving posts', error);
         return NextResponse.json({ error: 'Error retrieving posts', success: false }, { status: 500 });

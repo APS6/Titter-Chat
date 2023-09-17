@@ -3,38 +3,34 @@ import Link from "next/link";
 import Image from "next/image";
 import fetchData from "@/app/lib/fetchData";
 import { useAuthContext } from "@/context/authContext";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { useQuery } from "@tanstack/react-query";
 
 export default function MobileBar() {
   const { user } = useAuthContext();
-  const [account, setAccount] = useState({});
   const router = useRouter()
+
   if (!user) {
     router.push("/SignIn")
   }
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const usersData = await fetchData("User");
-        const acc = usersData.find((u) => u.id === user.uid);
-        if (acc) {
-          setAccount(acc);
-        } else {
-          router.push("SignIn")
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchUsers();
-  }, []);
+
+  const {data, error, status} = useQuery({
+    queryKey: [user.uid, "userOverview"],
+    queryFn: () => fetchData(`UserOverview/${user.uid}`)
+  })
+
+  if (status === "error"){
+    console.error(error)
+  }
+
+  if (status === "success" && !data) {
+    router.push("/SignIn")
+  }
 
   return (
     <div className="flex md:hidden justify-between p-2 bg-grey items-center rounded">
       <Link href="/">
-        <Image src="/birblogo.png" alt="Titter Logo" width="34" height="25" />
+        <Image src="/newlogo.png" alt="Titter Logo" width="32" height="26" />
       </Link>
       <div className="flex gap-2 items-center">
         <Link href="/Home">
@@ -64,10 +60,10 @@ export default function MobileBar() {
             ></path>
           </svg>
         </Link>
-        {account.pfpURL ? (
-          <Link href={`/profile/${account?.username}`}>
+        {data?.pfpURL ? (
+          <Link href={`/profile/${data?.username}`}>
             <Image
-              src={account?.pfpURL}
+              src={data?.pfpURL}
               alt="User Image"
               width="30"
               height="30"
