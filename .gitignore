@@ -35,3 +35,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary
+app/(Site)/DMs/[username]
+app/api/2Users/[...id]
+app/api/chatUser/[username]/[token]
+app/api/DM/[...id]
+context
