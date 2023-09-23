@@ -17,7 +17,7 @@ const useAuthContext = () => {
 
 const AuthContextProvider = ({ children }) => {
   const [user, loading, error] = useAuthState(auth);
-  const [accessToken, setAccessToken] = useState("");
+  const [accessToken, setAccessToken] = useState(null);
   // Not so auth stuff
   const [shrink, setShrink] = useState(false)
   useEffect(() => {

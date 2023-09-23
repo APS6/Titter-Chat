@@ -52,27 +52,26 @@ export default function Sidebar() {
   });
 
   const updateMessages = (newMessage) => {
-    const userIndex = data.messages.findIndex(
-      (msg) => msg.id === newMessage.id
-    );
-    let messages = data.messages;
-    if (userIndex === -1) {
-      if (messages.length === 3) {
-        const slicedMessages = messages.slice(0, -1);
-        messages = [newMessage, ...slicedMessages];
+    queryClient.setQueryData([user.uid, "userMessages"], (oldData) => {
+      const userIndex = oldData.messages.findIndex(
+        (msg) => msg.id === newMessage.id
+      );
+      let messages = oldData.messages;
+      if (userIndex === -1) {
+        if (messages.length === 3) {
+          const slicedMessages = messages.slice(0, -1);
+          messages = [newMessage, ...slicedMessages];
+        } else {
+          messages = [newMessage, ...messages];
+        }
       } else {
-        messages = [newMessage, ...messages];
+        messages = [
+          newMessage,
+          ...messages.slice(0, userIndex),
+          ...messages.slice(userIndex + 1),
+        ];
       }
-    } else {
-      messages = [
-        newMessage,
-        ...messages.slice(0, userIndex),
-        ...messages.slice(userIndex + 1),
-      ];
-    }
-
-    queryClient.setQueryData([user.uid, "userMessages"], (data) => {
-      return { user: data.user, messages: messages };
+      return { user: oldData.user, messages: messages };
     });
   };
 
@@ -89,6 +88,9 @@ export default function Sidebar() {
         updateMessages(newMessage);
       });
     }
+    return () => {
+      channel.unsubscribe();
+    };
   }, [user]);
 
   if (isError) {

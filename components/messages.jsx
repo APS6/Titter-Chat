@@ -22,10 +22,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
 
   const messagesRef = useRef(null);
-  const bottomRef = useRef(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(null);
-  const [preserveScroll, setPreserveScroll] = useState(false);
 
   if (!user) {
     router.push("/SignIn");
@@ -42,7 +39,7 @@ export default function Messages() {
       { skipNull: true }
     );
 
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(url, { method: "GET", cache: 'no-store' });
     return res.json();
   };
 
@@ -64,15 +61,13 @@ export default function Messages() {
     if (chatContainer) {
       const handleScroll = () => {
         const isAtBottom = chatContainer.scrollTop >= -200;
+        const isAtTop =
+        chatContainer.scrollHeight +
+          chatContainer.scrollTop -
+          chatContainer.clientHeight ===
+        0;
         setUserScrolledUp(!isAtBottom);
-        if (
-          chatContainer.scrollHeight +
-            chatContainer.scrollTop -
-            chatContainer.clientHeight ===
-            0 &&
-          hasNextPage &&
-          !isFetchingNextPage
-        ) {
+        if (isAtTop && !!hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       };
@@ -84,37 +79,10 @@ export default function Messages() {
   }, [messagesRef, status]);
 
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (messagesRef && !userScrolledUp) {
-        if (preserveScroll && scrollPosition && messagesRef.current.scrollHeight > scrollPosition) {
-          const newScrollTop = messagesRef.current.scrollHeight - scrollPosition
-          messagesRef.scrollTop =  0 - newScrollTop
-        }
-         setTimeout(() => {
-          setPreserveScroll(false)
-          bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-          }); 
-        }, 100); 
-      }
-    };
-    if (data?.pages?.length !== 0) {
-      scrollToBottom();
-    }
-  }, [data?.pages[0]?.items?.length]);
-
-  useEffect(() => {
     channel.subscribe("new_post", (post) => {
       const newPost = post.data;
-      const container = messagesRef.current;
-      if (container.scrollTop === 0){
-      console.log("scrollHeight :",container.scrollHeight);
-      setScrollPosition(container.scrollHeight);
-      setPreserveScroll(true)
-      }
-      
-      queryClient.setQueryData(["posts"], (data) => {
-        let newData = [...data.pages];
+      queryClient.setQueryData(["posts"], (oldData) => {
+        let newData = [...oldData.pages];
         newData[0] = {
           ...newData[0],
           items: [newPost, ...newData[0].items],
@@ -122,15 +90,13 @@ export default function Messages() {
 
         return {
           pages: newData,
-          pageParams: data.pageParams,
+          pageParams: oldData.pageParams,
         };
       });
     });
 
     return () => {
       channel.unsubscribe();
-      ably.connection.off();
-      ably.close();
     };
   }, []);
 
@@ -154,7 +120,6 @@ export default function Messages() {
       }`}
       ref={messagesRef}
     >
-      <div ref={bottomRef}></div>
       {data?.pages?.map((page, i) => {
         return (
           <Fragment key={i}>

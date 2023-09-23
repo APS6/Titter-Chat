@@ -172,8 +172,8 @@ export default function GlobalPost({
                     )}
                     src={image.imageUrl}
                     alt="Posted Image"
-                    width={width}
-                    height={height}
+                    width={`${width}`}
+                    height={`${height}`}
                     sizes="(max-width: 768px) 85vw, 70vw"
                     className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434]"
                   />
@@ -185,7 +185,7 @@ export default function GlobalPost({
           ""
         )}
         <div className={`flex ${images ? "mt-1" : ""}`}>
-          <div className="flex gap-1 items-center">
+          <div className="flex items-center">
             {liked ? (
               <div
                 className="cursor-pointer p-1 hover:bg-[#343434] rounded-full"
@@ -198,14 +198,14 @@ export default function GlobalPost({
                   viewBox="0 0 24 24"
                 >
                   <path
-                    fill="currentColor"
+                    fill="rgb(249, 24, 128)"
                     d="m12 21l-1.45-1.3q-2.525-2.275-4.175-3.925T3.75 12.812Q2.775 11.5 2.388 10.4T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.3 0 2.475.55T12 4.75q.85-1 2.025-1.55t2.475-.55q2.35 0 3.925 1.575T22 8.15q0 1.15-.388 2.25t-1.362 2.412q-.975 1.313-2.625 2.963T13.45 19.7L12 21Z"
                   ></path>
                 </svg>
               </div>
             ) : (
               <div
-                className="cursor-pointer  p-1 hover:bg-[#343434] rounded-full"
+                className="cursor-pointer p-1 hover:bg-[#343434] rounded-full"
                 onClick={() => likeHandler("like")}
               >
                 <svg
@@ -221,7 +221,7 @@ export default function GlobalPost({
                 </svg>
               </div>
             )}
-            <span>{likeCount}</span>
+            <span className={`text-sm ${liked ? "text-[rgb(249,24,128)]" : ""}`}>{likeCount}</span>
           </div>
         </div>
       </div>

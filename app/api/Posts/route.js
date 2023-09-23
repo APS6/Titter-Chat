@@ -81,7 +81,7 @@ export async function GET(req) {
                 postedAt: "desc"
             },
             skip: cursor ? 1 : 0,
-            take: 15,
+            take: 16,
             cursor: cursor ? {
                 id: cursor,
             } : undefined
@@ -89,10 +89,10 @@ export async function GET(req) {
 
         let nextCursor = null;
 
-        if (posts.length === 15) {
+        if (posts.length === 16) {
             nextCursor = posts[15 - 1].id;
         }
-        return NextResponse.json({ items: posts, nextCursor }, { status: 200 });
+        return NextResponse.json({ items: posts.slice(0, 15), nextCursor }, { status: 200 });
     } catch (error) {
         console.error('Error retrieving posts', error);
         return NextResponse.json({ error: 'Error retrieving posts', success: false }, { status: 500 });

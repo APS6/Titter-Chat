@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
 
-export default function DMInput({ sendingTo, cUsername, username, disabled, setShrink }) {
+export default function DMInput({ sendingTo, disabled, setShrink }) {
   const { user, accessToken, } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
@@ -24,8 +24,6 @@ export default function DMInput({ sendingTo, cUsername, username, disabled, setS
         content: message,
         sentById: user.uid,
         sentToId: sendingTo,
-        sentToUsername: cUsername,
-        sentByUsername: username,
         images: images,
       };
       setLoading(true);
@@ -205,7 +203,7 @@ export default function DMInput({ sendingTo, cUsername, username, disabled, setS
        value={message}
        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
        type="text"
-       placeholder={disabled ? 'You can message this user' : "Send a private tit"}
+       placeholder={disabled ? 'You can not message this user' : "Send a private tit"}
         className="rounded w-full bg-grey outline-none"
       />
       <div

@@ -7,7 +7,7 @@ import { headers } from "next/headers";
 const prisma = new PrismaClient()
 
 const realtime = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
-const channel = realtime.channels.get('dm');
+const channel = realtime.channels.get("dm");
 
 export async function POST(req) {
     const body = await req.json()
@@ -56,9 +56,8 @@ export async function POST(req) {
                 id: newMessage.id,
                 sentById: newMessage.sentById,
                 sentToId: newMessage.sentToId,
-                sentByUsername: body.sentByUsername
             }
-            channel.publish(`m_${body.sentById}_${body.sentToUsername}`, dmMessage);
+            channel.publish(`m_${body.sentById}`, dmMessage);
             channel.publish(`m_${body.sentToId}`, dmMessage);
 
             const ms = {
