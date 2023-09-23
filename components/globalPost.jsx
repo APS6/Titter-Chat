@@ -221,7 +221,7 @@ export default function GlobalPost({
                 </svg>
               </div>
             )}
-            <span className={`text-sm ${liked ? "text-[rgb(249,24,128)]" : ""}`}>{likeCount}</span>
+            <span className={`text-sm pt-[1px] ${liked ? "text-[rgb(249,24,128)]" : ""}`}>{likeCount}</span>
           </div>
         </div>
       </div>

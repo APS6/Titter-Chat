@@ -39,7 +39,7 @@ export default function Messages() {
       { skipNull: true }
     );
 
-    const res = await fetch(url, { method: "GET", cache: 'no-store' });
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
     return res.json();
   };
 
@@ -62,13 +62,19 @@ export default function Messages() {
       const handleScroll = () => {
         const isAtBottom = chatContainer.scrollTop >= -200;
         const isAtTop =
-        chatContainer.scrollHeight +
-          chatContainer.scrollTop -
-          chatContainer.clientHeight ===
-        0;
+          chatContainer.scrollHeight +
+            chatContainer.scrollTop -
+            chatContainer.clientHeight ===
+          0;
+        console.log(
+          chatContainer.scrollHeight,
+            chatContainer.scrollTop,
+            chatContainer.clientHeight, isAtTop
+        );
         setUserScrolledUp(!isAtBottom);
         if (isAtTop && !!hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
+          console.log("fetched more Posts");
         }
       };
       chatContainer.addEventListener("scroll", handleScroll);
