@@ -53,7 +53,12 @@ export default function Messages() {
   } = useInfiniteQuery({
     queryKey: ["posts"],
     queryFn: fetchPosts,
-    getNextPageParam: (lastPage) => lastPage?.nextCursor,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.nextCursor === null) {
+        return undefined;
+      }
+      return lastPage.nextCursor;
+    },
   });
 
   useEffect(() => {

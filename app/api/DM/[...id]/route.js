@@ -35,7 +35,6 @@ export async function GET(req, { params }) {
                 orderBy: {
                     sentAt: "desc"
                 },
-                skip: cursor ? 1 : 0,
                 take: 11,
                 cursor: cursor ? {
                     id: cursor,
@@ -45,7 +44,7 @@ export async function GET(req, { params }) {
             let nextCursor = null;
 
             if (messages.length === 11) {
-                nextCursor = messages[10 - 1].id;
+                nextCursor = messages[11 - 1].id;
             }
             return NextResponse.json({ items: messages.slice(0, 10), nextCursor }, { status: 200 });
         }

@@ -73,7 +73,12 @@ export default function DMUser({ params }) {
   } = useInfiniteQuery({
     queryKey: ["dm", username],
     queryFn: fetchMessages,
-    getNextPageParam: (lastPage) => lastPage?.nextCursor,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.nextCursor === null) {
+        return undefined;
+      }
+      return lastPage.nextCursor;
+    },
     enabled: !!enableFetch,
   });
 

@@ -80,7 +80,6 @@ export async function GET(req) {
             orderBy: {
                 postedAt: "desc"
             },
-            skip: cursor ? 1 : 0,
             take: 16,
             cursor: cursor ? {
                 id: cursor,
@@ -90,7 +89,7 @@ export async function GET(req) {
         let nextCursor = null;
 
         if (posts.length === 16) {
-            nextCursor = posts[15 - 1].id;
+            nextCursor = posts[16 - 1].id;
         }
         return NextResponse.json({ items: posts.slice(0, 15), nextCursor }, { status: 200 });
     } catch (error) {
