@@ -1,9 +1,9 @@
 "use client";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
 import DMInput from "@/components/dmInput";
@@ -31,14 +31,13 @@ export default function DMUser({ params }) {
 
   const { user, accessToken } = useAuthContext();
 
-  const messagesRef = useRef(null);
-
   const queryClient = useQueryClient();
 
-  const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [shrink, setShrink] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
+
+  const { ref: lastDivRef, inView } = useInView();
 
   const chatUser = useQuery({
     queryKey: ["chatU", username],
@@ -83,33 +82,15 @@ export default function DMUser({ params }) {
   });
 
   useEffect(() => {
-    const chatContainer = messagesRef?.current;
-    if (chatContainer) {
-      const handleScroll = () => {
-        const isAtBottom = chatContainer.scrollTop >= -200;
-        const isAtTop =
-          chatContainer.scrollHeight +
-            chatContainer.scrollTop -
-            chatContainer.clientHeight ===
-          0;
-        if (!isAtBottom !== userScrolledUp) {
-          setUserScrolledUp(!isAtBottom);
-        }
-        if (isAtTop && !!hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      };
-      chatContainer.addEventListener("scroll", handleScroll);
-      return () => {
-        chatContainer.removeEventListener("scroll", handleScroll);
-      };
+    if (inView && !!hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [messagesRef, status]);
+  }, [inView]);
 
   useEffect(() => {
     if (user && chatUser?.data?.user?.id) {
       channel.subscribe(`m_${user.uid}`, (newM) => {
-        const newMessage = newM.data
+        const newMessage = newM.data;
         if (
           newMessage.sentToId === chatUser.data.user.id ||
           newMessage.sentById === chatUser.data.user.id
@@ -129,7 +110,6 @@ export default function DMUser({ params }) {
       });
     }
     return () => {
-      console.log("bye");
       channel.unsubscribe();
     };
   }, [user, chatUser?.data?.user?.id]);
@@ -156,6 +136,7 @@ export default function DMUser({ params }) {
       </div>
     );
   } else {
+    const messages = data?.pages?.flatMap((page) => page.items);
     return (
       <div className="flex flex-col h-full justify-between">
         <div>
@@ -179,83 +160,70 @@ export default function DMUser({ params }) {
             className={`flex flex-col-reverse gap-4 overflow-y-scroll ${
               shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
             }`}
-            ref={messagesRef}
           >
             {status !== "loading" ? (
-              data?.pages?.map((page, i) => {
+              messages?.map((message, i) => {
+                let received = false;
+                if (message.sentToId === user?.uid) {
+                  received = true;
+                }
+                const localPostedAt = new Date(message.sentAt);
+                const formattedPostedAt = format(
+                  localPostedAt,
+                  "MMM, d, yyyy, hh:mm aa"
+                );
+                const images = message.images;
                 return (
-                  <Fragment key={i}>
-                    {page?.items?.map((message) => {
-                      let received = false;
-                      if (message.sentToId === user?.uid) {
-                        received = true;
-                      }
-                      const localPostedAt = new Date(message.sentAt);
-                      const formattedPostedAt = format(
-                        localPostedAt,
-                        "MMM, d, yyyy, hh:mm aa"
-                      );
-                      const images = message.images;
-                      return (
-                        <div
-                          key={message.id}
-                          className={` flex flex-col gap-1 max-w-[75%] ${
-                            received
-                              ? "self-start items-start"
-                              : "self-end items-end"
-                          }`}
-                        >
-                          {message.content.length !== 0 ? (
-                            <div
-                              className={`bg-grey rounded-3xl px-4 py-4 max-w-full${
-                                received
-                                  ? "rounded-bl-[4px]"
-                                  : " bg-purple rounded-br-[4px]"
-                              }`}
-                            >
-                              <p className="break-words">{message.content}</p>
+                  <div
+                    key={message.id}
+                    ref={i === messages.length - 1 ? lastDivRef : null}
+                    className={` flex flex-col gap-1 max-w-[75%] ${
+                      received ? "self-start items-start" : "self-end items-end"
+                    }`}
+                  >
+                    {message.content.length !== 0 ? (
+                      <div
+                        className={`bg-grey rounded-3xl px-4 py-4 max-w-full${
+                          received
+                            ? "rounded-bl-[4px]"
+                            : " bg-purple rounded-br-[4px]"
+                        }`}
+                      >
+                        <p className="break-words">{message.content}</p>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                    {images
+                      ? images.map((image) => {
+                          return (
+                            <div key={image.id} className="rounded bg-grey">
+                              <Image
+                                onClick={() => (
+                                  setSelectedUrl(image.imageUrl),
+                                  setDialogOpen(true)
+                                )}
+                                className="object-contain rounded max-w-300px cursor-pointer"
+                                src={image.imageUrl}
+                                alt="Image"
+                                width="300"
+                                height="300"
+                                sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
+                              />
                             </div>
-                          ) : (
-                            ""
-                          )}
-                          {images
-                            ? images.map((image) => {
-                                return (
-                                  <div
-                                    key={image.id}
-                                    className="rounded bg-grey"
-                                  >
-                                    <Image
-                                      onClick={() => (
-                                        setSelectedUrl(image.imageUrl),
-                                        setDialogOpen(true)
-                                      )}
-                                      className="object-contain rounded max-w-300px cursor-pointer"
-                                      src={image.imageUrl}
-                                      alt="Image"
-                                      width="300"
-                                      height="300"
-                                      sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
-                                    />
-                                  </div>
-                                );
-                              })
-                            : ""}
-                          <div
-                            className={`flex ${
-                              received
-                                ? "justify-start ml-1"
-                                : "justify-end mr-1"
-                            }`}
-                          >
-                            <span className="text-xs text-lightwht">
-                              {formattedPostedAt}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </Fragment>
+                          );
+                        })
+                      : ""}
+                    <div
+                      className={`flex ${
+                        received ? "justify-start ml-1" : "justify-end mr-1"
+                      }`}
+                    >
+                      <span className="text-xs text-lightwht">
+                        {formattedPostedAt}
+                      </span>
+                    </div>
+                  </div>
                 );
               })
             ) : (

@@ -1,7 +1,8 @@
 "use client";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { useInView } from "react-intersection-observer";
 
 import GlobalPost from "./globalPost";
 
@@ -21,12 +22,11 @@ export default function Messages() {
 
   const queryClient = useQueryClient();
 
-  const messagesRef = useRef(null);
-  const [userScrolledUp, setUserScrolledUp] = useState(false);
-
   if (!user) {
     router.push("/SignIn");
   }
+
+  const { ref: lastDivRef, inView } = useInView();
 
   const fetchPosts = async ({ pageParam = undefined }) => {
     const url = qs.stringifyUrl(
@@ -62,32 +62,10 @@ export default function Messages() {
   });
 
   useEffect(() => {
-    const chatContainer = messagesRef?.current;
-    if (chatContainer) {
-      const handleScroll = () => {
-        const isAtBottom = chatContainer.scrollTop >= -200;
-        const isAtTop =
-          chatContainer.scrollHeight +
-            chatContainer.scrollTop -
-            chatContainer.clientHeight ===
-          0;
-        console.log(
-          chatContainer.scrollHeight,
-            chatContainer.scrollTop,
-            chatContainer.clientHeight, isAtTop
-        );
-        setUserScrolledUp(!isAtBottom);
-        if (isAtTop && !!hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-          console.log("fetched more Posts");
-        }
-      };
-      chatContainer.addEventListener("scroll", handleScroll);
-      return () => {
-        chatContainer.removeEventListener("scroll", handleScroll);
-      };
+    if (inView && !!hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [messagesRef, status]);
+  }, [inView]);
 
   useEffect(() => {
     channel.subscribe("new_post", (post) => {
@@ -124,27 +102,22 @@ export default function Messages() {
     return <div>Error fetching posts</div>;
   }
 
+  const posts = data.pages?.flatMap((page) => page.items);
   return (
     <div
       className={`flex flex-col-reverse scroll-smooth gap-[.4rem] overflow-y-scroll ${
         shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
       }`}
-      ref={messagesRef}
     >
-      {data?.pages?.map((page, i) => {
-        return (
-          <Fragment key={i}>
-            {page?.items?.map((post) => (
-              <GlobalPost
-                key={post.id}
-                post={post}
-                sender={post.postedBy}
-                images={post.images}
-              />
-            ))}
-          </Fragment>
-        );
-      })}
+      {posts?.map((post, i) => (
+        <GlobalPost
+          key={post.id}
+          divRef={i === posts.length - 1 ? lastDivRef : null}
+          post={post}
+          sender={post.postedBy}
+          images={post.images}
+        />
+      ))}
       {isFetchingNextPage ? (
         <div className="py-2 w-full grid place-items-center">
           <Loader />

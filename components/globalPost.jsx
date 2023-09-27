@@ -13,6 +13,7 @@ export default function GlobalPost({
   post,
   sender,
   images,
+  divRef,
 }) {
   const { user, accessToken } = useAuthContext();
   const [liked, setLiked] = useState(
@@ -102,7 +103,7 @@ export default function GlobalPost({
   };
 
   return (
-    <div className="bg-grey flex items-start gap-2 p-2 pb-1 rounded" key={post.id}>
+    <div className="bg-grey flex items-start gap-2 p-2 pb-1 rounded" key={post.id} ref={divRef ?? null}>
       <Link href={`/profile/${sender?.username}`}>
         {sender.pfpURL ? (
           <Image
