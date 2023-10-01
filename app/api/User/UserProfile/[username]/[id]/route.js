@@ -9,42 +9,6 @@ export async function GET(req, { params }) {
     try {
         const userData = await prisma.user.findFirst({
             include: {
-                likes: {
-                    orderBy: {
-                        post: {
-                            postedAt: "desc"
-                        }
-                    },
-                    select: {
-                        post: {
-                            include: {
-                                likes: true,
-                                images: true,
-                                postedBy: {
-                                    select: {
-                                        username: true,
-                                        pfpURL: true,
-                                    }
-                                }
-                            }
-                        },
-                    }
-                },
-                posts: {
-                    orderBy: {
-                        postedAt: 'desc'
-                    },
-                    include: {
-                        likes: true,
-                        images: true,
-                        postedBy: {
-                            select: {
-                                username: true,
-                                pfpURL: true,
-                            }
-                        }
-                    },
-                },
                 followedBy: {
                     select: {
                         followerId: true,
@@ -63,20 +27,15 @@ export async function GET(req, { params }) {
         if (userData === null) {
             return NextResponse.json({ error: 'User not found', success: false }, { status: 404 });
         }
-        const user = {
-            id: userData.id,
-            bio: userData.bio,
-            username: userData.username,
-            pfpURL: userData.pfpURL,
-        }
         const followedBy = userData.following.some((u) => u.followingId === id)
         const following = userData.followedBy.some((u) => u.followerId === id)
         const followerCount = userData.followedBy.length
         const followingCount = userData.following.length
         return NextResponse.json({
-            user: user,
-            likes: userData.likes,
-            posts: userData.posts,
+            id: userData.id,
+            bio: userData.bio,
+            username: userData.username,
+            pfpURL: userData.pfpURL,
             followedBy: followedBy,
             following: following,
             followerCount: followerCount,

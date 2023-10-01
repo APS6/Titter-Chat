@@ -50,7 +50,7 @@ model Like {
   userId String
   post   Post   @relation(fields: [postId], references: [id])
   postId String
-
+  likedAt DateTime @default(now())
   @@id([postId, userId])
   @@index([postId])
   @@index([userId])
@@ -79,6 +79,7 @@ model DirectMessage {
 
   @@index([sentById])
   @@index([sentToId])
+  @@index([sentById, sentToId])
 }
 
 model DMImage {

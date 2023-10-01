@@ -42,24 +42,6 @@ export async function POST(req) {
 
 }
 
-export async function GET() {
-    try {
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                username: true,
-                pfpURL: true,
-                email: false,
-                bio: false,
-            }
-        });
-        return NextResponse.json(users, { status: 200 });
-    } catch (error) {
-        console.error('Error retrieving users', error);
-        NextResponse.json({ error: 'Error retrieving users', success: false }, { status: 500 });
-    }
-}
-
 function isValidEmail(email) {
     // Regular expression for basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

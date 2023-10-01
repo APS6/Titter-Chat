@@ -60,7 +60,7 @@ export default function DMUser({ params }) {
     return res.json();
   };
 
-  let enableFetch = chatUser?.data?.following;
+  let enableFetch = chatUser?.data?.user?.id;
 
   const {
     data,

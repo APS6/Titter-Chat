@@ -37,6 +37,6 @@
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^4.34.1",
-    "prisma": "^5.0.0"
+    "prisma": "^5.3.1"
   }
 }

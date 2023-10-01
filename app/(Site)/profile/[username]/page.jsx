@@ -1,100 +1,148 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import qs from 'query-string'
 
 import fetchData from "@/app/lib/fetchData";
-import GlobalPost from "@/components/globalPost";
 import BlockLoader from "@/components/svg/blockLoader";
+import ProfilePosts from "@/components/ProfilePosts";
 
 export default function Profile() {
   const { user, accessToken } = useAuthContext();
   const { username } = useParams();
   document.title = `${username} | Titter The Chat App`;
-  const [showLikes, setShowLikes] = useState(false);
 
   const router = useRouter();
-
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const likesParam = searchParams.get("likes");
   if (!user) {
     router.push("/SignIn");
   }
 
+  const createQueryString = useCallback(
+    (name, value) => {
+      const params = new URLSearchParams(searchParams);
+      params.set(name, value);
+
+      return params.toString();
+    },
+    [searchParams]
+  );
+
   const queryClient = useQueryClient();
 
-  const { data, isError, isLoading, error } = useQuery({
+  const {
+    data: profile,
+    isError,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["Profile", username],
-    queryFn: () => fetchData(`UserProfile/${username}/${user.uid}`),
+    queryFn: () => fetchData(`User/UserProfile/${username}/${user.uid}`),
     enabled: !!user,
   });
+
+  const fetchPosts = async ({ pageParam = undefined }) => {
+    const url = qs.stringifyUrl(
+      {
+        url: `/api/User/${username}/${likesParam === 'true' ? "likes" : "posts"}`,
+        query: {
+          cursor: pageParam,
+        },
+      },
+      { skipNull: true }
+    );
+
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    return res.json();
+  };
+
+  useEffect(() => {
+    if (likesParam === 'true') {
+      queryClient.prefetchQuery({
+        queryKey: [username, "likes"],
+        queryFn: fetchPosts
+      })
+    } else {
+      queryClient.prefetchQuery({
+        queryKey: [username, "posts"],
+        queryFn: fetchPosts
+      })
+    }
+  }, [])
 
   const follow = useMutation({
     mutationFn: () => followHandler(),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["Profile", username] })
-      const previousData = queryClient.getQueryData(["Profile", username])
-      if (data.following) {
+      await queryClient.cancelQueries({ queryKey: ["Profile", username] });
+      const previousData = queryClient.getQueryData(["Profile", username]);
+      if (profile.following) {
         queryClient.setQueryData(["Profile", username], (old) => {
-          let newData = previousData
-          newData.following = false
-          return newData
-        })
+          let newData = old;
+          newData.following = false;
+          return newData;
+        });
       } else {
         queryClient.setQueryData(["Profile", username], (old) => {
-          let newData = old
-          newData.following = true
-          return newData
-        })
+          let newData = old;
+          newData.following = true;
+          return newData;
+        });
       }
-      return { previousData }
+      return { previousData };
     },
     onError: (err, v, context) => {
-      console.log(err)
-      queryClient.setQueryData(["Profile", username], context.previousData)
+      console.log(err);
+      queryClient.setQueryData(["Profile", username], context.previousData);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["Profile", username] })
+      queryClient.invalidateQueries({ queryKey: ["Profile", username] });
     },
   });
 
   const followHandler = async () => {
-    if (data.following) {
+    if (profile.following) {
       const body = {
         followerId: user.uid,
-        followingId: data.user.id,
+        followingId: profile.id,
       };
-        const response = await fetch("/api/Follow", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: accessToken,
-          },
-          body: JSON.stringify(body),
-        });
-        return response;
-
-    } else if (!data.following) {
-
+      const response = await fetch("/api/Follow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: accessToken,
+        },
+        body: JSON.stringify(body),
+      });
+      return response;
+    } else if (!profile.following) {
       const body = {
         followerId: user.uid,
-        followingId: data.user.id,
+        followingId: profile.user.id,
       };
-        const response = await fetch("/api/Follow", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: accessToken,
-          },
-          body: JSON.stringify(body),
-        });
-        return response;
+      const response = await fetch("/api/Follow", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: accessToken,
+        },
+        body: JSON.stringify(body),
+      });
+      return response;
     }
   };
+
 
   if (isLoading) {
     return (
@@ -123,10 +171,10 @@ export default function Profile() {
     <div>
       <div>
         <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
-          {data?.user.pfpURL ? (
+          {profile?.pfpURL ? (
             <Image
               className="w-12 h-12 md:w-32 md:h-32 object-cover rounded-full"
-              src={data?.user.pfpURL}
+              src={profile?.pfpURL}
               alt="PFP"
               width={130}
               height={130}
@@ -153,14 +201,14 @@ export default function Profile() {
                 </h2>
                 <div className="flex gap-2">
                   <span className="text-sm">
-                    {data?.followerCount} Followers
+                    {profile?.followerCount} Followers
                   </span>
                   <span className="text-sm">
-                    {data?.followingCount} Following
+                    {profile?.followingCount} Following
                   </span>
                 </div>
               </div>
-              {user.uid === data?.user.id ? (
+              {user.uid === profile?.id ? (
                 <Link className="md:mt-4" href="/profile/edit">
                   <button className=" bg-purple rounded-2xl py-1 px-3">
                     Edit Profile
@@ -168,7 +216,7 @@ export default function Profile() {
                 </Link>
               ) : (
                 <div className="flex gap-2 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
-                  {data?.followedBy && data?.following ? (
+                  {profile?.followedBy && profile?.following ? (
                     <Link href={`/DMs/${username}`}>
                       <button className="hidden sm:block bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
                         Message
@@ -196,7 +244,7 @@ export default function Profile() {
                     onClick={() => follow.mutate()}
                     className="sm:hidden border border-lightwht rounded-full p-1 cursor-pointer"
                   >
-                    {data?.following ? (
+                    {profile?.following ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="25"
@@ -227,9 +275,9 @@ export default function Profile() {
                     onClick={() => follow.mutate()}
                     className="hidden sm:block bg-purple rounded-2xl py-1 px-3"
                   >
-                    {data?.following
+                    {profile?.following
                       ? "Following"
-                      : data?.followedBy
+                      : profile?.followedBy
                       ? "Follow Back"
                       : "Follow"}
                   </button>
@@ -237,62 +285,38 @@ export default function Profile() {
               )}
             </div>
             <div className="md:w-[70%]">
-              <p className="break-words">{data?.user.bio}</p>
+              <p className="break-words">{profile?.bio}</p>
             </div>
           </div>
         </div>
         <div className="flex font-mont font-bold border-b-[1px] border-[#7b7b7b] items-center h-10 mt-6">
           <div
             className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${
-              !showLikes ? "active" : ""
+              likesParam !== "true" ? "active" : ""
             }`}
-            onClick={() => setShowLikes(false)}
+            onClick={() =>
+              router.push(pathname + "?" + createQueryString("likes", "false"))
+            }
           >
             <span>Post</span>
           </div>
           <div
             className={`cursor-pointer relative h-full grid place-items-center w-1/2 hover:bg-grey ${
-              showLikes ? "active" : ""
+              likesParam === "true" ? "active" : ""
             }`}
-            onClick={() => setShowLikes(true)}
+            onClick={() =>
+              router.push(pathname + "?" + createQueryString("likes", "true"))
+            }
           >
             <span>Likes</span>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-[.4rem] scroll-smooth h-[60svh] overflow-y-scroll mt-4">
-        {showLikes && data?.likes.length === 0 ? (
-          <div className="w-full h-full grid place-items-center">
-            <span className="text-2xl">Nothing to see here</span>
-          </div>
-        ) : showLikes ? (
-          data?.likes.map((like) => {
-            return (
-              <GlobalPost
-                key={like.post.id}
-                post={like.post}
-                sender={like.post.postedBy}
-                images={like.post.images}
-              />
-            );
-          })
-        ) : !showLikes ? (
-          data?.posts.map((post) => {
-            return (
-              <GlobalPost
-                key={post.id}
-                post={post}
-                sender={post.postedBy}
-                images={post.images}
-              />
-            );
-          })
-        ) : (
-          <div className="w-full h-full grid place-items-center">
-            <span className="text-2xl">Nothing to see here</span>
-          </div>
-        )}
-      </div>
+      {likesParam === "true" ? 
+        <ProfilePosts type={"likes"}/>
+       :
+        <ProfilePosts type={"posts"}/>
+      }
     </div>
   );
 }
