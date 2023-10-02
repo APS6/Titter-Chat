@@ -38,7 +38,7 @@ export default function Input() {
         if (response.status !== 200) {
           console.log("something went wrong");
           setLoading(false);
-          const timer = setTimeout(() => {
+           setTimeout(() => {
             setShowLoading(false);
           }, 500);
         } else {
@@ -46,7 +46,7 @@ export default function Input() {
           setImages([]);
           setShrink(false);
           setLoading(false);
-          const timer = setTimeout(() => {
+          setTimeout(() => {
             setShowLoading(false);
           }, 500);
         }

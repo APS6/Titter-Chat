@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
             <Navigation />
-            <main className="w-full md:w-3/4 max-w-4xl m-auto md:ml-52 h-full">
+            <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
               <Suspense fallback={<Loading />}>
                 {children}
                 <Analytics />

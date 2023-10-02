@@ -98,7 +98,7 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="hidden md:block left-0 fixed h-full py-2 px-2">
+    <div className="hidden md:block top-0 left-0 fixed h-full py-2 px-2">
     <div className="hidden md:flex h-full bg-grey w-48 flex-col items-center justify-between py-4 rounded">
       <div className="flex flex-col items-center">
         <Link className="mb-8" href={"/"}>

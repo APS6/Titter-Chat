@@ -139,8 +139,8 @@ export default function DMUser({ params }) {
     const messages = data?.pages?.flatMap((page) => page.items);
     return (
       <div>
-          <Link className="fixed top-16 md:top-1 md:ml-3 bg-[#000] z-20" href={`/profile/${username}`}>
-            <div className="mb-8 flex gap-4 items-center">
+          <Link className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20" href={`/profile/${username}`}>
+            <div className="flex gap-4 items-center">
               {chatUser?.data?.user?.pfpURL ? (
                 <Image
                   src={chatUser?.data?.user?.pfpURL}

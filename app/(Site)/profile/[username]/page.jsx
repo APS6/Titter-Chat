@@ -146,7 +146,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="h-full w-full grid place-items-center">
+      <div className="h-[100svh] w-full grid place-items-center">
         <BlockLoader />
       </div>
     );
