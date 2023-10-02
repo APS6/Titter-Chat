@@ -206,7 +206,7 @@ export default function GlobalPost({
               </div>
             ) : (
               <div
-                className="cursor-pointer p-1 hover:bg-[#343434] rounded-full hover:text-[rgb(249, 24, 128)]"
+                className="cursor-pointer p-1 hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
                 onClick={() => likeHandler("like")}
               >
                 <svg

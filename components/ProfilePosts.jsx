@@ -71,7 +71,7 @@ export default function ProfilePosts({type}) {
     </div>
   }
   return (
-    <div className="flex flex-col gap-[.4rem] scroll-smooth h-[60svh] overflow-y-scroll mt-4">
+    <div className="flex flex-col gap-[.4rem] mt-4">
       {posts?.map((post, i) => {
         return (
           <GlobalPost

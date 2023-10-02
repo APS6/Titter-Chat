@@ -3,11 +3,12 @@ import { useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
-
+import ScrollToBottom from "react-scroll-to-bottom";
 import GlobalPost from "./globalPost";
 
 import Loader from "./svg/loader";
 import BlockLoader from "./svg/blockLoader";
+import ScrollDown from "./svg/scrollDown";
 
 import Ably from "ably";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -91,7 +92,7 @@ export default function Messages() {
 
   if (status === "loading") {
     return (
-      <div className="h-[70vh] w-full grid place-items-center">
+      <div className="h-[100svh] w-full grid place-items-center">
         <BlockLoader />
       </div>
     );
@@ -104,10 +105,10 @@ export default function Messages() {
 
   const posts = data.pages?.flatMap((page) => page.items);
   return (
-    <div
-      className={`flex flex-col-reverse scroll-smooth gap-[.4rem] overflow-y-scroll ${
-        shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
-      }`}
+    <ScrollToBottom
+      className='h-[100svh] px-1 pb-14 pt-14 md:pt-0 relative'
+      followButtonClassName="hidden"
+      scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
     >
       {posts?.map((post, i) => (
         <GlobalPost
@@ -125,6 +126,7 @@ export default function Messages() {
       ) : (
         ""
       )}
-    </div>
+      <ScrollDown />
+    </ScrollToBottom>
   );
 }

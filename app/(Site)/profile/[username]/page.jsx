@@ -70,12 +70,12 @@ export default function Profile() {
 
   useEffect(() => {
     if (likesParam === 'true') {
-      queryClient.prefetchQuery({
+      queryClient.prefetchInfiniteQuery({
         queryKey: [username, "likes"],
         queryFn: fetchPosts
       })
     } else {
-      queryClient.prefetchQuery({
+      queryClient.prefetchInfiniteQuery({
         queryKey: [username, "posts"],
         queryFn: fetchPosts
       })
@@ -168,7 +168,7 @@ export default function Profile() {
   }
 
   return (
-    <div>
+    <div className="mt-16 md:mt-2 px-1 md:px-0">
       <div>
         <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
           {profile?.pfpURL ? (

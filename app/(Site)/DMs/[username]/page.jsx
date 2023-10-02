@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
-import DMInput from "@/components/dmInput";
-
+import ScrollToBottom from "react-scroll-to-bottom";
 import { format } from "date-fns";
 import Ably from "ably";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -18,6 +17,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import DMInput from "@/components/dmInput";
 import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
 
@@ -138,16 +138,15 @@ export default function DMUser({ params }) {
   } else {
     const messages = data?.pages?.flatMap((page) => page.items);
     return (
-      <div className="flex flex-col h-full justify-between">
-        <div>
-          <Link href={`/profile/${username}`}>
+      <div>
+          <Link className="fixed top-16 md:top-1 md:ml-3 bg-[#000] z-20" href={`/profile/${username}`}>
             <div className="mb-8 flex gap-4 items-center">
               {chatUser?.data?.user?.pfpURL ? (
                 <Image
                   src={chatUser?.data?.user?.pfpURL}
                   alt={"PFP"}
-                  width={35}
-                  height={35}
+                  width="35"
+                  height="35"
                   className="rounded-full w-[35px] h-[35px] object-cover"
                 />
               ) : (
@@ -156,10 +155,10 @@ export default function DMUser({ params }) {
               <h2 className="font-bold font-mont text-4xl">{username}</h2>
             </div>
           </Link>
-          <div
-            className={`flex flex-col-reverse gap-4 overflow-y-scroll ${
-              shrink ? "h-[65vh] sm:h-[59vh]" : "h-[70svh]"
-            }`}
+          <ScrollToBottom
+            className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
+            followButtonClassName="hidden"
+            scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
           >
             {status !== "loading" ? (
               messages?.map((message, i) => {
@@ -238,8 +237,8 @@ export default function DMUser({ params }) {
             ) : (
               ""
             )}
-          </div>
-        </div>
+          </ScrollToBottom>
+
         <DMInput
           sendingTo={chatUser?.data?.user?.id}
           disabled={chatUser && !chatUser?.data?.following}

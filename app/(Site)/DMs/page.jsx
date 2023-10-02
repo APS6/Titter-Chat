@@ -34,7 +34,7 @@ export default function DMs() {
           <BlockLoader />
         </div>
       ) : (
-        <div>
+        <div className="mt-16 md:mt-2 px-1 md:px-0">
           <h1 className="font-bold font-mont text-4xl">Messages</h1>
           <div className="mt-6">
             <h2 className="font-bold font-mont text-3xl mb-2">Users</h2>

@@ -18,6 +18,11 @@
     color: #ffffff;
   }
 }
+:root {
+  color-scheme: dark;
+}
+
+/* Profile tabs active bar */
 .active::after {
   content: "";
   position: absolute;
@@ -30,21 +35,23 @@
   border-radius: 4px;
 }
 
-@keyframes loading {
-  0% {
-    background: linear-gradient(to right, #6b01b8 0%, #0f0d0d 0%);
-  }
-  100% {
-    background: linear-gradient(to right, #6b01b8 60%, #0f0d0d 60%);
-  }
+/* message progress bar */
+.progress {
+  transform: scaleX(0);
+  animation: loading 2.5s ease forwards;
+  transform-origin: left;
+  transition: all 200ms;
+}
+.complete {
+  transform: scaleX(1);
 }
 
-@keyframes loaded {
+@keyframes loading {
   0% {
-    background: linear-gradient(to right, #6b01b8 60%, #0f0d0d 60%);
+    transform: scaleX(0);
   }
   100% {
-    background: linear-gradient(to right, #6b01b8 100%, #0f0d0d 100%);
+   transform: scaleX(.7);
   }
 }
 

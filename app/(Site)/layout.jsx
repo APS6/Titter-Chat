@@ -16,15 +16,13 @@ export default function RootLayout({ children }) {
       <body className="bg-[#000]">
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
-          <div className="h-[100svh] w-full p-4 flex flex-col md:flex-row gap-4">
             <Navigation />
-            <main className="w-full md:w-3/4 max-w-4xl m-auto md:px-5 h-full">
+            <main className="w-full md:w-3/4 max-w-4xl m-auto md:ml-52 h-full">
               <Suspense fallback={<Loading />}>
                 {children}
                 <Analytics />
               </Suspense>
             </main>
-          </div>
         </AuthContextProvider>
         <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
