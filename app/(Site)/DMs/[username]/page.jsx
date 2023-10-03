@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
@@ -11,7 +11,6 @@ import { format } from "date-fns";
 import Ably from "ably";
 import * as Dialog from "@radix-ui/react-dialog";
 import qs from "query-string";
-
 import {
   useInfiniteQuery,
   useQuery,
@@ -25,18 +24,20 @@ const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("dm");
 
 export default function DMUser({ params }) {
+  
   const { username } = params;
-  const router = useRouter();
   document.title = `${username} DM | Titter The Chat App`;
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const chatUserId = searchParams.get("id");
+  const queryClient = useQueryClient();
+  const { ref: lastDivRef, inView } = useInView();
 
   const { user, accessToken } = useAuthContext();
 
-  const queryClient = useQueryClient();
-
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
-
-  const { ref: lastDivRef, inView } = useInView();
 
   const chatUser = useQuery({
     queryKey: ["chatU", username],
@@ -45,9 +46,10 @@ export default function DMUser({ params }) {
   });
 
   const fetchMessages = async ({ pageParam = undefined }) => {
+    let id = chatUser?.data?.user?.id ?? chatUserId;
     const url = qs.stringifyUrl(
       {
-        url: `/api/DM/${accessToken}/${chatUser?.data?.user?.id}`,
+        url: `/api/DM/${accessToken}/${id}`,
         query: {
           cursor: pageParam,
         },
@@ -59,8 +61,7 @@ export default function DMUser({ params }) {
     return res.json();
   };
 
-  let enableFetch = chatUser?.data?.user?.id;
-
+  let enableFetch = chatUser?.data?.user?.id ? chatUser?.data?.user?.id : accessToken && chatUserId
   const {
     data,
     error,
@@ -138,105 +139,108 @@ export default function DMUser({ params }) {
     const messages = data?.pages?.flatMap((page) => page.items);
     return (
       <div>
-          <Link className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20" href={`/profile/${username}`}>
-            <div className="flex gap-4 items-center">
-              {chatUser?.data?.user?.pfpURL ? (
-                <Image
-                  src={chatUser?.data?.user?.pfpURL}
-                  alt={"PFP"}
-                  width="35"
-                  height="35"
-                  className="rounded-full w-[35px] h-[35px] object-cover"
-                />
-              ) : (
-                ""
-              )}
-              <h2 className="font-bold font-mont text-4xl">{username}</h2>
-            </div>
-          </Link>
-          <ScrollToBottom
-            className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
-            followButtonClassName="hidden"
-            scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
-          >
-            {status !== "loading" ? (
-              messages?.map((message, i) => {
-                let received = false;
-                if (message.sentToId === user?.uid) {
-                  received = true;
-                }
-                const localPostedAt = new Date(message.sentAt);
-                const formattedPostedAt = format(
-                  localPostedAt,
-                  "MMM, d, yyyy, hh:mm aa"
-                );
-                const images = message.images;
-                return (
-                  <div
-                    key={message.id}
-                    ref={i === messages.length - 1 ? lastDivRef : null}
-                    className={` flex flex-col gap-1 max-w-[75%] ${
-                      received ? "self-start items-start" : "self-end items-end"
-                    }`}
-                  >
-                    {message.content.length !== 0 ? (
-                      <div
-                        className={`bg-grey rounded-3xl px-4 py-4 max-w-full${
-                          received
-                            ? "rounded-bl-[4px]"
-                            : " bg-purple rounded-br-[4px]"
-                        }`}
-                      >
-                        <p className="break-words">{message.content}</p>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    {images
-                      ? images.map((image) => {
-                          return (
-                            <div key={image.id} className="rounded bg-grey">
-                              <Image
-                                onClick={() => (
-                                  setSelectedUrl(image.imageUrl),
-                                  setDialogOpen(true)
-                                )}
-                                className="object-contain rounded max-w-300px cursor-pointer"
-                                src={image.imageUrl}
-                                alt="Image"
-                                width="300"
-                                height="300"
-                                sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
-                              />
-                            </div>
-                          );
-                        })
-                      : ""}
-                    <div
-                      className={`flex ${
-                        received ? "justify-start ml-1" : "justify-end mr-1"
-                      }`}
-                    >
-                      <span className="text-xs text-lightwht">
-                        {formattedPostedAt}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="h-full w-full grid place-items-center">
-                <BlockLoader />
-              </div>
-            )}
-            {isFetchingNextPage ? (
-              <div className="py-2 w-full grid place-items-center">
-                <Loader />
-              </div>
+        <Link
+          className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20"
+          href={`/profile/${username}`}
+        >
+          <div className="flex gap-4 items-center">
+            {chatUser?.data?.user?.pfpURL ? (
+              <Image
+                src={chatUser?.data?.user?.pfpURL}
+                alt={"PFP"}
+                width="35"
+                height="35"
+                className="rounded-full w-[35px] h-[35px] object-cover"
+              />
             ) : (
               ""
             )}
-          </ScrollToBottom>
+            <h2 className="font-bold font-mont text-4xl">{username}</h2>
+          </div>
+        </Link>
+        <ScrollToBottom
+          className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
+          followButtonClassName="hidden"
+          scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
+        >
+          {status !== "loading" ? (
+            messages?.map((message, i) => {
+              let received = false;
+              if (message.sentToId === user?.uid) {
+                received = true;
+              }
+              const localPostedAt = new Date(message.sentAt);
+              const formattedPostedAt = format(
+                localPostedAt,
+                "MMM, d, yyyy, hh:mm aa"
+              );
+              const images = message.images;
+              return (
+                <div
+                  key={message.id}
+                  ref={i === messages.length - 1 ? lastDivRef : null}
+                  className={` flex flex-col gap-1 max-w-[75%] ${
+                    received ? "self-start items-start" : "self-end items-end"
+                  }`}
+                >
+                  {message.content.length !== 0 ? (
+                    <div
+                      className={`bg-grey rounded-3xl px-4 py-4 max-w-full${
+                        received
+                          ? "rounded-bl-[4px]"
+                          : " bg-purple rounded-br-[4px]"
+                      }`}
+                    >
+                      <p className="break-words">{message.content}</p>
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                  {images
+                    ? images.map((image) => {
+                        return (
+                          <div key={image.id} className="rounded bg-grey">
+                            <Image
+                              onClick={() => (
+                                setSelectedUrl(image.imageUrl),
+                                setDialogOpen(true)
+                              )}
+                              className="object-contain rounded max-w-300px cursor-pointer"
+                              src={image.imageUrl}
+                              alt="Image"
+                              width={300}
+                              height={300}
+                              sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
+                            />
+                          </div>
+                        );
+                      })
+                    : ""}
+                  <div
+                    className={`flex ${
+                      received ? "justify-start ml-1" : "justify-end mr-1"
+                    }`}
+                  >
+                    <span className="text-xs text-lightwht">
+                      {formattedPostedAt}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="h-full w-full grid place-items-center">
+              <BlockLoader />
+            </div>
+          )}
+          {isFetchingNextPage ? (
+            <div className="py-2 w-full grid place-items-center">
+              <Loader />
+            </div>
+          ) : (
+            ""
+          )}
+        </ScrollToBottom>
 
         <DMInput
           sendingTo={chatUser?.data?.user?.id}
@@ -250,8 +254,8 @@ export default function DMUser({ params }) {
                 className="object-contain"
                 src={selectedUrl}
                 alt="Image"
-                width="1000"
-                height="1000"
+                width={1000}
+                height={1000}
                 sizes="95vw"
               />
               <a

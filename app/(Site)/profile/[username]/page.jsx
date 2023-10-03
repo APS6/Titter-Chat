@@ -217,7 +217,7 @@ export default function Profile() {
               ) : (
                 <div className="flex gap-2 md:gap-3 md:mt-4 justify-center flex-wrap text-sm md:text-base [1200px]:mr-2">
                   {profile?.followedBy && profile?.following ? (
-                    <Link href={`/DMs/${username}`}>
+                    <Link href={`/DMs/${username}?id=${profile?.id}`}>
                       <button className="hidden sm:block bg-opacity-0 border-2 border-lightwht py-1 px-3 rounded-2xl">
                         Message
                       </button>

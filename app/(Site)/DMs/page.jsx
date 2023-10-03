@@ -80,7 +80,7 @@ export default function DMs() {
                   }
                   return (
                     <Link
-                      href={`/DMs/${convo.username}`}
+                      href={`/DMs/${convo.username}?id=${convo.id}`}
                       key={convo.id}
                       className="w-full p-2 bg-grey rounded"
                     >
@@ -89,8 +89,8 @@ export default function DMs() {
                           className="rounded-full w-[50px] h-[50px] object-cover"
                           src={convo.pfpURL}
                           alt="PFP"
-                          width="50"
-                          height="50"
+                          width={50}
+                          height={50}
                         />
                         <div className="flex flex-col w-[80%]">
                           <div className="flex items-center justify-between gap-1">

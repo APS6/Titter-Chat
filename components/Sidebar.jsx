@@ -106,8 +106,8 @@ export default function Sidebar() {
             <Image
               src="/newlogo.png"
               alt="Titter Logo"
-              width="36"
-              height="30"
+              width={36}
+              height={30}
             />
             <h3 className="text-3xl font-bold">Titter</h3>
           </div>
@@ -197,14 +197,14 @@ export default function Sidebar() {
                   }
 
                   return (
-                    <Link href={`/DMs/${convo.username}`} key={convo.id}>
+                    <Link href={`/DMs/${convo.username}?id=${convo.id}`} key={convo.id}>
                       <div className="mt-4 flex items-center gap-2 w-44 px-1 hover:bg-[#343434] rounded-lg">
                         <Image
                           className="rounded-full w-[35px] h-[35px] object-cover"
                           src={convo.pfpURL}
                           alt="PFP"
-                          width="35"
-                          height="35"
+                          width={35}
+                          height={35}
                         />
                         <div className="flex flex-col max-w-[80%]">
                           <div className="flex items-center gap-1">
@@ -242,8 +242,8 @@ export default function Sidebar() {
             <Image
               src={data?.user.pfpURL}
               alt="User Image"
-              width="30"
-              height="30"
+              width={30}
+              height={30}
               className="rounded-full w-[30px] h-[30px] object-cover"
             />
           ) : (
