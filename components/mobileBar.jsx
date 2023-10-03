@@ -31,7 +31,7 @@ export default function MobileBar() {
     <div className="md:hidden bg-[#000] fixed top-0 w-full py-1 px-1 z-10">
     <div className="flex md:hidden justify-between p-2 bg-grey items-center rounded">
       <Link href="/">
-        <Image src="/newlogo.png" alt="Titter Logo" width="32" height="26" />
+        <Image src="/newlogo.png" alt="Titter Logo" width={32} height={26} />
       </Link>
       <div className="flex gap-2 items-center">
         <Link href="/Home">
@@ -66,8 +66,8 @@ export default function MobileBar() {
             <Image
               src={data?.pfpURL}
               alt="User Image"
-              width="30"
-              height="30"
+              width={30}
+              height={30}
               className="rounded-full w-[30px] h-[30px] object-cover"
             />
           </Link>

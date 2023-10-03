@@ -101,8 +101,8 @@ export default function Input() {
                   <Image
                     src={image.imageUrl}
                     alt="uploaded image"
-                    width="100"
-                    height="100"
+                    width={100}
+                    height={100}
                     className=" object-cover rounded w-16 h-16 sm:w-24 sm:h-24"
                     onLoadingComplete={(img) =>
                       dimensionsHandler(img, image.key)

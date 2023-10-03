@@ -66,8 +66,8 @@ export default function SignIn() {
             <Image
               src="/google.png"
               alt="G"
-              width="20"
-              height="20"
+              width={20}
+              height={20}
               className="h-[20px]"
             />
             <span>Sign in with Google</span>

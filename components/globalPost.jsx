@@ -173,8 +173,8 @@ export default function GlobalPost({
                     )}
                     src={image.imageUrl}
                     alt="Posted Image"
-                    width={`${width}`}
-                    height={`${height}`}
+                    width={width}
+                    height={height}
                     sizes="(max-width: 768px) 85vw, 70vw"
                     className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434]"
                   />
@@ -234,8 +234,8 @@ export default function GlobalPost({
               className="object-contain"
               src={selectedUrl}
               alt="Image"
-              width="1000"
-              height="1000"
+              width={1000}
+              height={1000}
               sizes="95vw"
             />
             <a

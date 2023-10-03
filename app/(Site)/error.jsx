@@ -10,7 +10,7 @@ export default function Error({ error, reset }) {
 
   const router = useRouter();
   return (
-    <div className="w-full h-full flex flex-col justify-center items-center gap-8">
+    <div className="w-full h-[100svh] flex flex-col justify-center items-center gap-8">
       <h2 className="text-4xl">Something went wrong!</h2>
       <div className="flex gap-2">
         <button
