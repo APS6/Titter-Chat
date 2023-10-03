@@ -46,7 +46,6 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
         } else {
           setMessage("");
           setImages([]);
-          setShrink(false);
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);
@@ -64,9 +63,6 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
         (img) => img.imageUrl !== image.imageUrl
       );
       setImages(filteredImages);
-      if (filteredImages.length === 0) {
-        setShrink(false);
-      }
       const body = {
         key: image.key,
       };
@@ -188,7 +184,6 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
                         updatedImages.splice(updatedImages.length - 4);
                       }
                       setImages(updatedImages);
-                      setShrink(true);
                       setDialogOpen(false);
                     }}
                     onUploadError={(error) => {

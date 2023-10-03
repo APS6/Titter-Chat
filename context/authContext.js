@@ -18,8 +18,6 @@ const useAuthContext = () => {
 const AuthContextProvider = ({ children }) => {
   const [user, loading, error] = useAuthState(auth);
   const [accessToken, setAccessToken] = useState(null);
-  // Not so auth stuff
-  const [shrink, setShrink] = useState(false)
   useEffect(() => {
     if (user) {
       user.getIdToken().then((token) => {
@@ -39,7 +37,7 @@ const AuthContextProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, accessToken, shrink, setShrink }}>
+    <AuthContext.Provider value={{ user, loading, accessToken,}}>
       {children}
     </AuthContext.Provider>
   );

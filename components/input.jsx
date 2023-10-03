@@ -6,7 +6,7 @@ import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
 
 export default function Input() {
-  const { user, accessToken, setShrink } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function Input() {
         } else {
           setMessage("");
           setImages([]);
-          setShrink(false);
+
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);
@@ -62,9 +62,6 @@ export default function Input() {
         (img) => img.imageUrl !== image.imageUrl
       );
       setImages(filteredImages);
-      if (filteredImages.length === 0) {
-        setShrink(false);
-      }
       const body = {
         key: image.key,
       };
@@ -200,7 +197,7 @@ export default function Input() {
                         updatedImages.splice(updatedImages.length - 4);
                       }
                       setImages(updatedImages);
-                      setShrink(true);
+
                       setDialogOpen(false);
                     }}
                     onUploadError={(error) => {

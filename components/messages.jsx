@@ -18,7 +18,7 @@ const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("global");
 
 export default function Messages() {
-  const { user, shrink } = useAuthContext();
+  const { user } = useAuthContext();
   const router = useRouter();
 
   const queryClient = useQueryClient();

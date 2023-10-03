@@ -33,7 +33,6 @@ export default function DMUser({ params }) {
 
   const queryClient = useQueryClient();
 
-  const [shrink, setShrink] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
 
@@ -242,7 +241,6 @@ export default function DMUser({ params }) {
         <DMInput
           sendingTo={chatUser?.data?.user?.id}
           disabled={chatUser && !chatUser?.data?.following}
-          setShrink={setShrink}
         />
         <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
           <Dialog.Portal>
