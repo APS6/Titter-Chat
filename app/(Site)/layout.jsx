@@ -11,7 +11,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const queryClient = new QueryClient()
 
-export default function RootLayout({ children }) {
+export default function Layout({ children }) {
   return (
       <body className="bg-[#000]">
       <QueryClientProvider client={queryClient}>
