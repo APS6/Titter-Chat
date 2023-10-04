@@ -19,6 +19,7 @@ import {
 import DMInput from "@/components/dmInput";
 import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
+import Linkify from 'react-linkify';
 
 const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = ably.channels.get("dm");
@@ -175,6 +176,13 @@ export default function DMUser({ params }) {
                 "MMM, d, yyyy, hh:mm aa"
               );
               const images = message.images;
+
+              const componentDecorator = (href, text, key) => (
+                <a href={href} key={key} target="_blank" className="text-[#247edf]">
+                    {text}
+                </a>
+            );
+            
               return (
                 <div
                   key={message.id}
@@ -191,7 +199,7 @@ export default function DMUser({ params }) {
                           : " bg-purple rounded-br-[4px]"
                       }`}
                     >
-                      <p className="break-words">{message.content}</p>
+                      <p className="break-words whitespace-pre-wrap"><Linkify componentDecorator={componentDecorator}>{message.content}</Linkify></p>
                     </div>
                   ) : (
                     ""

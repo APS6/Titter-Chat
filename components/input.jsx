@@ -1,6 +1,6 @@
 "use client";
 import { useAuthContext } from "@/context/authContext";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
@@ -13,10 +13,8 @@ export default function Input() {
   const [showLoading, setShowLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [images, setImages] = useState([]);
+  const textareaRef = useRef(null);
 
-  const messageHandler = (e) => {
-    setMessage(e.target.value);
-  };
   const sendMessage = async () => {
     if (message || images) {
       const body = {
@@ -38,7 +36,7 @@ export default function Input() {
         if (response.status !== 200) {
           console.log("something went wrong");
           setLoading(false);
-           setTimeout(() => {
+          setTimeout(() => {
             setShowLoading(false);
           }, 500);
         } else {
@@ -55,6 +53,32 @@ export default function Input() {
       }
     }
   };
+
+  const messageHandler = (e) => {
+    setMessage(e.target.value);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendMessage();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [message]);
+
 
   const deleteFiles = async (image) => {
     if (image) {
@@ -129,7 +153,8 @@ export default function Input() {
         ) : (
           ""
         )}
-        <div
+        <form
+          onSubmit={handleSubmit}
           className={`bg-grey py-1 rounded outline-none flex items-center gap-2 px-2 ${
             typing ? "outline-1 outline-lightwht outline-offset-0" : ""
           }`}
@@ -137,7 +162,7 @@ export default function Input() {
           <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
             <Dialog.Trigger
               disabled={images.length === 4}
-              className={`hover:bg-[#343434] rounded-full p-1 ${
+              className={`hover:bg-[#343434] rounded-full p-1 self-end ${
                 images.length === 4 ? "text-[#a5a5a5] cursor-not-allowed" : ""
               }`}
             >
@@ -209,19 +234,21 @@ export default function Input() {
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
-          <input
+          <textarea
+            ref={textareaRef}
+            rows='1'
             onFocus={() => setTyping(true)}
             onBlur={() => setTyping(false)}
             onChange={(e) => messageHandler(e)}
             value={message}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onKeyDown={(e) => handleKeyDown(e)}
             type="text"
             placeholder="Write a tit"
-            className="rounded w-full bg-grey outline-none"
+            className="rounded w-full bg-grey outline-none resize-none max-h-52"
           />
-          <div
-            onClick={() => sendMessage()}
-            className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 ${
+          <button
+            type="submit"
+            className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 self-end ${
               message.length === 0 && images.length === 0
                 ? "text-[#a5a5a5] cursor-not-allowed"
                 : "text-lightwht"
@@ -236,8 +263,8 @@ export default function Input() {
             >
               <path d="M5.13333 22.6625C4.74444 22.8181 4.375 22.7838 4.025 22.5598C3.675 22.3358 3.5 22.0103 3.5 21.5833V16.3333L12.8333 14L3.5 11.6667V6.41668C3.5 5.9889 3.675 5.66301 4.025 5.43901C4.375 5.21501 4.74444 5.18118 5.13333 5.33751L23.1 12.9208C23.5861 13.1347 23.8292 13.4945 23.8292 14C23.8292 14.5056 23.5861 14.8653 23.1 15.0792L5.13333 22.6625Z" />
             </svg>
-          </div>
-        </div>
+          </button>
+        </form>
         <div
           className={`fixed w-full top-0 left-0 h-1 bg-grey z-50 ${
             showLoading ? "block" : "hidden"

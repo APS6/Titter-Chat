@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Ably from "ably";
 import * as Dialog from "@radix-ui/react-dialog";
+import Linkify from 'react-linkify';
 
 const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
 const channel = client.channels.get("likes");
@@ -27,7 +28,7 @@ export default function GlobalPost({
 
   const localPostedAt = new Date(post.postedAt);
   const formattedPostedAt = format(localPostedAt, "dd/MM/yyyy hh:mm a");
-
+  
   useEffect(() => {
     channel.subscribe("new_like", (data) => {
       const newLikes = data.data;
@@ -101,6 +102,11 @@ export default function GlobalPost({
       }
     }
   };
+  const componentDecorator = (href, text, key) => (
+    <a href={href} key={key} target="_blank" className="text-[#247edf]">
+        {text}
+    </a>
+);
 
   return (
     <div className="bg-grey flex items-start gap-2 p-2 pb-1 rounded" key={post.id} ref={divRef ?? null}>
@@ -136,9 +142,10 @@ export default function GlobalPost({
           </Link>
           <span className="text-sm text-lightwht">{formattedPostedAt}</span>
         </div>
-        <p className="mb-1 break-words">
-          {post?.content ?? "Could not find post"}
-        </p>
+        { post?.content ?
+        <p className="mb-1 break-words whitespace-pre-wrap">
+          <Linkify componentDecorator={componentDecorator}>{post.content}</Linkify>
+        </p> : ""}
         {images ? (
           <div
             className={`grid gap-3 ${
