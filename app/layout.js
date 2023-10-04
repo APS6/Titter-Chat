@@ -11,10 +11,10 @@ export const metadata = {
         locale: 'en_US',
         images: [
             {
-                url: 'https://titter-chat.vercel.app/opengraph-image.png',
+                url: 'https://titter-chat.vercel.app/opengraph.png',
                 alt: "Titter Chat The Birb App",
-                width: 933,
-                height: 311,
+                width: 886,
+                height: 436,
             }
         ]
     },
