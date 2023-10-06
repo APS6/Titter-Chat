@@ -178,7 +178,7 @@ export default function DMUser({ params }) {
               const images = message.images;
 
               const componentDecorator = (href, text, key) => (
-                <a href={href} key={key} target="_blank" className="text-[#247edf]">
+                <a href={href} key={key} target="_blank" className="text-[#247edf] hover:underline">
                     {text}
                 </a>
             );

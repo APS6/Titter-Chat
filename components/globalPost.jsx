@@ -103,7 +103,7 @@ export default function GlobalPost({
     }
   };
   const componentDecorator = (href, text, key) => (
-    <a href={href} key={key} target="_blank" className="text-[#247edf]">
+    <a href={href} key={key} target="_blank" className="text-[#247edf] hover:underline">
         {text}
     </a>
 );

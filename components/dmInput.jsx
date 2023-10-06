@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
 
-export default function DMInput({ sendingTo, disabled, setShrink }) {
+export default function DMInput({ sendingTo, disabled }) {
   const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
@@ -138,16 +138,16 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
           ""
         )}
         <form
-                  onSubmit={handleSubmit}
+          onSubmit={handleSubmit}
           className={`bg-grey py-1 rounded outline-none flex items-center gap-2 px-2 ${
             typing ? "outline-1 outline-lightwht outline-offset-0" : ""
           }`}
         >
           <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
             <Dialog.Trigger
-              disabled={images.length === 4}
+              disabled={images.length === 4 || disabled}
               className={`hover:bg-[#343434] rounded-full p-1 self-end ${
-                images.length === 4 ? "text-[#a5a5a5] cursor-not-allowed" : ""
+                images.length === 4 || disabled? "text-[#a5a5a5] cursor-not-allowed" : ""
               }`}
             >
               <svg
@@ -217,9 +217,9 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
-          <input
-          ref={textareaRef}
-          rows='1'
+          <textarea
+            ref={textareaRef}
+            rows="1"
             disabled={disabled}
             onFocus={() => setTyping(true)}
             onBlur={() => setTyping(false)}
@@ -230,10 +230,10 @@ export default function DMInput({ sendingTo, disabled, setShrink }) {
             placeholder={
               disabled ? "You can not message this user" : "Send a private tit"
             }
-            className="rounded w-full bg-grey outline-none"
+            className="rounded w-full bg-grey outline-none resize-none max-h-52"
           />
           <button
-          type="submit"
+            type="submit"
             className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 self-end ${
               message.length === 0 && images.length === 0
                 ? "text-[#a5a5a5] cursor-not-allowed"
