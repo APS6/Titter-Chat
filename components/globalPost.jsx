@@ -58,6 +58,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
+          deleted: post.id
         };
       });
       return { previousData };

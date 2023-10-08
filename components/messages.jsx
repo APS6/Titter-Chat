@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
@@ -64,6 +64,7 @@ export default function Messages() {
       }
       return lastPage.nextCursor;
     },
+    refetchOnWindowFocus: false
   });
 
   const { data: cUser } = useQuery({
@@ -111,6 +112,7 @@ export default function Messages() {
           return {
             pages: newData,
             pageParams: old.pageParams,
+            deleted: rmPost.id
           };
         });
       }
@@ -128,13 +130,13 @@ export default function Messages() {
             (p) => p.id === edPost.id
           );
           if (pIndex !== -1) {
-           newData[pageIndex].items.splice(pIndex, 1, edPost);
+            newData[pageIndex].items.splice(pIndex, 1, edPost);
           }
         }
         return {
           pages: newData,
           pageParams: old.pageParams,
-          edited: edPost.id
+          edited: edPost.id,
         };
       });
     });
@@ -157,20 +159,23 @@ export default function Messages() {
     return <div>Error fetching posts</div>;
   }
 
-  const posts = data.pages?.flatMap((page) => page.items);
   return (
     <ScrollToBottom
       className="h-[100svh] px-1 pb-14 pt-14 md:pt-0 relative"
       followButtonClassName="hidden"
       scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
     >
-      {posts?.map((post, i) => (
-        <GlobalPost
-          key={post.id}
-          divRef={i === posts.length - 1 ? lastDivRef : null}
-          post={post}
-          cUser={cUser}
-        />
+      {data.pages.map((page, pageI, pages) => (
+        <Fragment>
+          {page.items.map((post, i) => (
+            <GlobalPost
+              key={post.id}
+              divRef={i === page.items.length - 1 && pageI === pages.length - 1 ? lastDivRef : null}
+              post={post}
+              cUser={cUser}
+            />
+          ))}
+        </Fragment>
       ))}
       {isFetchingNextPage ? (
         <div className="py-2 w-full grid place-items-center">
