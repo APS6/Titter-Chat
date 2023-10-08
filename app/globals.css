@@ -75,3 +75,13 @@
   -webkit-mask-image: radial-gradient(rgba(0, 0, 0, 0.45), transparent 70%);
   mask-image: radial-gradient(rgba(0, 0, 0, 0.45), transparent 70%);
 }
+
+.pc-opacity-0 {
+  opacity: 0;
+}
+
+@media (pointer: coarse) {
+  .pc-opacity-0 {
+    opacity: 1;
+  }
+}

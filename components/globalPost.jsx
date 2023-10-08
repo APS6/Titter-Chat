@@ -383,7 +383,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             </div>
           </div>
           <Popover.Root>
-            <Popover.Trigger className={`opacity-0 group-hover:opacity-100 ${editing ? "hidden" : ""} absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}>
+            <Popover.Trigger className={`pc-opacity-0 group-hover:opacity-100 ${editing ? "hidden" : ""} absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}>
               <ThreeDots />
             </Popover.Trigger>
             <Popover.Portal>
