@@ -1,13 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/lib/db";
 import { NextResponse } from "next/server";
-import Ably from 'ably'
+import { ably } from "@/app/lib/webSocket";
 import admin from "@/app/lib/firebaseAdmin";
 import { headers } from "next/headers";
 
-const prisma = new PrismaClient()
-
-const realtime = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
-const channel = realtime.channels.get('likes');
+const channel = ably.channels.get('likes');
 
 export async function POST(req) {
     const body = await req.json()

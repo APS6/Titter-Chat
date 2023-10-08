@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import admin from "@/app/lib/firebaseAdmin";
 import { headers } from "next/headers";
-
-const prisma = new PrismaClient()
 
 export async function POST(req) {
     const body = await req.json()

@@ -13,18 +13,18 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import Ably from "ably";
+import { ably } from "@/app/lib/webSocket";
 import { useRouter } from "next/navigation";
 import Loader from "./svg/loader";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-const client = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
-const channel = client.channels.get("dm");
 
 export const dynamic = "force-dynamic";
 
 export default function Sidebar() {
   const { user, accessToken } = useAuthContext();
+  
+  const channel = ably.channels.get("dm");
 
   const router = useRouter();
 

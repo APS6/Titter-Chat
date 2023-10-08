@@ -10,16 +10,20 @@ import Loader from "./svg/loader";
 import BlockLoader from "./svg/blockLoader";
 import ScrollDown from "./svg/scrollDown";
 
-import Ably from "ably";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { ably } from "@/app/lib/webSocket";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import qs from "query-string";
-
-const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
-const channel = ably.channels.get("global");
+import fetchData from "@/app/lib/fetchData";
 
 export default function Messages() {
   const { user } = useAuthContext();
   const router = useRouter();
+
+  const channel = ably.channels.get("global");
 
   const queryClient = useQueryClient();
 
@@ -62,6 +66,12 @@ export default function Messages() {
     },
   });
 
+  const { data: cUser } = useQuery({
+    queryKey: [user?.uid, "userOverview"],
+    queryFn: () => fetchData(`UserOverview/${user.uid}`),
+    staleTime: 1000 * 60 * 5,
+    enabled: !!user?.uid,
+  });
   useEffect(() => {
     if (inView && !!hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -81,6 +91,50 @@ export default function Messages() {
         return {
           pages: newData,
           pageParams: oldData.pageParams,
+        };
+      });
+    });
+
+    channel.subscribe("delete_post", (post) => {
+      const rmPost = post.data;
+      if (rmPost.removerId !== user.uid) {
+        queryClient.setQueryData(["posts"], (old) => {
+          let newData = [...old.pages];
+          const pageIndex = newData.findIndex((pg) =>
+            pg.items.some((p) => p.id === rmPost.id)
+          );
+          if (pageIndex !== -1) {
+            newData[pageIndex].items = newData[pageIndex].items.filter(
+              (p) => p.id !== rmPost.id
+            );
+          }
+          return {
+            pages: newData,
+            pageParams: old.pageParams,
+          };
+        });
+      }
+    });
+
+    channel.subscribe("edit_post", (post) => {
+      const edPost = post.data;
+      queryClient.setQueryData(["posts"], (old) => {
+        let newData = [...old.pages];
+        const pageIndex = newData.findIndex((pg) =>
+          pg.items.some((p) => p.id === edPost.id)
+        );
+        if (pageIndex !== -1) {
+          const pIndex = newData[pageIndex].items.findIndex(
+            (p) => p.id === edPost.id
+          );
+          if (pIndex !== -1) {
+           newData[pageIndex].items.splice(pIndex, 1, edPost);
+          }
+        }
+        return {
+          pages: newData,
+          pageParams: old.pageParams,
+          edited: edPost.id
         };
       });
     });
@@ -106,7 +160,7 @@ export default function Messages() {
   const posts = data.pages?.flatMap((page) => page.items);
   return (
     <ScrollToBottom
-      className='h-[100svh] px-1 pb-14 pt-14 md:pt-0 relative'
+      className="h-[100svh] px-1 pb-14 pt-14 md:pt-0 relative"
       followButtonClassName="hidden"
       scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
     >
@@ -115,8 +169,7 @@ export default function Messages() {
           key={post.id}
           divRef={i === posts.length - 1 ? lastDivRef : null}
           post={post}
-          sender={post.postedBy}
-          images={post.images}
+          cUser={cUser}
         />
       ))}
       {isFetchingNextPage ? (

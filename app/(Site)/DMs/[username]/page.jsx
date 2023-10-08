@@ -8,7 +8,7 @@ import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
 import ScrollToBottom from "react-scroll-to-bottom";
 import { format } from "date-fns";
-import Ably from "ably";
+import { ably } from "@/app/lib/webSocket";
 import * as Dialog from "@radix-ui/react-dialog";
 import qs from "query-string";
 import {
@@ -21,14 +21,14 @@ import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
 import Linkify from 'react-linkify';
 
-const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_API_KEY);
-const channel = ably.channels.get("dm");
 
 export default function DMUser({ params }) {
   
   const { username } = params;
   document.title = `${username} DM | Titter The Chat App`;
-
+  
+  const channel = ably.channels.get("dm");
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const chatUserId = searchParams.get("id");
