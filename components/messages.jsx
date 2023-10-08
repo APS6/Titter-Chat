@@ -64,7 +64,6 @@ export default function Messages() {
       }
       return lastPage.nextCursor;
     },
-    refetchOnWindowFocus: false
   });
 
   const { data: cUser } = useQuery({
@@ -112,7 +111,7 @@ export default function Messages() {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            deleted: rmPost.id
+            deleted: rmPost.id,
           };
         });
       }
@@ -170,7 +169,11 @@ export default function Messages() {
           {page.items.map((post, i) => (
             <GlobalPost
               key={post.id}
-              divRef={i === page.items.length - 1 && pageI === pages.length - 1 ? lastDivRef : null}
+              divRef={
+                i === page.items.length - 1 && pageI === pages.length - 1
+                  ? lastDivRef
+                  : null
+              }
               post={post}
               cUser={cUser}
             />

@@ -30,9 +30,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const [editing, setEditing] = useState(false);
   const [edited, setEdited] = useState(post.edited);
   const [content, setContent] = useState(post.content);
+
   const sender = post.postedBy;
   const images = post.images;
-
+  
   const textareaRef = useRef(null);
 
   const localPostedAt = new Date(post.postedAt);
@@ -200,6 +201,12 @@ export default function GlobalPost({ post, divRef, cUser }) {
       channel.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (post.edited) {
+      setContent(post.content)
+    }
+  }, [post.content])
   
   useEffect(() => {
     const textarea = textareaRef.current;
