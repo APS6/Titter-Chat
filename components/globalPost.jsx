@@ -12,8 +12,8 @@ import EditIcon from "./svg/editIcon";
 import UserIcon from "./svg/userIcon";
 import LinkIcon from "./svg/linkIcon";
 import ImageDialog from "./imageDialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ThreeDots from "./svg/threeDots";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function GlobalPost({ post, divRef, cUser }) {
   const { user, accessToken } = useAuthContext();
@@ -33,7 +33,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   const sender = post.postedBy;
   const images = post.images;
-  
+
   const textareaRef = useRef(null);
 
   const localPostedAt = new Date(post.postedAt);
@@ -59,7 +59,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          deleted: post.id
+          deleted: post.id,
         };
       });
       return { previousData };
@@ -74,12 +74,11 @@ export default function GlobalPost({ post, divRef, cUser }) {
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
-      queryClient.setQueryData(["posts"], context.previousData);
     },
     onMutate: () => {
-      setEditing(false)
-      setEdited(true)
-    }
+      setEditing(false);
+      setEdited(true);
+    },
   });
 
   const deletePostFn = async () => {
@@ -100,7 +99,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const editPostFn = async () => {
     const body = {
       postId: post.id,
-      content: content
+      content: content,
     };
     const response = await fetch("/api/Posts", {
       method: "PATCH",
@@ -175,13 +174,13 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    editPost.mutate()
+    editPost.mutate();
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey && editing) {
       e.preventDefault();
-      editPost.mutate()
+      editPost.mutate();
     }
   };
 
@@ -204,10 +203,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   useEffect(() => {
     if (post.edited) {
-      setContent(post.content)
+      setContent(post.content);
     }
-  }, [post.content])
-  
+  }, [post.content]);
+
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -215,7 +214,6 @@ export default function GlobalPost({ post, divRef, cUser }) {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [content]);
-  
 
   const componentDecorator = (href, text, key) => (
     <a
@@ -274,7 +272,9 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   {content ?? post?.content}
                 </Linkify>
                 {edited ? (
-                  <span className=" text-lightwht text-sm ml-[1px]">(edited)</span>
+                  <span className=" text-lightwht text-sm ml-[2px]">
+                    (edited)
+                  </span>
                 ) : (
                   ""
                 )}
@@ -290,9 +290,20 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   onKeyDown={(e) => handleKeyDown(e)}
                   value={content}
                 ></textarea>
-                <button type="submit" className="bg-purple rounded py-1 px-3 self-end">
-                  Update
-                </button>
+                <div className="self-end flex gap-1 items-center">
+                  <button
+                    onClick={() => {setEditing(false); setContent(post.content)}}
+                    className="bg-grey rounded py-1 px-3 "
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-purple rounded py-1 px-3 "
+                  >
+                    Update
+                  </button>
+                </div>
               </form>
             ) : (
               ""
@@ -391,7 +402,11 @@ export default function GlobalPost({ post, divRef, cUser }) {
             </div>
           </div>
           <Popover.Root>
-            <Popover.Trigger className={`pc-opacity-0 group-hover:opacity-100 ${editing ? "hidden" : ""} absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}>
+            <Popover.Trigger
+              className={`pc-opacity-0 group-hover:opacity-100 ${
+                editing ? "hidden" : ""
+              } absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}
+            >
               <ThreeDots />
             </Popover.Trigger>
             <Popover.Portal>
@@ -409,7 +424,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     {sender.username === cUser?.username ? (
                       <div
                         onClick={() => setEditing(true)}
-                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#9146c7]"
+                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
                         <span>Edit</span>
@@ -422,7 +437,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 ) : (
                   ""
                 )}
-                <div className="rounded cursor-pointer hover:outline-0 hover:bg-[#9146c7]">
+                <div className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
                   <Link
                     className="flex items-center gap-2 p-1 w-full h-full"
                     href={`/profile/${sender?.username}`}
@@ -431,7 +446,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     <span>View Profile</span>
                   </Link>
                 </div>
-                <div className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#9146c7]">
+                <div className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
                   <LinkIcon />
                   <span>Copy Link</span>
                 </div>
@@ -462,7 +477,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
               {sender.username === cUser?.username ? (
                 <ContextMenu.Item
                   onClick={() => setEditing(true)}
-                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#9146c7]"
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                 >
                   <EditIcon />
                   <span>Edit</span>
@@ -475,7 +490,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
           ) : (
             ""
           )}
-          <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-[#9146c7]">
+          <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
             <Link
               className="flex items-center gap-2 p-1 w-full h-full"
               href={`/profile/${sender?.username}`}
@@ -484,7 +499,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
               <span>View Profile</span>
             </Link>
           </ContextMenu.Item>
-          <ContextMenu.Item className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#9146c7]">
+          <ContextMenu.Item className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
             <LinkIcon />
             <span>Copy Link</span>
           </ContextMenu.Item>

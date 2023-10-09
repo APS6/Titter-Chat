@@ -46,16 +46,8 @@ export async function POST(req) {
                     }
                 }
             })
-            const dmMessage = {
-                content: newMessage.content,
-                images: newMessage.images,
-                sentAt: newMessage.sentAt,
-                id: newMessage.id,
-                sentById: newMessage.sentById,
-                sentToId: newMessage.sentToId,
-            }
-            channel.publish(`m_${body.sentById}`, dmMessage);
-            channel.publish(`m_${body.sentToId}`, dmMessage);
+            channel.publish(`m_${body.sentById}`, newMessage);
+            channel.publish(`m_${body.sentToId}`, newMessage);
 
             const ms = {
                 content: newMessage.content,
@@ -84,3 +76,99 @@ export async function POST(req) {
     }
 }
 
+export async function DELETE(req) {
+    const body = await req.json()
+    const headersList = headers();
+    const token = headersList.get("authorization");
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 401 });
+        }
+
+        const message = await prisma.directMessage.findFirst({
+            where: {
+                id: body.messageId,
+            },
+            select: {
+                id: true,
+                postedById: true,
+            }
+        })
+
+        if (!message) {
+            return NextResponse.json({ error: 'Message does not exist', success: false }, { status: 404 });
+        }
+
+        if (message.sentById !== userId) {
+            return NextResponse.json({ error: 'Unauthorized', success: false }, { status: 401 });
+        }
+        const deleted = await prisma.directMessage.delete({
+            where: {
+                id: body.messageId
+            },
+            select: {
+                id: true,
+                sentById: true,
+                sentToId: true,
+            }
+        })
+        channel.publish(`delete_dm_${deleted.sentToId}`, {id: deleted.id });
+        return NextResponse.json({ success: true }, { status: 200 });
+
+    } catch (error) {
+        console.error('Request error', error);
+        return NextResponse.json({ error: 'Error deleting Post', success: false }, { status: 500 });
+    }
+}
+
+export async function PATCH(req) {
+    const body = await req.json()
+    const headersList = headers();
+    const token = headersList.get("authorization");
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 401 });
+        }
+        const message = await prisma.directMessage.findFirst({
+            where: {
+                id: body.messageId,
+            },
+            select: {
+                id: true,
+                sentById: true,
+                content: true,
+            }
+        })
+        if (!message) {
+            return NextResponse.json({ error: 'Message does not exist', success: false }, { status: 404 });
+        }
+
+        if (message.postedById !== userId) {
+            return NextResponse.json({ error: 'Unauthorized', success: false }, { status: 401 });
+        }
+        const newMessage = await prisma.directMessage.update({
+            where: {
+                id: body.messageId
+            },
+            data: {
+                content: body.content,
+                edited: true
+            },
+            include: {
+                images: true,
+            },
+        })
+        channel.publish(`edit_dm_${newMessage.sentToId}`, newMessage);
+        return NextResponse.json({ success: true }, { status: 200 });
+
+    } catch (error) {
+        console.error('Request error', error);
+        return NextResponse.json({ error: 'Error modifying Post', success: false }, { status: 500 });
+    }
+}

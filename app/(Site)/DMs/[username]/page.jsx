@@ -7,9 +7,7 @@ import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
 import ScrollToBottom from "react-scroll-to-bottom";
-import { format } from "date-fns";
 import { ably } from "@/app/lib/webSocket";
-import * as Dialog from "@radix-ui/react-dialog";
 import qs from "query-string";
 import {
   useInfiniteQuery,
@@ -19,16 +17,14 @@ import {
 import DMInput from "@/components/dmInput";
 import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
-import Linkify from 'react-linkify';
-
+import DMMessage from "@/components/dmMessage";
 
 export default function DMUser({ params }) {
-  
   const { username } = params;
   document.title = `${username} DM | Titter The Chat App`;
-  
+
   const channel = ably.channels.get("dm");
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const chatUserId = searchParams.get("id");
@@ -37,13 +33,11 @@ export default function DMUser({ params }) {
 
   const { user, accessToken } = useAuthContext();
 
-  const [selectedUrl, setSelectedUrl] = useState("");
-  const [dialogOpen, setDialogOpen] = useState();
-
   const chatUser = useQuery({
     queryKey: ["chatU", username],
     queryFn: () => fetchData(`chatUser/${username}/${accessToken}`),
     enabled: !!accessToken,
+    refetchOnWindowFocus: false,
   });
 
   const fetchMessages = async ({ pageParam = undefined }) => {
@@ -62,7 +56,9 @@ export default function DMUser({ params }) {
     return res.json();
   };
 
-  let enableFetch = chatUser?.data?.user?.id ? chatUser?.data?.user?.id : accessToken && chatUserId
+  let enableFetch = chatUser?.data?.user?.id
+    ? chatUser?.data?.user?.id
+    : accessToken && chatUserId;
   const {
     data,
     error,
@@ -109,6 +105,49 @@ export default function DMUser({ params }) {
           });
         }
       });
+
+      channel.subscribe(`delete_dm_${user.uid}`, (nMessage) => {
+        const rmMsg = nMessage.data;
+        queryClient.setQueryData(["dm", username], (old) => {
+          let newData = [...old.pages];
+          const pageIndex = newData.findIndex((pg) =>
+            pg.items.some((p) => p.id === rmMsg.id)
+          );
+          if (pageIndex !== -1) {
+            newData[pageIndex].items = newData[pageIndex].items.filter(
+              (p) => p.id !== rmMsg.id
+            );
+          }
+          return {
+            pages: newData,
+            pageParams: old.pageParams,
+            deleted: rmMsg.id,
+          };
+        });
+      });
+
+      channel.subscribe(`edit_dm_${user.uid}`, (nMessage) => {
+        const edMsg = nMessage.data;
+        queryClient.setQueryData(["dm", username], (old) => {
+          let newData = [...old.pages];
+          const pageIndex = newData.findIndex((pg) =>
+            pg.items.some((p) => p.id === edMsg.id)
+          );
+          if (pageIndex !== -1) {
+            const pIndex = newData[pageIndex].items.findIndex(
+              (p) => p.id === edMsg.id
+            );
+            if (pIndex !== -1) {
+              newData[pageIndex].items.splice(pIndex, 1, edMsg);
+            }
+          }
+          return {
+            pages: newData,
+            pageParams: old.pageParams,
+            edited: edMsg.id,
+          };
+        });
+      });
     }
     return () => {
       channel.unsubscribe();
@@ -136,147 +175,63 @@ export default function DMUser({ params }) {
         </button>
       </div>
     );
-  } else {
-    const messages = data?.pages?.flatMap((page) => page.items);
-    return (
-      <div>
-        <Link
-          className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20"
-          href={`/profile/${username}`}
-        >
-          <div className="flex gap-4 items-center">
-            {chatUser?.data?.user?.pfpURL ? (
-              <Image
-                src={chatUser?.data?.user?.pfpURL}
-                alt={"PFP"}
-                width="35"
-                height="35"
-                className="rounded-full w-[35px] h-[35px] object-cover"
-              />
-            ) : (
-              ""
-            )}
-            <h2 className="font-bold font-mont text-4xl">{username}</h2>
-          </div>
-        </Link>
-        <ScrollToBottom
-          className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
-          followButtonClassName="hidden"
-          scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
-        >
-          {status !== "loading" ? (
-            messages?.map((message, i) => {
-              let received = false;
-              if (message.sentToId === user?.uid) {
-                received = true;
-              }
-              const localPostedAt = new Date(message.sentAt);
-              const formattedPostedAt = format(
-                localPostedAt,
-                "MMM, d, yyyy, hh:mm aa"
-              );
-              const images = message.images;
+  }
 
-              const componentDecorator = (href, text, key) => (
-                <a href={href} key={key} target="_blank" className="text-[#247edf] hover:underline">
-                    {text}
-                </a>
-            );
-            
-              return (
-                <div
-                  key={message.id}
-                  ref={i === messages.length - 1 ? lastDivRef : null}
-                  className={` flex flex-col gap-1 max-w-[75%] ${
-                    received ? "self-start items-start" : "self-end items-end"
-                  }`}
-                >
-                  {message.content.length !== 0 ? (
-                    <div
-                      className={`bg-grey rounded-3xl px-4 py-4 max-w-full${
-                        received
-                          ? "rounded-bl-[4px]"
-                          : " bg-purple rounded-br-[4px]"
-                      }`}
-                    >
-                      <p className="break-words whitespace-pre-wrap"><Linkify componentDecorator={componentDecorator}>{message.content}</Linkify></p>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                  {images
-                    ? images.map((image) => {
-                        return (
-                          <div key={image.id} className="rounded bg-grey">
-                            <Image
-                              onClick={() => (
-                                setSelectedUrl(image.imageUrl),
-                                setDialogOpen(true)
-                              )}
-                              className="object-contain rounded max-w-300px cursor-pointer"
-                              src={image.imageUrl}
-                              alt="Image"
-                              width={300}
-                              height={300}
-                              sizes="(max-width: 768px) 75vw,(max-width: 1000px) 48vw, 300px"
-                            />
-                          </div>
-                        );
-                      })
-                    : ""}
-                  <div
-                    className={`flex ${
-                      received ? "justify-start ml-1" : "justify-end mr-1"
-                    }`}
-                  >
-                    <span className="text-xs text-lightwht">
-                      {formattedPostedAt}
-                    </span>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="h-full w-full grid place-items-center">
-              <BlockLoader />
-            </div>
-          )}
-          {isFetchingNextPage ? (
-            <div className="py-2 w-full grid place-items-center">
-              <Loader />
-            </div>
+  const messages = data?.pages?.flatMap((page) => page.items);
+
+  return (
+    <div>
+      <Link
+        className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20"
+        href={`/profile/${username}`}
+      >
+        <div className="flex gap-4 items-center">
+          {chatUser?.data?.user?.pfpURL ? (
+            <Image
+              src={chatUser?.data?.user?.pfpURL}
+              alt={"PFP"}
+              width="35"
+              height="35"
+              className="rounded-full w-[35px] h-[35px] object-cover"
+            />
           ) : (
             ""
           )}
-        </ScrollToBottom>
-
-        <DMInput
-          sendingTo={chatUser?.data?.user?.id}
-          disabled={chatUser && !chatUser?.data?.following}
-        />
-        <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90" />
-            <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <Image
-                className="object-contain"
-                src={selectedUrl}
-                alt="Image"
-                width={1000}
-                height={1000}
-                sizes="95vw"
+          <h2 className="font-bold font-mont text-4xl">{username}</h2>
+        </div>
+      </Link>
+      <ScrollToBottom
+        className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
+        followButtonClassName="hidden"
+        scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
+      >
+        {status !== "loading" ? (
+          messages?.map((message, i) => {
+            return (
+              <DMMessage
+                cUsername={username}
+                divRef={i === messages.length - 1 ? lastDivRef : null}
+                message={message}
               />
-              <a
-                className="text-md text-[#4270d1] mt-1"
-                href={selectedUrl}
-                target="blank"
-              >
-                Open in Browser
-              </a>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-      </div>
-    );
-  }
+            );
+          })
+        ) : (
+          <div className="h-full w-full grid place-items-center">
+            <BlockLoader />
+          </div>
+        )}
+        {isFetchingNextPage ? (
+          <div className="py-2 w-full grid place-items-center">
+            <Loader />
+          </div>
+        ) : (
+          ""
+        )}
+      </ScrollToBottom>
+      <DMInput
+        sendingTo={chatUser?.data?.user?.id}
+        disabled={chatUser && !chatUser?.data?.following}
+      />
+    </div>
+  );
 }

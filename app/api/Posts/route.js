@@ -3,6 +3,7 @@ import { prisma } from "@/app/lib/db";
 import { ably } from "@/app/lib/webSocket";
 import admin from "@/app/lib/firebaseAdmin";
 import { headers } from "next/headers";
+
 const channel = ably.channels.get('global')
 
 export async function POST(req) {
