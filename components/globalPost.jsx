@@ -213,7 +213,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
-  }, [content]);
+  }, [content, editing]);
 
   const componentDecorator = (href, text, key) => (
     <a

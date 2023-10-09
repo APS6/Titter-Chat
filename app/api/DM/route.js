@@ -94,7 +94,7 @@ export async function DELETE(req) {
             },
             select: {
                 id: true,
-                postedById: true,
+                sentById: true,
             }
         })
 

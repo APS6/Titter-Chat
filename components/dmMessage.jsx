@@ -118,7 +118,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
       messageId: message.id,
       content: content,
     };
-    const response = await fetch("/api/Posts", {
+    const response = await fetch("/api/DM", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
-  }, [content]);
+  }, [content, editing]);
 
   const componentDecorator = (href, text, key) => (
     <a href={href} key={key} target="_blank" className="underline">
@@ -188,7 +188,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
                       {message.content}
                       {message.edited ? (
                         <span className=" text-lightwht text-sm ml-[2px]">
-                          (message.edited)
+                          (edited)
                         </span>
                       ) : (
                         ""
@@ -209,7 +209,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
                     <div className="self-end flex gap-1 items-center">
                       <button
                         onClick={() => setEditing(false)}
-                        className="bg-opacity-0 border-2 border-grey rounded py-1 px-3"
+                        className="bg-grey rounded py-1 px-3"
                       >
                         Cancel
                       </button>
