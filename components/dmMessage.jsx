@@ -153,6 +153,10 @@ export default function DMMessage({ message, divRef, cUsername }) {
     }
   }, [content, editing]);
 
+  useEffect(() => {
+    setContent(message.content);
+  }, [message.content]);
+
   const componentDecorator = (href, text, key) => (
     <a href={href} key={key} target="_blank" className="underline">
       {text}

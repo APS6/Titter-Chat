@@ -149,7 +149,7 @@ export async function PATCH(req) {
             return NextResponse.json({ error: 'Message does not exist', success: false }, { status: 404 });
         }
 
-        if (message.postedById !== userId) {
+        if (message.sentById !== userId) {
             return NextResponse.json({ error: 'Unauthorized', success: false }, { status: 401 });
         }
         const newMessage = await prisma.directMessage.update({
