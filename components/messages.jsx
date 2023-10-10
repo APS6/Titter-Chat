@@ -111,7 +111,7 @@ export default function Messages() {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            deleted: rmPost.id,
+            c: old.c ? old.c + 1 : 0,
           };
         });
       }
@@ -135,7 +135,7 @@ export default function Messages() {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          edited: edPost.id,
+          c: old.c ? old.c + 1 : 0,
         };
       });
     });

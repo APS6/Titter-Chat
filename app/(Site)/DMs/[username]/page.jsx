@@ -121,7 +121,7 @@ export default function DMUser({ params }) {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            deleted: rmMsg.id,
+            c: old.c ? old.c + 1 : 0,
           };
         });
       });
@@ -144,7 +144,7 @@ export default function DMUser({ params }) {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            edited: edMsg.id,
+            c: old.c ? old.c + 1 : 0,
           };
         });
       });

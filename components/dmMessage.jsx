@@ -4,14 +4,11 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
 import TrashIcon from "./svg/trashIcon";
 import EditIcon from "./svg/editIcon";
-import UserIcon from "./svg/userIcon";
-import LinkIcon from "./svg/linkIcon";
 import ImageDialog from "./imageDialog";
 import ThreeDots from "./svg/threeDots";
 import { format } from "date-fns";
 import { useAuthContext } from "@/context/authContext";
 import Image from "next/image";
-import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function DMMessage({ message, divRef, cUsername }) {
@@ -25,7 +22,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
 
   let received = message.sentToId === user.uid;
   const localPostedAt = new Date(message.sentAt);
-  const formattedPostedAt = format(localPostedAt, "MMM, d, yyyy, hh:mm aa");
+  const formattedPostedAt = format(localPostedAt, "MMM, d, yy, hh:mm aa");
   const images = message.images;
 
   const textareaRef = useRef(null);
@@ -48,7 +45,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          deleted: message.id,
+          c: old.c ? old.c + 1 : 0,
         };
       });
       return { previousData };
@@ -87,7 +84,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          deleted: message.id,
+          c: old.c ? old.c + 1 : 0,
         };
       });
       return { previousData };
@@ -179,7 +176,11 @@ export default function DMMessage({ message, divRef, cUsername }) {
               : " flex-row-reverse justify-end"
           }`}
         >
-          <div className="flex flex-col gap-1 max-w-full">
+          <div
+            className={`flex flex-col gap-1 max-w-full ${
+              received ? "items-start" : " items-end"
+            }`}
+          >
             {message.content.length !== 0 ? (
               <div
                 className={`bg-grey relative rounded-3xl px-4 py-4 max-w-full ${
@@ -250,42 +251,50 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 })
               : ""}
           </div>
-          <Popover.Root>
-            <Popover.Trigger
-              className={`pc-opacity-0 self-center group-hover:opacity-100 ${
-                editing ? "hidden" : ""
-              }  hover:bg-[#343434] rounded-full p-1`}
-            >
-              <ThreeDots />
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]">
-                {!received ? (
-                  <div className="flex flex-col gap-[2px]">
-                    <div
-                      onClick={() => deleteMessage.mutate()}
-                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
-                    >
-                      <TrashIcon />
-                      <span>Delete</span>
+          {!editing ? (
+            <Popover.Root>
+              <Popover.Trigger
+                className={`pc-opacity-0 self-center group-hover:opacity-100 ${
+                  editing ? "hidden" : ""
+                }  hover:bg-[#343434] rounded-full p-1`}
+              >
+                <ThreeDots />
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content
+                  collisionPadding={{ bottom: 70 }}
+                  className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+                >
+                  {!received ? (
+                    <div className="flex flex-col gap-[2px]">
+                      <button
+                        onClick={() => deleteMessage.mutate()}
+                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
+                      >
+                        <TrashIcon />
+                        <span>Delete</span>
+                      </button>
+                      <button
+                        onClick={() => setEditing(true)}
+                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                      >
+                        <EditIcon />
+                        <span>Edit</span>
+                      </button>
                     </div>
-                    <div
-                      onClick={() => setEditing(true)}
-                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-                    >
-                      <EditIcon />
-                      <span>Edit</span>
-                    </div>
-                    <div className="h-[1px] w-[97%] ml-[3px] mt-1 rounded-lg bg-[#5d5d5d]"></div>
-                  </div>
-                ) : (
-                  ""
-                )}
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
+                  ) : (
+                    ""
+                  )}
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
+          ) : (
+            ""
+          )}
         </div>
-        <span className="text-xs text-lightwht">{formattedPostedAt}</span>
+        <span className="text-xs text-lightwht leading-none">
+          {formattedPostedAt}
+        </span>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
         <ContextMenu.Content
@@ -311,7 +320,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
               </ContextMenu.Item>
             </ContextMenu.Group>
           ) : (
-            ""
+            "Cant do shit"
           )}
         </ContextMenu.Content>
       </ContextMenu.Portal>

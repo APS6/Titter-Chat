@@ -37,7 +37,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const textareaRef = useRef(null);
 
   const localPostedAt = new Date(post.postedAt);
-  const formattedPostedAt = format(localPostedAt, "dd/MM/yyyy hh:mm a");
+  const formattedPostedAt = format(localPostedAt, "dd/MM/yy hh:mm a");
 
   const queryClient = useQueryClient();
 
@@ -59,7 +59,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          deleted: post.id,
+          c: old.c ? old.c + 1 : 0,
         };
       });
       return { previousData };
@@ -264,7 +264,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   {sender?.username ?? "DELETED"}
                 </h3>
               </Link>
-              <span className="text-sm text-lightwht">{formattedPostedAt}</span>
+              <span className="text-sm text-lightwht leading-none">{formattedPostedAt}</span>
             </div>
             {post?.content?.length !== 0 && !editing ? (
               <p className="mb-1 break-words whitespace-pre-wrap">
@@ -293,7 +293,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 <div className="self-end flex gap-1 items-center">
                   <button
                     onClick={() => {setEditing(false); setContent(post.content)}}
-                    className="bg-grey rounded py-1 px-3 "
+                    className="bg-[#3a4046] rounded py-1 px-3 "
                   >
                     Cancel
                   </button>
@@ -344,8 +344,8 @@ export default function GlobalPost({ post, divRef, cUser }) {
                         alt="Posted Image"
                         width={width}
                         height={height}
-                        sizes="(max-width: 768px) 85vw, 70vw"
-                        className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434]"
+                        sizes="(max-width: 768px) 85vw, 65vw"
+                        className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434] max-height-[500px]"
                       />
                     </div>
                   );
@@ -414,21 +414,21 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 {sender.username === cUser?.username ||
                 cUser?.role === "ADMIN" ? (
                   <div>
-                    <div
+                    <button
                       onClick={() => deletePost.mutate()}
                       className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
                     >
                       <TrashIcon />
                       <span>Delete</span>
-                    </div>
+                    </button>
                     {sender.username === cUser?.username ? (
-                      <div
+                      <button
                         onClick={() => setEditing(true)}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
                         <span>Edit</span>
-                      </div>
+                      </button>
                     ) : (
                       ""
                     )}

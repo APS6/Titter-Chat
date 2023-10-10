@@ -5,7 +5,7 @@ export default function ImageDialog({dialogOpen, setDialogOpen, selectedUrl}) {
   return (
     <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90" />
+        <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-90 z-50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <Image
             className="object-contain"
