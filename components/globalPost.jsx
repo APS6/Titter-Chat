@@ -30,6 +30,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const [editing, setEditing] = useState(false);
   const [edited, setEdited] = useState(post.edited);
   const [content, setContent] = useState(post.content);
+  const [popoverOpen, setPopoverOpen] = useState(false)
 
   const sender = post.postedBy;
   const images = post.images;
@@ -44,6 +45,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const deletePost = useMutation({
     mutationFn: () => deletePostFn(),
     onMutate: async () => {
+      setPopoverOpen(false)
       await queryClient.cancelQueries({ queryKey: ["posts"] });
       const previousData = queryClient.getQueryData(["posts"]);
       queryClient.setQueryData(["posts"], (old) => {
@@ -59,7 +61,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          c: old.c ? old.c + 1 : 0,
+          c: old.c ? old.c + 1 : 1,
         };
       });
       return { previousData };
@@ -77,6 +79,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
     },
     onMutate: () => {
       setEditing(false);
+      setPopoverOpen(false)
       setEdited(true);
     },
   });
@@ -401,7 +404,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
               </div>
             </div>
           </div>
-          <Popover.Root>
+          <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
             <Popover.Trigger
               className={`pc-opacity-0 group-hover:opacity-100 ${
                 editing ? "hidden" : ""
@@ -414,21 +417,21 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 {sender.username === cUser?.username ||
                 cUser?.role === "ADMIN" ? (
                   <div>
-                    <button
+                    <div
                       onClick={() => deletePost.mutate()}
                       className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
                     >
                       <TrashIcon />
                       <span>Delete</span>
-                    </button>
+                    </div>
                     {sender.username === cUser?.username ? (
-                      <button
+                      <div
                         onClick={() => setEditing(true)}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
                         <span>Edit</span>
-                      </button>
+                      </div>
                     ) : (
                       ""
                     )}

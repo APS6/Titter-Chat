@@ -17,7 +17,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   const [dialogOpen, setDialogOpen] = useState();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(message.content);
-
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const queryClient = useQueryClient();
 
   let received = message.sentToId === user.uid;
@@ -30,6 +30,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   const deleteMessage = useMutation({
     mutationFn: () => deleteMessageFn(),
     onMutate: async () => {
+      setPopoverOpen(false)
       await queryClient.cancelQueries({ queryKey: ["dm", cUsername] });
       const previousData = queryClient.getQueryData(["dm", cUsername]);
       queryClient.setQueryData(["dm", cUsername], (old) => {
@@ -45,7 +46,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          c: old.c ? old.c + 1 : 0,
+          c: old.c ? old.c + 1 : 1,
         };
       });
       return { previousData };
@@ -59,6 +60,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   const editMessage = useMutation({
     mutationFn: () => editMessageFn(),
     onMutate: async () => {
+      setPopoverOpen(false)
       setEditing(false);
       await queryClient.cancelQueries({ queryKey: ["dm", cUsername] });
       const previousData = queryClient.getQueryData(["dm", cUsername]);
@@ -84,7 +86,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
         return {
           pages: newData,
           pageParams: old.pageParams,
-          c: old.c ? old.c + 1 : 0,
+          c: old.c ? old.c + 1 : 1,
         };
       });
       return { previousData };
@@ -251,8 +253,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 })
               : ""}
           </div>
-          {!editing ? (
-            <Popover.Root>
+            <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
               <Popover.Trigger
                 className={`pc-opacity-0 self-center group-hover:opacity-100 ${
                   editing ? "hidden" : ""
@@ -288,9 +289,6 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 </Popover.Content>
               </Popover.Portal>
             </Popover.Root>
-          ) : (
-            ""
-          )}
         </div>
         <span className="text-xs text-lightwht leading-none">
           {formattedPostedAt}

@@ -121,7 +121,7 @@ export default function DMUser({ params }) {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            c: old.c ? old.c + 1 : 0,
+            c: old.c ? old.c + 1 : 1,
           };
         });
       });
@@ -144,7 +144,7 @@ export default function DMUser({ params }) {
           return {
             pages: newData,
             pageParams: old.pageParams,
-            c: old.c ? old.c + 1 : 0,
+            c: old.c ? old.c + 1 : 1,
           };
         });
       });
@@ -203,7 +203,7 @@ export default function DMUser({ params }) {
       <ScrollToBottom
         className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
         followButtonClassName="hidden"
-        scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
+        scrollViewClassName="flex flex-col-reverse gap-2 pt-1"
       >
         {status !== "loading" ? (
           messages?.map((message, i) => {
