@@ -57,25 +57,7 @@ export default function Post() {
     mutationFn: () => deletePostFn(),
     onMutate: async () => {
       setPopoverOpen(false)
-      await queryClient.cancelQueries({ queryKey: ["posts"] });
-      const previousData = queryClient.getQueryData(["posts"]);
-      queryClient.setQueryData(["posts"], (old) => {
-        let newData = [...old.pages];
-        const pageIndex = newData.findIndex((pg) =>
-          pg.items.some((p) => p.id === post.id)
-        );
-        if (pageIndex !== -1) {
-          newData[pageIndex].items = newData[pageIndex].items.filter(
-            (p) => p.id !== post.id
-          );
-        }
-        return {
-          pages: newData,
-          pageParams: old.pageParams,
-          c: old.c ? old.c + 1 : 1,
-        };
-      });
-      return { previousData };
+      router.push("/Home")
     },
     onError: (err, v, context) => {
       console.error(err);
@@ -83,7 +65,6 @@ export default function Post() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["post", post.id])
-      router.push("/Home")
     }
   });
 
@@ -95,7 +76,6 @@ export default function Post() {
     },
     onMutate: async () => {
       setEditing(false);
-      setPopoverOpen(false)
       setEdited(true);
       await queryClient.cancelQueries({ queryKey: ["post", post.id] });
       const previousData = queryClient.getQueryData(["post", post.id]);
@@ -468,7 +448,7 @@ export default function Post() {
               </div>
             </div>
           </div>
-          <Popover.Root onClick={() => copyLink()} open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
+          <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
             <Popover.Trigger
               className={`pc-opacity-0 group-hover:opacity-100 ${
                 editing ? "hidden" : ""
@@ -490,7 +470,7 @@ export default function Post() {
                     </div>
                     {post?.postedBy.username === cUser?.username ? (
                       <div
-                        onClick={() => setEditing(true)}
+                        onClick={() => {setEditing(true); setPopoverOpen(false)}}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
@@ -513,7 +493,7 @@ export default function Post() {
                     <span>View Profile</span>
                   </Link>
                 </div>
-                <div className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+                <div onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
                   <LinkIcon />
                   <span>Copy Link</span>
                 </div>
@@ -567,7 +547,7 @@ export default function Post() {
               <span>View Profile</span>
             </Link>
           </ContextMenu.Item>
-          <ContextMenu.Item  onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+          <ContextMenu.Item onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
             <LinkIcon />
             <span>Copy Link</span>
           </ContextMenu.Item>

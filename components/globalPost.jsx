@@ -79,7 +79,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
     },
     onMutate: () => {
       setEditing(false);
-      setPopoverOpen(false)
+
       setEdited(true);
     },
     onSettled: () => {
@@ -445,7 +445,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     </div>
                     {sender.username === cUser?.username ? (
                       <div
-                        onClick={() => setEditing(true)}
+                      onClick={() => {setEditing(true); setPopoverOpen(false)}}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
