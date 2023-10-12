@@ -367,7 +367,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                         width={width}
                         height={height}
                         sizes="(max-width: 768px) 85vw, 65vw"
-                        className="rounded w-auto h-full cursor-pointer min-w-2/3 bg-#[343434] max-height-[500px]"
+                        className="rounded cursor-pointer min-w-2/3 bg-#[343434] max-height-[500px]"
                       />
                     </div>
                   );
