@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { format } from "date-fns";
@@ -7,40 +8,50 @@ import { ably } from "@/app/lib/webSocket";
 import Linkify from "react-linkify";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
-import TrashIcon from "./svg/trashIcon";
-import EditIcon from "./svg/editIcon";
-import UserIcon from "./svg/userIcon";
-import LinkIcon from "./svg/linkIcon";
-import ImageDialog from "./imageDialog";
-import ThreeDots from "./svg/threeDots";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import TrashIcon from "@/components/svg/trashIcon";
+import EditIcon from "@/components/svg/editIcon";
+import UserIcon from "@/components/svg/userIcon";
+import LinkIcon from "@/components/svg/linkIcon";
+import ImageDialog from "@/components/imageDialog";
+import ThreeDots from "@/components/svg/threeDots";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import fetchData from "@/app/lib/fetchData";
+import BlockLoader from "@/components/svg/blockLoader";
 
-export default function GlobalPost({ post, divRef, cUser }) {
+export default function Post() {
   const { user, accessToken } = useAuthContext();
-
+  const {postId} = useParams()
   const channel = ably.channels.get("likes");
 
-  const [liked, setLiked] = useState(
-    post.likes ? post.likes.some((like) => like.userId === user.uid) : false
-  );
-  const [likeCount, setLikeCount] = useState(post?.likes?.length ?? 0);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState();
 
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
   const [editing, setEditing] = useState(false);
-  const [edited, setEdited] = useState(post.edited);
-  const [content, setContent] = useState(post.content);
+  const [edited, setEdited] = useState();
+  const [content, setContent] = useState();
   const [popoverOpen, setPopoverOpen] = useState(false)
 
-  const sender = post.postedBy;
-  const images = post.images;
-
   const textareaRef = useRef(null);
-
-  const localPostedAt = new Date(post.postedAt);
-  const formattedPostedAt = format(localPostedAt, "dd/MM/yy hh:mm a");
+  const router = useRouter()
 
   const queryClient = useQueryClient();
+
+  const {data: post, isError, error, isLoading } = useQuery({
+    queryKey: ["post", postId],
+    queryFn: () => fetchData(`Posts/${postId}`),
+    enabled: !!postId && postId.length !== 0
+  })
+
+  const { data: cUser } = useQuery({
+    queryKey: [user?.uid, "userOverview"],
+    queryFn: () => fetchData(`UserOverview/${user.uid}`),
+    staleTime: 1000 * 60 * 5,
+    enabled: !!user?.uid,
+  });
+
 
   const deletePost = useMutation({
     mutationFn: () => deletePostFn(),
@@ -70,21 +81,32 @@ export default function GlobalPost({ post, divRef, cUser }) {
       console.error(err);
       queryClient.setQueryData(["posts"], context.previousData);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["post", post.id])
+      router.push("/Home")
+    }
   });
 
   const editPost = useMutation({
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
+      queryClient.setQueryData(["post", post.id], context.previousData);
     },
-    onMutate: () => {
+    onMutate: async () => {
       setEditing(false);
       setPopoverOpen(false)
       setEdited(true);
+      await queryClient.cancelQueries({ queryKey: ["post", post.id] });
+      const previousData = queryClient.getQueryData(["post", post.id]);
+      queryClient.setQueryData(["post", post.id], (old) => {
+        return {
+         ...old,
+         content: content
+        };
+      });
+      return { previousData };
     },
-    onSettled: () => {
-      queryClient.invalidateQueries(["post", post.id])
-    }
   });
 
   const deletePostFn = async () => {
@@ -121,7 +143,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const likeHandler = async (action) => {
     if (action === "like") {
       setLiked(true);
-      setLikeCount((prevCount) => prevCount + 1);
+      setLikeCount(post.likes + 1);
       const body = {
         userId: user.uid,
         postId: post.id,
@@ -147,7 +169,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
       }
     } else if (action === "dislike") {
       setLiked(false);
-      setLikeCount((prevCount) => prevCount - 1);
+      setLikeCount(post.likes - 1);
       const body = {
         userId: user.uid,
         postId: post.id,
@@ -192,7 +214,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   const copyLink = () => {
     const type = "text/plain";
-    const blob = new Blob([`titter-chat.vercel.app/post/${post.id}`], { type });
+    const blob = new Blob([`titter-chat.vercel.app/post/${postId}`], { type });
     const data = [new ClipboardItem({ [type]: blob })];
   
     navigator.clipboard.write(data).then(
@@ -224,10 +246,11 @@ export default function GlobalPost({ post, divRef, cUser }) {
   }, []);
 
   useEffect(() => {
-    if (post.edited) {
+    if (post) {
       setContent(post.content);
+      setLiked(post.likes.some((like) => like.userId === user.uid))
     }
-  }, [post.content]);
+  }, [post?.likes, post?.content]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -236,6 +259,29 @@ export default function GlobalPost({ post, divRef, cUser }) {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [content, editing]);
+
+  if (isError) {
+    console.log(error);
+    return (
+      <div className="w-full h-[100svh] flex flex-col justify-center items-center gap-8">
+        <h2 className="text-4xl">Post not found</h2>
+        <button
+          className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
+          onClick={() => router.back()}
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-[100svh] w-full grid place-items-center">
+        <BlockLoader />
+      </div>
+    );
+  }
 
   const componentDecorator = (href, text, key) => (
     <a
@@ -250,16 +296,15 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   return (
     <ContextMenu.Root>
-      <ContextMenu.Trigger>
+      <div className="h-[100svh] px-1 grid place-items-center">
+      <ContextMenu.Trigger className="w-full">
         <div
-          className="bg-grey flex items-start gap-2 p-2 pb-1 rounded group relative"
-          key={post.id}
-          ref={divRef ?? null}
+          className="bg-grey flex items-start mt-16 md:mt-2 gap-2 p-2 pb-1 rounded group relative"
         >
-          <Link href={`/profile/${sender?.username}`}>
-            {sender.pfpURL ? (
+          <Link href={`/profile/${post?.postedBy?.username}`}>
+            {post?.postedBy.pfpURL ? (
               <Image
-                src={sender?.pfpURL}
+                src={post?.postedBy?.pfpURL}
                 alt="D"
                 width="30"
                 height="30"
@@ -281,12 +326,12 @@ export default function GlobalPost({ post, divRef, cUser }) {
           </Link>
           <div className="w-[92%]">
             <div className="flex items-center gap-2">
-              <Link href={`/profile/${sender?.username}`}>
+              <Link href={`/profile/${post?.postedBy?.username}`}>
                 <h3 className="text-lg font-raleway font-semibold leading-none hover:underline">
-                  {sender?.username ?? "DELETED"}
+                  {post?.postedBy?.username ?? "DELETED"}
                 </h3>
               </Link>
-              <span className="text-sm text-lightwht leading-none">{formattedPostedAt}</span>
+              <span className="text-sm text-lightwht leading-none">{post?.postedAt && post?.postedAt.length !== 0 ? format(new Date(post?.postedAt), "dd/MM/yy hh:mm a") : ""}</span>
             </div>
             {post?.content?.length !== 0 && !editing ? (
               <p className="mb-1 break-words whitespace-pre-wrap">
@@ -314,7 +359,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 ></textarea>
                 <div className="self-end flex gap-1 items-center">
                   <button
-                    onClick={() => {setEditing(false); setContent(post.content)}}
+                    onClick={() => {setEditing(false); setContent(post?.content)}}
                     className="bg-[#3a4046] rounded py-1 px-3 "
                   >
                     Cancel
@@ -330,21 +375,21 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ) : (
               ""
             )}
-            {images.length !== 0 ? (
+            {post?.images.length !== 0 ? (
               <div
                 className={`grid gap-3 ${
-                  images.length === 1
+                  post?.images.length === 1
                     ? "grid-cols-1"
-                    : images.length === 2
+                    : post?.images.length === 2
                     ? "grid-cols-2"
-                    : images.length === 3
+                    : post?.images.length === 3
                     ? "grid-cols-3"
-                    : images.length === 4
+                    : post?.images.length === 4
                     ? "grid-cols-2 grid-rows-2"
                     : ""
                 }`}
               >
-                {images.map((image) => {
+                {post?.images.map((image) => {
                   let width = 400;
                   let height = 400;
                   if (image.width) {
@@ -376,7 +421,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ) : (
               ""
             )}
-            <div className={`flex ${images ? "mt-1" : ""}`}>
+            <div className={`flex ${post?.images ? "mt-1" : ""}`}>
               <div className="flex items-center">
                 {liked ? (
                   <div
@@ -418,12 +463,12 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     liked ? "text-[rgb(249,24,128)]" : ""
                   }`}
                 >
-                  {likeCount}
+                  {likeCount ?? post?.likes.length}
                 </span>
               </div>
             </div>
           </div>
-          <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
+          <Popover.Root onClick={() => copyLink()} open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
             <Popover.Trigger
               className={`pc-opacity-0 group-hover:opacity-100 ${
                 editing ? "hidden" : ""
@@ -433,7 +478,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             </Popover.Trigger>
             <Popover.Portal>
               <Popover.Content className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]">
-                {sender.username === cUser?.username ||
+                {post?.postedBy.username === cUser?.username ||
                 cUser?.role === "ADMIN" ? (
                   <div>
                     <div
@@ -443,7 +488,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                       <TrashIcon />
                       <span>Delete</span>
                     </div>
-                    {sender.username === cUser?.username ? (
+                    {post?.postedBy.username === cUser?.username ? (
                       <div
                         onClick={() => setEditing(true)}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
@@ -462,13 +507,13 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 <div className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
                   <Link
                     className="flex items-center gap-2 p-1 w-full h-full"
-                    href={`/profile/${sender?.username}`}
+                    href={`/profile/${post?.postedBy?.username}`}
                   >
                     <UserIcon />
                     <span>View Profile</span>
                   </Link>
                 </div>
-                <div onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+                <div className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
                   <LinkIcon />
                   <span>Copy Link</span>
                 </div>
@@ -477,6 +522,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
           </Popover.Root>
         </div>
       </ContextMenu.Trigger>
+      </div>
           <ImageDialog
             selectedUrl={selectedUrl}
             dialogOpen={dialogOpen}
@@ -487,7 +533,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
           collisionPadding={{ bottom: 60 }}
           className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
         >
-          {sender.username === cUser?.username || cUser?.role === "ADMIN" ? (
+          {post?.postedBy.username === cUser?.username || cUser?.role === "ADMIN" ? (
             <ContextMenu.Group>
               <ContextMenu.Item
                 onClick={() => deletePost.mutate()}
@@ -496,7 +542,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 <TrashIcon />
                 <span>Delete</span>
               </ContextMenu.Item>
-              {sender.username === cUser?.username ? (
+              {post?.postedBy.username === cUser?.username ? (
                 <ContextMenu.Item
                   onClick={() => setEditing(true)}
                   className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
@@ -515,13 +561,13 @@ export default function GlobalPost({ post, divRef, cUser }) {
           <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
             <Link
               className="flex items-center gap-2 p-1 w-full h-full"
-              href={`/profile/${sender?.username}`}
+              href={`/profile/${post?.postedBy?.username}`}
             >
               <UserIcon />
               <span>View Profile</span>
             </Link>
           </ContextMenu.Item>
-          <ContextMenu.Item onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+          <ContextMenu.Item  onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
             <LinkIcon />
             <span>Copy Link</span>
           </ContextMenu.Item>
