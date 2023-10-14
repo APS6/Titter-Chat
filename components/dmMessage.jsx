@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { useAuthContext } from "@/context/authContext";
 import Image from "next/image";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function DMMessage({ message, divRef, cUsername }) {
   const { user, accessToken } = useAuthContext();
@@ -17,7 +18,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   const [dialogOpen, setDialogOpen] = useState();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(message.content);
-  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const queryClient = useQueryClient();
 
   let received = message.sentToId === user.uid;
@@ -30,7 +31,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   const deleteMessage = useMutation({
     mutationFn: () => deleteMessageFn(),
     onMutate: async () => {
-      setPopoverOpen(false)
+      setPopoverOpen(false);
       await queryClient.cancelQueries({ queryKey: ["dm", cUsername] });
       const previousData = queryClient.getQueryData(["dm", cUsername]);
       queryClient.setQueryData(["dm", cUsername], (old) => {
@@ -55,12 +56,18 @@ export default function DMMessage({ message, divRef, cUsername }) {
       console.error(err);
       queryClient.setQueryData(["dm", cUsername], context.previousData);
     },
+    onSuccess: () => {
+      toast("Deleted post successfully", {
+        icon: <TrashIcon />,
+        duration: 2000,
+      });
+    },
   });
 
   const editMessage = useMutation({
     mutationFn: () => editMessageFn(),
     onMutate: async () => {
-      setPopoverOpen(false)
+      setPopoverOpen(false);
       setEditing(false);
       await queryClient.cancelQueries({ queryKey: ["dm", cUsername] });
       const previousData = queryClient.getQueryData(["dm", cUsername]);
@@ -94,6 +101,12 @@ export default function DMMessage({ message, divRef, cUsername }) {
     onError: (err, v, context) => {
       console.error(err);
       queryClient.setQueryData(["dm", cUsername], context.previousData);
+    },
+    onSuccess: () => {
+      toast("Edited post successfully", {
+        icon: <EditIcon />,
+        duration: 2000,
+      });
     },
   });
 
@@ -163,9 +176,8 @@ export default function DMMessage({ message, divRef, cUsername }) {
   );
 
   return (
-    <ContextMenu.Root>
+    <ContextMenu.Root key={message.id}>
       <ContextMenu.Trigger
-        key={message.id}
         ref={divRef}
         className={` flex flex-col w-full gap-1 group ${
           received ? "self-start items-start" : "self-end items-end"
@@ -253,42 +265,45 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 })
               : ""}
           </div>
-            <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
-              <Popover.Trigger
-                className={`pc-opacity-0 self-center group-hover:opacity-100 ${
-                  editing ? "hidden" : ""
-                }  hover:bg-[#343434] rounded-full p-1`}
+          <Popover.Root
+            open={popoverOpen}
+            onOpenChange={(open) => setPopoverOpen(open)}
+          >
+            <Popover.Trigger
+              className={`pc-opacity-0 self-center group-hover:opacity-100 ${
+                editing ? "hidden" : ""
+              }  hover:bg-[#343434] rounded-full p-1`}
+            >
+              <ThreeDots />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                collisionPadding={{ bottom: 70 }}
+                className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
               >
-                <ThreeDots />
-              </Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Content
-                  collisionPadding={{ bottom: 70 }}
-                  className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
-                >
-                  {!received ? (
-                    <div className="flex flex-col gap-[2px]">
-                      <button
-                        onClick={() => deleteMessage.mutate()}
-                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
-                      >
-                        <TrashIcon />
-                        <span>Delete</span>
-                      </button>
-                      <button
-                        onClick={() => setEditing(true)}
-                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-                      >
-                        <EditIcon />
-                        <span>Edit</span>
-                      </button>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover.Root>
+                {!received ? (
+                  <div className="flex flex-col gap-[2px]">
+                    <button
+                      onClick={() => deleteMessage.mutate()}
+                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
+                    >
+                      <TrashIcon />
+                      <span>Delete</span>
+                    </button>
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                    >
+                      <EditIcon />
+                      <span>Edit</span>
+                    </button>
+                  </div>
+                ) : (
+                  ""
+                )}
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         </div>
         <span className="text-xs text-lightwht leading-none">
           {formattedPostedAt}

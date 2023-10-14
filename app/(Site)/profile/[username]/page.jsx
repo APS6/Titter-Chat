@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -104,9 +104,10 @@ export default function Profile() {
     },
     onError: (err, v, context) => {
       console.log(err);
+      toast.error("Something went wrong")
       queryClient.setQueryData(["Profile", username], context.previousData);
     },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Profile", username] });
     },
   });
@@ -165,6 +166,9 @@ export default function Profile() {
         </button>
       </div>
     );
+  }
+  if (profile === null) {
+    notFound()
   }
 
   return (

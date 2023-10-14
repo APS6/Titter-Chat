@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function Error({ error, reset }) {
+export default function NotFound() {
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -11,7 +12,7 @@ export default function Error({ error, reset }) {
   const router = useRouter();
   return (
     <div className="w-full h-[100svh] flex flex-col justify-center items-center gap-8">
-      <h2 className="text-4xl text-bold">Something went wrong!</h2>
+      <h2 className="text-4xl text-bold">Oops! page not found</h2>
       <div className="flex gap-2">
         <button
           className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
@@ -19,12 +20,13 @@ export default function Error({ error, reset }) {
         >
           Go Back
         </button>
+        <Link href="/Home">
         <button
           className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
-          onClick={() => router.refresh()}
         >
-          Reload
+          Home
         </button>
+        </Link>
       </div>
     </div>
   );

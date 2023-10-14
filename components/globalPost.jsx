@@ -14,7 +14,7 @@ import LinkIcon from "./svg/linkIcon";
 import ImageDialog from "./imageDialog";
 import ThreeDots from "./svg/threeDots";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { toast } from "sonner";
 export default function GlobalPost({ post, divRef, cUser }) {
   const { user, accessToken } = useAuthContext();
 
@@ -68,22 +68,33 @@ export default function GlobalPost({ post, divRef, cUser }) {
     },
     onError: (err, v, context) => {
       console.error(err);
+      toast.error("Failed deleting post")
       queryClient.setQueryData(["posts"], context.previousData);
     },
+    onSuccess: () => {
+      toast("Deleted post successfully", {
+        icon: <TrashIcon />,
+        duration: 2000,
+      })
+    }
   });
 
   const editPost = useMutation({
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
+      toast.error("Failed editing post")
     },
     onMutate: () => {
       setEditing(false);
-
       setEdited(true);
     },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(["post", post.id])
+      toast("Edited post successfully", {
+        icon: <EditIcon />,
+        duration: 2000,
+      })
     }
   });
 
@@ -199,9 +210,11 @@ export default function GlobalPost({ post, divRef, cUser }) {
       () => {
         console.log("copied post url")
         setPopoverOpen(false)
+        toast.success("Copied link to clipboard")
       },
       (err) => {
         console.error("Error copying URL :", err)
+        toast.error("Failed copying link")
       },
     );
   }

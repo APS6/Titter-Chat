@@ -23,7 +23,7 @@ export async function GET(req, { params }) {
             }
         });
         if (userData === null) {
-            return NextResponse.json({ error: 'User not found', success: false }, { status: 404 });
+            return NextResponse.json(null, { status: 404 });
         }
         const followedBy = userData.following.some((u) => u.followingId === id)
         const following = userData.followedBy.some((u) => u.followerId === id)

@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
@@ -25,7 +25,6 @@ export default function DMUser({ params }) {
 
   const channel = ably.channels.get("dm");
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const chatUserId = searchParams.get("id");
   const queryClient = useQueryClient();
@@ -164,17 +163,7 @@ export default function DMUser({ params }) {
   }
 
   if (chatUser?.data?.user === null) {
-    return (
-      <div className="w-full h-full flex flex-col justify-center items-center gap-8">
-        <h2 className="text-4xl">User does not exist</h2>
-        <button
-          className="text-lg bg-purple rounded-md text-lightwht py-2 px-4"
-          onClick={() => router.back()}
-        >
-          Go Back
-        </button>
-      </div>
-    );
+    notFound();
   }
 
   const messages = data?.pages?.flatMap((page) => page.items);

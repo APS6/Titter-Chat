@@ -7,6 +7,7 @@ import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { UploadButton } from "@uploadthing/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function EditProfile() {
   const { user, accessToken } = useAuthContext();
@@ -67,12 +68,14 @@ export default function EditProfile() {
         if (response.status !== 200) {
           console.log("something went wrong");
         } else {
-          console.log("Updated User successfully");
+          console.log("Updated profile successfully");
+          toast.success("Updated profile successfully")
           queryClient.invalidateQueries([user.uid]);
           router.push(`/profile/${username}`);
         }
       } catch (error) {
         console.log("there was an error submitting", error);
+        toast.error("Something went wrong")
       }
     }
   };

@@ -15,9 +15,10 @@ import LinkIcon from "@/components/svg/linkIcon";
 import ImageDialog from "@/components/imageDialog";
 import ThreeDots from "@/components/svg/threeDots";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import fetchData from "@/app/lib/fetchData";
 import BlockLoader from "@/components/svg/blockLoader";
+import { toast } from "sonner";
 
 export default function Post() {
   const { user, accessToken } = useAuthContext();
@@ -61,10 +62,15 @@ export default function Post() {
     },
     onError: (err, v, context) => {
       console.error(err);
+      toast.error("Failed deleting post")
       queryClient.setQueryData(["posts"], context.previousData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["post", post.id])
+      toast("Deleted post successfully", {
+        icon: <TrashIcon />,
+        duration: 2000,
+      })
     }
   });
 
@@ -72,6 +78,7 @@ export default function Post() {
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
+      toast.error("Failed editing post")
       queryClient.setQueryData(["post", post.id], context.previousData);
     },
     onMutate: async () => {
@@ -87,6 +94,12 @@ export default function Post() {
       });
       return { previousData };
     },
+    onSuccess: () => {
+      toast("Edited post successfully", {
+        icon: <EditIcon />,
+        duration: 2000,
+      })
+    }
   });
 
   const deletePostFn = async () => {
@@ -201,9 +214,11 @@ export default function Post() {
       () => {
         console.log("copied post url")
         setPopoverOpen(false)
+        toast.success("Copied link to clipboard")
       },
       (err) => {
         console.error("Error copying URL :", err)
+        toast.error("Failed copying link")
       },
     );
   }
@@ -261,6 +276,9 @@ export default function Post() {
         <BlockLoader />
       </div>
     );
+  }
+  if (post === null) {
+    notFound()
   }
 
   const componentDecorator = (href, text, key) => (

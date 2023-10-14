@@ -10,6 +10,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "../api/uploadthing/core";
+import { Toaster } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,14 @@ export default function Layout({ children }) {
         </AuthContextProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
+      <Toaster
+        theme="dark"
+        richColors
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
     </body>
   );
 }
