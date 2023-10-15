@@ -13,7 +13,19 @@ export async function GET(req, {params}) {
                         username: true,
                         pfpURL: true,
                     }
-                }
+                },
+                replyTo: {
+                    select: {
+                        content: true,
+                        id: true,
+                        postedBy: {
+                            select: {
+                                username: true,
+                                pfpURL: true,
+                            }
+                        }
+                    }
+                  }  
             },
             where: {
                 id: id,

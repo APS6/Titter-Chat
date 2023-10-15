@@ -80,8 +80,16 @@
   opacity: 0;
 }
 
+.limit-lines {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
 @media (pointer: coarse) {
   .pc-opacity-0 {
     opacity: 1;
   }
 }
+

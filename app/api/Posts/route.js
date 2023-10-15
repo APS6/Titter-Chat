@@ -20,6 +20,7 @@ export async function POST(req) {
         const postData = {
             content: body.content,
             postedById: body.postedById,
+            replyToId: body.replyToId ? body.replyToId: null
         }
         if (body.images.length > 0) {
             const imageArray = body.images.map((img) => {
@@ -42,7 +43,19 @@ export async function POST(req) {
                         pfpURL: true,
                         username: true,
                     }
-                }
+                },
+                replyTo: {
+                    select: {
+                        content: true,
+                        id: true,
+                        postedBy: {
+                            select: {
+                                username: true,
+                                pfpURL: true,
+                            }
+                        }
+                    }
+                  }
             }
         }
         )
@@ -69,7 +82,19 @@ export async function GET(req) {
                         username: true,
                         pfpURL: true,
                     }
+                },
+              replyTo: {
+                select: {
+                    content: true,
+                    id: true,
+                    postedBy: {
+                        select: {
+                            username: true,
+                            pfpURL: true,
+                        }
+                    }
                 }
+              }  
             },
             orderBy: {
                 postedAt: "desc"
@@ -194,7 +219,19 @@ export async function PATCH(req) {
                         username: true,
                         pfpURL: true,
                     }
-                }
+                },
+                replyTo: {
+                    select: {
+                        content: true,
+                        id: true,
+                        postedBy: {
+                            select: {
+                                username: true,
+                                pfpURL: true,
+                            }
+                        }
+                    }
+                  }
             },
         })
         channel.publish('edit_post', newPost);

@@ -36,7 +36,12 @@ model Post {
   postedBy   User     @relation("UserPosts", fields: [postedById], references: [id], onDelete: NoAction)
   postedById String
   likes      Like[]
-  edited Boolean @default(false)
+  edited     Boolean  @default(false)
+  replies    Post[]   @relation("replies")
+  replyTo    Post?    @relation("replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replyToId  String?
+
+  @@index([replyToId])
   @@index([postedById])
 }
 
@@ -83,8 +88,8 @@ model DirectMessage {
   sentTo   User      @relation("sentto", fields: [sentToId], references: [id])
   sentToId String
   images   DMImage[]
-  edited Boolean @default(false)
-  
+  edited   Boolean   @default(false)
+
   @@index([sentById])
   @@index([sentToId])
   @@index([sentById, sentToId])

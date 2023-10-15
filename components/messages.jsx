@@ -164,9 +164,9 @@ export default function Messages() {
       followButtonClassName="hidden"
       scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
     >
-      {data.pages.map((page, pageI, pages) => (
+      {data?.pages?.map((page, pageI, pages) => (
         <Fragment>
-          {page.items.map((post, i) => (
+          {page?.items?.map((post, i) => (
             <GlobalPost
               key={post.id}
               divRef={

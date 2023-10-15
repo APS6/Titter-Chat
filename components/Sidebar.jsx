@@ -204,7 +204,7 @@ export default function Sidebar() {
                       formattedDistance = `${minutesDifference}m`;
                     } else if (hoursDifference < 24) {
                       formattedDistance = `${hoursDifference}h`;
-                    } else if (daysDifference < 365) {
+                    } else if (daysDifference < 31) {
                       formattedDistance = `${daysDifference}d`;
                     } else if (monthsDifference < 12) {
                       formattedDistance = `${monthsDifference}mon`;

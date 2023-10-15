@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
+import { useStateContext } from "@/context/context";
+import CancelBg from "./svg/cancelbg";
 
 export default function Input() {
   const { user, accessToken } = useAuthContext();
+  const { replying, setReplying, replyingTo, setReplyingTo } = useStateContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,6 +24,7 @@ export default function Input() {
         content: message,
         postedById: user.uid,
         images: images,
+        replyToId: replying ? replyingTo.postId : null,
       };
       setLoading(true);
       setShowLoading(true);
@@ -42,8 +46,9 @@ export default function Input() {
         } else {
           setMessage("");
           setImages([]);
-
           setLoading(false);
+          setReplying(false);
+          setReplyingTo(null);
           setTimeout(() => {
             setShowLoading(false);
           }, 500);
@@ -70,7 +75,6 @@ export default function Input() {
     }
   };
 
-
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -78,7 +82,6 @@ export default function Input() {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [message]);
-
 
   const deleteFiles = async (image) => {
     if (image) {
@@ -117,6 +120,18 @@ export default function Input() {
   return (
     <div className="bg-[#000] fixed bottom-0 w-full px-1 pt-1 pb-2 md:w-[70%] max-w-4xl z-20">
       <div className="flex flex-col gap-2 bg-grey rounded ">
+        {replying ? (
+          <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">
+            <span>
+              <span className="text-lightwht">Replying to </span><span>{replyingTo?.username}</span>
+            </span>
+            <div onClick={() => {setReplying(false); setReplyingTo(null)}} className="cursor-pointer hover:bg-[#343434] rounded-full p-1">
+            <CancelBg />
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
         {images.length > 0 ? (
           <div className="flex mt-1 gap-3 pt-2 px-2 items-center sm:overflow-auto">
             {images.map((image) => {
@@ -236,7 +251,7 @@ export default function Input() {
           </Dialog.Root>
           <textarea
             ref={textareaRef}
-            rows='1'
+            rows="1"
             onFocus={() => setTyping(true)}
             onBlur={() => setTyping(false)}
             onChange={(e) => messageHandler(e)}

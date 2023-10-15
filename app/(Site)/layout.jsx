@@ -11,6 +11,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "../api/uploadthing/core";
 import { Toaster } from "sonner";
+import { ContextProvider } from "@/context/context";
 
 const queryClient = new QueryClient();
 
@@ -22,10 +23,12 @@ export default function Layout({ children }) {
         <AuthContextProvider>
           <Navigation />
           <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
+            <ContextProvider>
             <Suspense fallback={<Loading />}>
               {children}
               <Analytics />
             </Suspense>
+            </ContextProvider>
           </main>
         </AuthContextProvider>
         <ReactQueryDevtools initialIsOpen={false} />

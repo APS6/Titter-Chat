@@ -15,8 +15,12 @@ import ImageDialog from "./imageDialog";
 import ThreeDots from "./svg/threeDots";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ReplyIcon from "./svg/replyIcon";
+import { useStateContext } from "@/context/context";
+
 export default function GlobalPost({ post, divRef, cUser }) {
   const { user, accessToken } = useAuthContext();
+  const { setReplying, setReplyingTo } = useStateContext();
 
   const channel = ably.channels.get("likes");
 
@@ -30,7 +34,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const [editing, setEditing] = useState(false);
   const [edited, setEdited] = useState(post.edited);
   const [content, setContent] = useState(post.content);
-  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const sender = post.postedBy;
   const images = post.images;
@@ -45,7 +49,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
   const deletePost = useMutation({
     mutationFn: () => deletePostFn(),
     onMutate: async () => {
-      setPopoverOpen(false)
+      setPopoverOpen(false);
       await queryClient.cancelQueries({ queryKey: ["posts"] });
       const previousData = queryClient.getQueryData(["posts"]);
       queryClient.setQueryData(["posts"], (old) => {
@@ -68,34 +72,34 @@ export default function GlobalPost({ post, divRef, cUser }) {
     },
     onError: (err, v, context) => {
       console.error(err);
-      toast.error("Failed deleting post")
+      toast.error("Failed deleting post");
       queryClient.setQueryData(["posts"], context.previousData);
     },
     onSuccess: () => {
       toast("Deleted post successfully", {
         icon: <TrashIcon />,
         duration: 2000,
-      })
-    }
+      });
+    },
   });
 
   const editPost = useMutation({
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
-      toast.error("Failed editing post")
+      toast.error("Failed editing post");
     },
     onMutate: () => {
       setEditing(false);
       setEdited(true);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["post", post.id])
+      queryClient.invalidateQueries(["post", post.id]);
       toast("Edited post successfully", {
         icon: <EditIcon />,
         duration: 2000,
-      })
-    }
+      });
+    },
   });
 
   const deletePostFn = async () => {
@@ -205,19 +209,19 @@ export default function GlobalPost({ post, divRef, cUser }) {
     const type = "text/plain";
     const blob = new Blob([`titter-chat.vercel.app/post/${post.id}`], { type });
     const data = [new ClipboardItem({ [type]: blob })];
-  
+
     navigator.clipboard.write(data).then(
       () => {
-        console.log("copied post url")
-        setPopoverOpen(false)
-        toast.success("Copied link to clipboard")
+        console.log("copied post url");
+        setPopoverOpen(false);
+        toast.success("Copied link to clipboard");
       },
       (err) => {
-        console.error("Error copying URL :", err)
-        toast.error("Failed copying link")
-      },
+        console.error("Error copying URL :", err);
+        toast.error("Failed copying link");
+      }
     );
-  }
+  };
 
   useEffect(() => {
     channel.subscribe("new_like", (data) => {
@@ -261,6 +265,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
     </a>
   );
 
+  if (post.replyToId) {
+    console.log(post.replyTo);
+  }
+
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
@@ -299,10 +307,12 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   {sender?.username ?? "DELETED"}
                 </h3>
               </Link>
-              <span className="text-sm text-lightwht leading-none">{formattedPostedAt}</span>
+              <span className="text-sm text-lightwht leading-none">
+                {formattedPostedAt}
+              </span>
             </div>
             {post?.content?.length !== 0 && !editing ? (
-              <p className="mb-1 break-words whitespace-pre-wrap">
+              <p className="break-words whitespace-pre-wrap">
                 <Linkify componentDecorator={componentDecorator}>
                   {content ?? post?.content}
                 </Linkify>
@@ -327,7 +337,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 ></textarea>
                 <div className="self-end flex gap-1 items-center">
                   <button
-                    onClick={() => {setEditing(false); setContent(post.content)}}
+                    onClick={() => {
+                      setEditing(false);
+                      setContent(post.content);
+                    }}
                     className="bg-[#3a4046] rounded py-1 px-3 "
                   >
                     Cancel
@@ -345,7 +358,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             )}
             {images.length !== 0 ? (
               <div
-                className={`grid gap-3 ${
+                className={`grid gap-3 mt-1 ${
                   images.length === 1
                     ? "grid-cols-1"
                     : images.length === 2
@@ -389,7 +402,28 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ) : (
               ""
             )}
-            <div className={`flex ${images ? "mt-1" : ""}`}>
+            {post.replyToId ? (
+              <Link href={`/post/${post.replyToId}`}>
+                <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
+                  <div className="flex items-center gap-1">
+                    <Image
+                      src={post.replyTo.postedBy.pfpURL}
+                      alt="D"
+                      width="16"
+                      height="16"
+                      className="rounded-full object-cover"
+                    />
+                    <h4 className="font-raleway font-semibold leading-none ">
+                      {post.replyTo.postedBy.username}
+                    </h4>
+                  </div>
+                  <p className="limit-lines break-words whitespace-pre-wrap">{post.replyTo.content}</p>
+                </div>
+              </Link>
+            ) : (
+              ""
+            )}
+            <div className={`flex ${images || post.replyToId ? "mt-1" : ""}`}>
               <div className="flex items-center">
                 {liked ? (
                   <div
@@ -436,7 +470,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
               </div>
             </div>
           </div>
-          <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
+          <Popover.Root
+            open={popoverOpen}
+            onOpenChange={(open) => setPopoverOpen(open)}
+          >
             <Popover.Trigger
               className={`pc-opacity-0 group-hover:opacity-100 ${
                 editing ? "hidden" : ""
@@ -458,7 +495,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     </div>
                     {sender.username === cUser?.username ? (
                       <div
-                      onClick={() => {setEditing(true); setPopoverOpen(false)}}
+                        onClick={() => {
+                          setEditing(true);
+                          setPopoverOpen(false);
+                        }}
                         className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
                       >
                         <EditIcon />
@@ -472,6 +512,20 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 ) : (
                   ""
                 )}
+                <div
+                  onClick={() => {
+                    setReplying(true);
+                    setReplyingTo({
+                      username: sender?.username,
+                      postId: post.id,
+                    });
+                    setPopoverOpen(false);
+                  }}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                >
+                  <ReplyIcon />
+                  <span>Reply</span>
+                </div>
                 <div className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
                   <Link
                     className="flex items-center gap-2 p-1 w-full h-full"
@@ -481,7 +535,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     <span>View Profile</span>
                   </Link>
                 </div>
-                <div onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+                <div
+                  onClick={() => copyLink()}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                >
                   <LinkIcon />
                   <span>Copy Link</span>
                 </div>
@@ -490,11 +547,11 @@ export default function GlobalPost({ post, divRef, cUser }) {
           </Popover.Root>
         </div>
       </ContextMenu.Trigger>
-          <ImageDialog
-            selectedUrl={selectedUrl}
-            dialogOpen={dialogOpen}
-            setDialogOpen={setDialogOpen}
-          />
+      <ImageDialog
+        selectedUrl={selectedUrl}
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+      />
       <ContextMenu.Portal>
         <ContextMenu.Content
           collisionPadding={{ bottom: 60 }}
@@ -525,6 +582,16 @@ export default function GlobalPost({ post, divRef, cUser }) {
           ) : (
             ""
           )}
+          <ContextMenu.Item
+            onClick={() => {
+              setReplying(true);
+              setReplyingTo({ username: sender?.username, postId: post.id });
+            }}
+            className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+          >
+            <ReplyIcon />
+            <span>Reply</span>
+          </ContextMenu.Item>
           <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
             <Link
               className="flex items-center gap-2 p-1 w-full h-full"
@@ -534,7 +601,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
               <span>View Profile</span>
             </Link>
           </ContextMenu.Item>
-          <ContextMenu.Item onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
+          <ContextMenu.Item
+            onClick={() => copyLink()}
+            className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+          >
             <LinkIcon />
             <span>Copy Link</span>
           </ContextMenu.Item>
