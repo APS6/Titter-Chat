@@ -33,16 +33,23 @@ model Post {
   content    String   @db.Text
   images     Image[]
   postedAt   DateTime @default(now())
-  postedBy   User     @relation("UserPosts", fields: [postedById], references: [id], onDelete: NoAction)
-  postedById String
+  postedBy   User?    @relation("UserPosts", fields: [postedById], references: [id], onDelete: SetNull)
+  postedById String?
   likes      Like[]
   edited     Boolean  @default(false)
-  replies    Post[]   @relation("replies")
-  replyTo    Post?    @relation("replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replyToId  String?
+  replies    Reply[]  @relation("replies")
+  reply      Reply?   @relation("replyPost")
+  
+  @@index([postedById])
+}
+
+model Reply {
+  replyToPost Post?   @relation("replies", fields: [replyToId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  replyToId   String?
+  replyPost   Post    @relation("replyPost", fields: [replyPostId], references: [id])
+  replyPostId String  @unique
 
   @@index([replyToId])
-  @@index([postedById])
 }
 
 model Image {
@@ -80,20 +87,32 @@ model Follows {
 }
 
 model DirectMessage {
-  id       String    @id @unique @default(uuid())
-  content  String    @db.Text
-  sentAt   DateTime  @default(now())
-  sentBy   User      @relation("sentby", fields: [sentById], references: [id])
-  sentById String
-  sentTo   User      @relation("sentto", fields: [sentToId], references: [id])
-  sentToId String
-  images   DMImage[]
-  edited   Boolean   @default(false)
+  id        String          @id @unique @default(uuid())
+  content   String          @db.Text
+  sentAt    DateTime        @default(now())
+  sentBy    User            @relation("sentby", fields: [sentById], references: [id])
+  sentById  String
+  sentTo    User            @relation("sentto", fields: [sentToId], references: [id])
+  sentToId  String
+  images    DMImage[]
+  edited    Boolean         @default(false)
+  replies    DMReply[]  @relation("replies")
+  reply      DMReply?   @relation("replyMessage")
 
   @@index([sentById])
   @@index([sentToId])
   @@index([sentById, sentToId])
 }
+
+model DMReply {
+  replyToMessage DirectMessage?   @relation("replies", fields: [replyToId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  replyToId   String?
+  replyMessage   DirectMessage    @relation("replyMessage", fields: [replyMessageId], references: [id])
+  replyMessageId String  @unique
+
+  @@index([replyToId])
+}
+
 
 model DMImage {
   id        String        @id @unique @default(uuid())

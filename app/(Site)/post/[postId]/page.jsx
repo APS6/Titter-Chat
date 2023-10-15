@@ -332,7 +332,7 @@ export default function Post() {
               <span className="text-sm text-lightwht leading-none">{post?.postedAt && post?.postedAt.length !== 0 ? format(new Date(post?.postedAt), "dd/MM/yy hh:mm a") : ""}</span>
             </div>
             {post?.content?.length !== 0 && !editing ? (
-              <p className="mb-1 break-words whitespace-pre-wrap">
+              <p className="break-words whitespace-pre-wrap">
                 <Linkify componentDecorator={componentDecorator}>
                   {content ?? post?.content}
                 </Linkify>
@@ -375,7 +375,7 @@ export default function Post() {
             )}
             {post?.images.length !== 0 ? (
               <div
-                className={`grid gap-3 ${
+                className={`grid gap-3 mt-1 ${
                   post?.images.length === 1
                     ? "grid-cols-1"
                     : post?.images.length === 2
@@ -416,6 +416,35 @@ export default function Post() {
                   );
                 })}
               </div>
+            ) : (
+              ""
+            )}
+             {post.reply ? (
+              post.reply.replyToId !== null ? (
+                <Link href={`/post/${post.reply.replyToId}`}>
+                  <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
+                    <div className="flex items-center gap-1">
+                      <Image
+                        src={post.reply.replyToPost.postedBy.pfpURL}
+                        alt="D"
+                        width="16"
+                        height="16"
+                        className="rounded-full object-cover"
+                      />
+                      <h4 className="font-raleway font-semibold leading-none ">
+                        {post.reply.replyToPost.postedBy.username}
+                      </h4>
+                    </div>
+                    <p className="limit-lines break-words whitespace-pre-wrap">
+                      {post.reply.replyToPost.content}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md">
+                  <p>This post was deleted</p>
+                </div>
+              )
             ) : (
               ""
             )}

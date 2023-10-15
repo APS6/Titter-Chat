@@ -265,19 +265,14 @@ export default function GlobalPost({ post, divRef, cUser }) {
     </a>
   );
 
-  if (post.replyToId) {
-    console.log(post.replyTo);
-  }
-
   return (
-    <ContextMenu.Root>
+    <ContextMenu.Root key={post.id}>
       <ContextMenu.Trigger>
         <div
           className="bg-grey flex items-start gap-2 p-2 pb-1 rounded group relative"
-          key={post.id}
           ref={divRef ?? null}
         >
-          <Link href={`/profile/${sender?.username}`}>
+          <Link href={`/profile/${sender?.username ?? "?"}`}>
             {sender.pfpURL ? (
               <Image
                 src={sender?.pfpURL}
@@ -402,24 +397,32 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ) : (
               ""
             )}
-            {post.replyToId ? (
-              <Link href={`/post/${post.replyToId}`}>
-                <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
-                  <div className="flex items-center gap-1">
-                    <Image
-                      src={post.replyTo.postedBy.pfpURL}
-                      alt="D"
-                      width="16"
-                      height="16"
-                      className="rounded-full object-cover"
-                    />
-                    <h4 className="font-raleway font-semibold leading-none ">
-                      {post.replyTo.postedBy.username}
-                    </h4>
+            {post.reply ? (
+              post.reply.replyToId !== null ? (
+                <Link href={`/post/${post.reply.replyToId}`}>
+                  <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
+                    <div className="flex items-center gap-1">
+                      <Image
+                        src={post.reply.replyToPost.postedBy.pfpURL}
+                        alt="D"
+                        width="16"
+                        height="16"
+                        className="rounded-full object-cover"
+                      />
+                      <h4 className="font-raleway font-semibold leading-none ">
+                        {post.reply.replyToPost.postedBy.username}
+                      </h4>
+                    </div>
+                    <p className="limit-lines break-words whitespace-pre-wrap">
+                      {post.reply.replyToPost.content}
+                    </p>
                   </div>
-                  <p className="limit-lines break-words whitespace-pre-wrap">{post.replyTo.content}</p>
+                </Link>
+              ) : (
+                <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md">
+                  <p>This post was deleted</p>
                 </div>
-              </Link>
+              )
             ) : (
               ""
             )}

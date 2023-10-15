@@ -14,18 +14,22 @@ export async function GET(req, {params}) {
                         pfpURL: true,
                     }
                 },
-                replyTo: {
+                reply: {
                     select: {
-                        content: true,
-                        id: true,
-                        postedBy: {
+                        replyToId: true,
+                        replyToPost: {
                             select: {
-                                username: true,
-                                pfpURL: true,
+                                content: true,
+                                postedBy: {
+                                    select: {
+                                        pfpURL: true,
+                                        username: true
+                                    }
+                                }
                             }
                         }
                     }
-                  }  
+                }
             },
             where: {
                 id: id,

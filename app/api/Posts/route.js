@@ -20,7 +20,6 @@ export async function POST(req) {
         const postData = {
             content: body.content,
             postedById: body.postedById,
-            replyToId: body.replyToId ? body.replyToId: null
         }
         if (body.images.length > 0) {
             const imageArray = body.images.map((img) => {
@@ -34,6 +33,13 @@ export async function POST(req) {
                 ,
             }
         }
+        if (body.replyToId) {
+            postData.reply = {
+                create: {
+                    replyToId: body.replyToId
+                }
+            }
+        }
         const newPost = await prisma.post.create({
             data: postData,
             include: {
@@ -44,18 +50,22 @@ export async function POST(req) {
                         username: true,
                     }
                 },
-                replyTo: {
+                reply: {
                     select: {
-                        content: true,
-                        id: true,
-                        postedBy: {
+                        replyToId: true,
+                        replyToPost: {
                             select: {
-                                username: true,
-                                pfpURL: true,
+                                content: true,
+                                postedBy: {
+                                    select: {
+                                        pfpURL: true,
+                                        username: true
+                                    }
+                                }
                             }
                         }
                     }
-                  }
+                }
             }
         }
         )
@@ -83,18 +93,22 @@ export async function GET(req) {
                         pfpURL: true,
                     }
                 },
-              replyTo: {
-                select: {
-                    content: true,
-                    id: true,
-                    postedBy: {
-                        select: {
-                            username: true,
-                            pfpURL: true,
+                reply: {
+                    select: {
+                        replyToId: true,
+                        replyToPost: {
+                            select: {
+                                content: true,
+                                postedBy: {
+                                    select: {
+                                        pfpURL: true,
+                                        username: true
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-              }  
             },
             orderBy: {
                 postedAt: "desc"
@@ -166,7 +180,7 @@ export async function DELETE(req) {
                 postedById: true,
             }
         })
-        channel.publish('delete_post', {id: deleted.id, removerId: userId});
+        channel.publish('delete_post', { id: deleted.id, removerId: userId });
         return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error) {
@@ -220,18 +234,22 @@ export async function PATCH(req) {
                         pfpURL: true,
                     }
                 },
-                replyTo: {
+                reply: {
                     select: {
-                        content: true,
-                        id: true,
-                        postedBy: {
+                        replyToId: true,
+                        replyToPost: {
                             select: {
-                                username: true,
-                                pfpURL: true,
+                                content: true,
+                                postedBy: {
+                                    select: {
+                                        pfpURL: true,
+                                        username: true
+                                    }
+                                }
                             }
                         }
                     }
-                  }
+                }
             },
         })
         channel.publish('edit_post', newPost);
