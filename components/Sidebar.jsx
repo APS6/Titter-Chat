@@ -22,7 +22,7 @@ import { toast } from "sonner";
 export default function Sidebar() {
   const { user, accessToken } = useAuthContext();
 
-  const channel = ably.channels.get('dm');
+  const channel = ably.channels.get('sidebar');
 
   const router = useRouter();
 
@@ -75,7 +75,7 @@ export default function Sidebar() {
 
 
   useEffect(() => {
-    if (user.uid && channel) {
+    if (user.uid) {
       channel.subscribe(`ms_${user.uid}`, (newM) => {
         updateMessages(newM.data)
       });

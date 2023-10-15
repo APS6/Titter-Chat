@@ -5,6 +5,7 @@ import admin from "@/app/lib/firebaseAdmin";
 import { headers } from "next/headers";
 
 const channel = ably.channels.get("dm");
+const sidebar = ably.channels.get("sidebar");
 
 export async function POST(req) {
     const body = await req.json()
@@ -56,7 +57,7 @@ export async function POST(req) {
                 username: newMessage.sentTo.username,
                 pfpURL: newMessage.sentTo.pfpURL,
             }
-            channel.publish(`ms_${body.sentById}`, ms);
+            sidebar.publish(`ms_${body.sentById}`, ms);
             const mr = {
                 content: newMessage.content,
                 sentAt: newMessage.sentAt,
@@ -64,7 +65,7 @@ export async function POST(req) {
                 username: newMessage.sentBy.username,
                 pfpURL: newMessage.sentBy.pfpURL,
             }
-            channel.publish(`mr_${body.sentToId}`, mr);
+            sidebar.publish(`mr_${body.sentToId}`, mr);
             return NextResponse.json({ success: true }, { status: 200 });
         }
         else {
