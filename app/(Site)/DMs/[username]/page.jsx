@@ -171,7 +171,7 @@ export default function DMUser({ params }) {
   return (
     <div>
       <Link
-        className="fixed top-16 md:top-4 md:ml-3 bg-[#000] z-20"
+        className="fixed top-[3.75rem] ml-2 md:top-4 md:ml-3 bg-[#000] z-20"
         href={`/profile/${username}`}
       >
         <div className="flex gap-4 items-center">
@@ -181,16 +181,16 @@ export default function DMUser({ params }) {
               alt={"PFP"}
               width="35"
               height="35"
-              className="rounded-full w-[35px] h-[35px] object-cover"
+              className="rounded-full w-7 h-7 md:h-[35px] md:w-[35px] object-cover"
             />
           ) : (
             ""
           )}
-          <h2 className="font-bold font-mont text-4xl">{username}</h2>
+          <h2 className="font-bold font-mont text-[1.75rem] md:text-4xl leading-9 md:leading-[2.5rem]">{username}</h2>
         </div>
       </Link>
       <ScrollToBottom
-        className="h-[100svh] px-1 pb-14 pt-[6.5rem] md:pt-14 relative"
+        className="h-[100svh] px-1 pb-14 pt-24 md:pt-14 relative"
         followButtonClassName="hidden"
         scrollViewClassName="flex flex-col-reverse gap-2 pt-1"
       >
