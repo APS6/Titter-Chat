@@ -99,7 +99,7 @@ export default function DMInput({ sendingTo, disabled }) {
   };
 
   return (
-    <div className="bg-[#000] fixed bottom-0 w-full px-1 pt-1 pb-2 md:w-[70%] max-w-4xl z-20">
+    <div className="bg-[#000] w-full pt-1 pb-2">
       <div className="flex flex-col gap-2 bg-grey rounded ">
         {images.length > 0 ? (
           <div className="flex mt-1 gap-3 pt-2 px-2 items-center sm:overflow-auto">

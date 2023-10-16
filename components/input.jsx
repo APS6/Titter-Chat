@@ -118,7 +118,7 @@ export default function Input() {
   };
 
   return (
-    <div className="bg-[#000] fixed bottom-0 w-full px-1 pt-1 pb-2 md:w-[70%] max-w-4xl z-20">
+    <div className="bg-[#000] w-full pt-1 pb-2">
       <div className="flex flex-col gap-2 bg-grey rounded ">
         {replying ? (
           <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">

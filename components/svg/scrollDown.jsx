@@ -6,7 +6,7 @@ export default function ScrollDown() {
 
   if (!sticky) {
     return (
-      <div onClick={scrollToBottom} className="absolute bottom-16 right-6 p-1 bg-[#000] rounded-full z-10 cursor-pointer">
+      <div onClick={scrollToBottom} className="absolute bottom-2 right-6 p-1 bg-[#000] rounded-full z-10 cursor-pointer">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"

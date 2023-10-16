@@ -269,7 +269,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
     <ContextMenu.Root key={post.id}>
       <ContextMenu.Trigger>
         <div
-          className="bg-grey flex items-start gap-2 p-2 pb-1 rounded group relative"
+          className=" flex items-start gap-2 p-2 pb-1 group relative"
           ref={divRef ?? null}
         >
           <Link href={`/profile/${sender?.username ?? "?"}`}>

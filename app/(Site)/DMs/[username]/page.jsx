@@ -18,6 +18,7 @@ import DMInput from "@/components/dmInput";
 import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
 import DMMessage from "@/components/dmMessage";
+import ScrollDown from "@/components/svg/scrollDown";
 
 export default function DMUser({ params }) {
   const { username } = params;
@@ -169,12 +170,9 @@ export default function DMUser({ params }) {
   const messages = data?.pages?.flatMap((page) => page.items);
 
   return (
-    <div>
-      <Link
-        className="fixed top-[3.75rem] ml-2 md:top-4 md:ml-3 bg-[#000] z-20"
-        href={`/profile/${username}`}
-      >
-        <div className="flex gap-4 items-center">
+    <div className="h-[100svh] flex flex-col px-1">
+      <Link className="mt-14 ml-2 md:mt-1" href={`/profile/${username}`}>
+        <div className="flex gap-2 items-center">
           {chatUser?.data?.user?.pfpURL ? (
             <Image
               src={chatUser?.data?.user?.pfpURL}
@@ -186,24 +184,29 @@ export default function DMUser({ params }) {
           ) : (
             ""
           )}
-          <h2 className="font-bold font-mont text-[1.75rem] md:text-4xl leading-9 md:leading-[2.5rem]">{username}</h2>
+          <h2 className="font-bold font-mont text-[1.75rem] md:text-4xl leading-9 md:leading-[2.5rem]">
+            {username}
+          </h2>
         </div>
       </Link>
       <ScrollToBottom
-        className="h-[100svh] px-1 pb-14 pt-24 md:pt-14 relative"
+        className="relative mt-1 overflow-y-auto"
         followButtonClassName="hidden"
-        scrollViewClassName="flex flex-col-reverse gap-2 pt-1"
+        scrollViewClassName="pt-1"
       >
         {status !== "loading" ? (
-          messages?.map((message, i) => {
-            return (
-              <DMMessage
-                cUsername={username}
-                divRef={i === messages.length - 1 ? lastDivRef : null}
-                message={message}
-              />
-            );
-          })
+          <div className="flex flex-col-reverse gap-2">
+            {messages?.map((message, i) => {
+              return (
+                <DMMessage
+                  cUsername={username}
+                  divRef={i === messages.length - 1 ? lastDivRef : null}
+                  message={message}
+                />
+              );
+            })}
+            <ScrollDown />
+          </div>
         ) : (
           <div className="h-full w-full grid place-items-center">
             <BlockLoader />

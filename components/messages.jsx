@@ -160,34 +160,36 @@ export default function Messages() {
 
   return (
     <ScrollToBottom
-      className="h-[100svh] px-1 pb-14 pt-14 md:pt-0 relative"
+      className="pt-14 md:pt-0 relative bg-grey overflow-y-auto"
       followButtonClassName="hidden"
-      scrollViewClassName="flex flex-col-reverse gap-[.4rem] pt-1"
+      scrollViewClassName="pt-1"
     >
-      {data?.pages?.map((page, pageI, pages) => (
-        <Fragment>
-          {page?.items?.map((post, i) => (
-            <GlobalPost
-              key={post.id}
-              divRef={
-                i === page.items.length - 1 && pageI === pages.length - 1
-                  ? lastDivRef
-                  : null
-              }
-              post={post}
-              cUser={cUser}
-            />
-          ))}
-        </Fragment>
-      ))}
-      {isFetchingNextPage ? (
-        <div className="py-2 w-full grid place-items-center">
-          <Loader />
-        </div>
-      ) : (
-        ""
-      )}
-      <ScrollDown />
+      <div className="flex flex-col-reverse gap-1">
+        {data?.pages?.map((page, pageI, pages) => (
+          <Fragment>
+            {page?.items?.map((post, i) => (
+              <GlobalPost
+                key={post.id}
+                divRef={
+                  i === page.items.length - 1 && pageI === pages.length - 1
+                    ? lastDivRef
+                    : null
+                }
+                post={post}
+                cUser={cUser}
+              />
+            ))}
+          </Fragment>
+        ))}
+        {isFetchingNextPage ? (
+          <div className="py-2 w-full grid place-items-center">
+            <Loader />
+          </div>
+        ) : (
+          ""
+        )}
+        <ScrollDown />
+      </div>
     </ScrollToBottom>
   );
 }
