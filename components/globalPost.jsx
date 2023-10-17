@@ -53,15 +53,21 @@ export default function GlobalPost({ post, divRef, cUser }) {
       await queryClient.cancelQueries({ queryKey: ["posts"] });
       const previousData = queryClient.getQueryData(["posts"]);
       queryClient.setQueryData(["posts"], (old) => {
-        let newData = [...old.pages];
-        const pageIndex = newData.findIndex((pg) =>
-          pg.items.some((p) => p.id === post.id)
-        );
-        if (pageIndex !== -1) {
-          newData[pageIndex].items = newData[pageIndex].items.filter(
-            (p) => p.id !== post.id
-          );
-        }
+        const newData = old.pages.map((pg) => {
+          return {
+            ...pg,
+            items: pg.items.reduce((acc, p) => {
+              if (p.id === post.id) {
+                return acc
+              } else if (p.reply?.replyToId === post.id) {
+                acc.push({ ...p, reply: { replyToId: null } });
+              } else {
+                acc.push(p);
+              }
+              return acc;
+            }, [])
+          }
+        })
         return {
           pages: newData,
           pageParams: old.pageParams,

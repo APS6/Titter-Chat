@@ -99,15 +99,21 @@ export default function Messages() {
       const rmPost = post.data;
       if (rmPost.removerId !== user.uid) {
         queryClient.setQueryData(["posts"], (old) => {
-          let newData = [...old.pages];
-          const pageIndex = newData.findIndex((pg) =>
-            pg.items.some((p) => p.id === rmPost.id)
-          );
-          if (pageIndex !== -1) {
-            newData[pageIndex].items = newData[pageIndex].items.filter(
-              (p) => p.id !== rmPost.id
-            );
-          }
+          const newData = old.pages.map((pg) => {
+            return {
+              ...pg,
+              items: pg.items.reduce((acc, p) => {
+                if (p.id === rmPost.id) {
+                  return acc;
+                } else if (p.reply?.replyToId === rmPost.id) {
+                  acc.push({ ...p, reply: { replyToId: null } });
+                } else {
+                  acc.push(p);
+                }
+                return acc;
+              }, []),
+            };
+          });
           return {
             pages: newData,
             pageParams: old.pageParams,
@@ -120,18 +126,30 @@ export default function Messages() {
     channel.subscribe("edit_post", (post) => {
       const edPost = post.data;
       queryClient.setQueryData(["posts"], (old) => {
-        let newData = [...old.pages];
-        const pageIndex = newData.findIndex((pg) =>
-          pg.items.some((p) => p.id === edPost.id)
-        );
-        if (pageIndex !== -1) {
-          const pIndex = newData[pageIndex].items.findIndex(
-            (p) => p.id === edPost.id
-          );
-          if (pIndex !== -1) {
-            newData[pageIndex].items.splice(pIndex, 1, edPost);
-          }
-        }
+        const newData = old.pages.map((pg) => {
+          return {
+            ...pg,
+            items: pg.items.reduce((acc, p) => {
+              if (p.id === edPost.id) {
+                acc.push(edPost);
+              } else if (p.reply?.replyToId === edPost.id) {
+                acc.push({
+                  ...p,
+                  reply: {
+                    ...p.reply,
+                    replyToPost: {
+                      ...p.reply.replyToPost,
+                      content: edPost.content,
+                    },
+                  },
+                });
+              } else {
+                acc.push(p);
+              }
+              return acc;
+            }, []),
+          };
+        });
         return {
           pages: newData,
           pageParams: old.pageParams,

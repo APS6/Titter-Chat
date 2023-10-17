@@ -67,6 +67,7 @@ export default function Post() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["post", post.id])
+      queryClient.invalidateQueries(["posts"])
       toast("Deleted post successfully", {
         icon: <TrashIcon />,
         duration: 2000,
@@ -95,6 +96,7 @@ export default function Post() {
       return { previousData };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries(["posts"])
       toast("Edited post successfully", {
         icon: <EditIcon />,
         duration: 2000,
