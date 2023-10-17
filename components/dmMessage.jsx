@@ -184,14 +184,14 @@ export default function DMMessage({ message, divRef, cUsername }) {
         }`}
       >
         <div
-          className={`flex gap-2 max-w-[75%] ${
+          className={`flex gap-2 max-w-[75%] justify-start ${
             received
-              ? "flex-row justify-start"
-              : " flex-row-reverse justify-end"
+              ? "flex-row "
+              : " flex-row-reverse"
           }`}
         >
           <div
-            className={`flex flex-col gap-1 max-w-full ${
+            className={`flex flex-col gap-1 max-w-[90%] ${
               received ? "items-start" : " items-end"
             }`}
           >

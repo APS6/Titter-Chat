@@ -206,18 +206,18 @@ export default function DMUser({ params }) {
               );
             })}
             <ScrollDown />
+            {isFetchingNextPage ? (
+              <div className="py-2 w-full grid place-items-center">
+                <Loader />
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         ) : (
-          <div className="h-full w-full grid place-items-center">
+          <div className="h-[100svh] w-full grid place-items-center">
             <BlockLoader />
           </div>
-        )}
-        {isFetchingNextPage ? (
-          <div className="py-2 w-full grid place-items-center">
-            <Loader />
-          </div>
-        ) : (
-          ""
         )}
       </ScrollToBottom>
       <DMInput
