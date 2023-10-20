@@ -6,10 +6,12 @@ import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
 import { useStateContext } from "@/context/context";
 import CancelBg from "./svg/cancelbg";
+import { toast } from "sonner";
 
 export default function Input() {
   const { user, accessToken } = useAuthContext();
-  const { replying, setReplying, replyingTo, setReplyingTo } = useStateContext();
+  const { replying, setReplying, replyingTo, setReplyingTo } =
+    useStateContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function Input() {
   const textareaRef = useRef(null);
 
   const sendMessage = async () => {
-    if (message || images) {
+    if (message.length !== 0 || images.length !== 0 || replyingTo !== null) {
       const body = {
         content: message,
         postedById: user.uid,
@@ -47,8 +49,11 @@ export default function Input() {
           setMessage("");
           setImages([]);
           setLoading(false);
-          setReplying(false);
-          setReplyingTo(null);
+          if (replying) {
+            toast.success("Reply added successfully ");
+            setReplying(false);
+            setReplyingTo(null);
+          }
           setTimeout(() => {
             setShowLoading(false);
           }, 500);
@@ -123,10 +128,17 @@ export default function Input() {
         {replying ? (
           <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">
             <span>
-              <span className="text-lightwht">Replying to </span><span>{replyingTo?.username}</span>
+              <span className="text-lightwht">Replying to </span>
+              <span>{replyingTo?.username}</span>
             </span>
-            <div onClick={() => {setReplying(false); setReplyingTo(null)}} className="cursor-pointer hover:bg-[#343434] rounded-full p-1">
-            <CancelBg />
+            <div
+              onClick={() => {
+                setReplying(false);
+                setReplyingTo(null);
+              }}
+              className="cursor-pointer hover:bg-[#343434] rounded-full p-1"
+            >
+              <CancelBg />
             </div>
           </div>
         ) : (
@@ -258,7 +270,7 @@ export default function Input() {
             value={message}
             onKeyDown={(e) => handleKeyDown(e)}
             type="text"
-            placeholder="Write a tit"
+            placeholder={!replying ? "Write a tit" : "Write a reply"}
             className="rounded w-full bg-grey outline-none resize-none max-h-52"
           />
           <button

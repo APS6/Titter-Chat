@@ -8,6 +8,42 @@ export async function GET(req, {params}) {
             include: {
                 likes: true,
                 images: true,
+                replies: {
+                    select: {
+                        replyPost: {
+                            include: {
+                                images: true,
+                                postedBy: {
+                                    select: {
+                                        pfpURL: true,
+                                        username: true,
+                                    }
+                                },
+                                reply: {
+                                    select: {
+                                        replyToId: true,
+                                        replyToPost: {
+                                            select: {
+                                                content: true,
+                                                postedBy: {
+                                                    select: {
+                                                        pfpURL: true,
+                                                        username: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    orderBy: {
+                        replyPost: {
+                            postedAt: "desc"
+                        }
+                    }
+                },
                 postedBy: {
                     select: {
                         username: true,
@@ -28,7 +64,7 @@ export async function GET(req, {params}) {
                                 }
                             }
                         }
-                    }
+                    },
                 }
             },
             where: {

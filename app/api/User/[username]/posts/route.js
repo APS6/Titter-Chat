@@ -20,6 +20,22 @@ export async function GET(req, { params }) {
                                 username: true,
                                 pfpURL: true,
                             }
+                        },
+                        reply: {
+                            select: {
+                                replyToId: true,
+                                replyToPost: {
+                                    select: {
+                                        content: true,
+                                        postedBy: {
+                                            select: {
+                                                pfpURL: true,
+                                                username: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     take: 11,

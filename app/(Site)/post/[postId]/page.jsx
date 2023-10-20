@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { format } from "date-fns";
@@ -19,32 +19,43 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import fetchData from "@/app/lib/fetchData";
 import BlockLoader from "@/components/svg/blockLoader";
 import { toast } from "sonner";
+import BackIcon from "@/components/svg/backIcon";
+import GlobalPost from "@/components/globalPost";
+import { useStateContext } from "@/context/context";
+import Input from "@/components/input";
+import ReplyIcon from "@/components/svg/replyIcon";
 
 export default function Post() {
   const { user, accessToken } = useAuthContext();
-  const {postId} = useParams()
+  const { replying, setReplying, setReplyingTo } = useStateContext();
+  const { postId } = useParams();
   const channel = ably.channels.get("likes");
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState();
+  const [likeCount, setLikeCount] = useState(null);
 
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
   const [editing, setEditing] = useState(false);
   const [edited, setEdited] = useState();
   const [content, setContent] = useState();
-  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const textareaRef = useRef(null);
-  const router = useRouter()
+  const router = useRouter();
 
   const queryClient = useQueryClient();
 
-  const {data: post, isError, error, isLoading } = useQuery({
+  const {
+    data: post,
+    isError,
+    error,
+    isLoading,
+  } = useQuery({
     queryKey: ["post", postId],
     queryFn: () => fetchData(`Posts/${postId}`),
-    enabled: !!postId && postId.length !== 0
-  })
+    enabled: !!postId && postId.length !== 0,
+  });
 
   const { data: cUser } = useQuery({
     queryKey: [user?.uid, "userOverview"],
@@ -53,33 +64,32 @@ export default function Post() {
     enabled: !!user?.uid,
   });
 
-
   const deletePost = useMutation({
     mutationFn: () => deletePostFn(),
     onMutate: async () => {
-      setPopoverOpen(false)
-      router.push("/Home")
+      setPopoverOpen(false);
+      router.push("/Home");
     },
     onError: (err, v, context) => {
       console.error(err);
-      toast.error("Failed deleting post")
+      toast.error("Failed deleting post");
       queryClient.setQueryData(["posts"], context.previousData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["post", post.id])
-      queryClient.invalidateQueries(["posts"])
+      queryClient.invalidateQueries(["post", post.id]);
+      queryClient.invalidateQueries(["posts"]);
       toast("Deleted post successfully", {
         icon: <TrashIcon />,
         duration: 2000,
-      })
-    }
+      });
+    },
   });
 
   const editPost = useMutation({
     mutationFn: () => editPostFn(),
     onError: (err, v, context) => {
       console.error(err);
-      toast.error("Failed editing post")
+      toast.error("Failed editing post");
       queryClient.setQueryData(["post", post.id], context.previousData);
     },
     onMutate: async () => {
@@ -89,19 +99,19 @@ export default function Post() {
       const previousData = queryClient.getQueryData(["post", post.id]);
       queryClient.setQueryData(["post", post.id], (old) => {
         return {
-         ...old,
-         content: content
+          ...old,
+          content: content,
         };
       });
       return { previousData };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["posts"])
+      queryClient.invalidateQueries(["posts"]);
       toast("Edited post successfully", {
         icon: <EditIcon />,
         duration: 2000,
-      })
-    }
+      });
+    },
   });
 
   const deletePostFn = async () => {
@@ -138,7 +148,7 @@ export default function Post() {
   const likeHandler = async (action) => {
     if (action === "like") {
       setLiked(true);
-      setLikeCount(post.likes + 1);
+      setLikeCount((prevCount) => prevCount + 1);
       const body = {
         userId: user.uid,
         postId: post.id,
@@ -164,7 +174,7 @@ export default function Post() {
       }
     } else if (action === "dislike") {
       setLiked(false);
-      setLikeCount(post.likes - 1);
+      setLikeCount((prevCount) => prevCount - 1);
       const body = {
         userId: user.uid,
         postId: post.id,
@@ -211,19 +221,19 @@ export default function Post() {
     const type = "text/plain";
     const blob = new Blob([`titter-chat.vercel.app/post/${postId}`], { type });
     const data = [new ClipboardItem({ [type]: blob })];
-  
+
     navigator.clipboard.write(data).then(
       () => {
-        console.log("copied post url")
-        setPopoverOpen(false)
-        toast.success("Copied link to clipboard")
+        console.log("copied post url");
+        setPopoverOpen(false);
+        toast.success("Copied link to clipboard");
       },
       (err) => {
-        console.error("Error copying URL :", err)
-        toast.error("Failed copying link")
-      },
+        console.error("Error copying URL :", err);
+        toast.error("Failed copying link");
+      }
     );
-  }
+  };
 
   useEffect(() => {
     channel.subscribe("new_like", (data) => {
@@ -245,7 +255,8 @@ export default function Post() {
   useEffect(() => {
     if (post) {
       setContent(post.content);
-      setLiked(post.likes.some((like) => like.userId === user.uid))
+      setLiked(post.likes.some((like) => like.userId === user.uid));
+      setLikeCount(post.likes.length ?? 0);
     }
   }, [post?.likes, post?.content]);
 
@@ -280,7 +291,7 @@ export default function Post() {
     );
   }
   if (post === null) {
-    notFound()
+    notFound();
   }
 
   const componentDecorator = (href, text, key) => (
@@ -295,46 +306,115 @@ export default function Post() {
   );
 
   return (
-    <ContextMenu.Root>
-      <div className="h-[100svh] px-1 grid place-items-center">
-      <ContextMenu.Trigger className="w-full">
+    <div className="h-[100svh] px-1 flex flex-col pt-16 md:pt-2">
+      <div className="flex items-center gap-2 w-full border-b border-b-lightwht p-1 bg-grey">
         <div
-          className="bg-grey flex items-start mt-16 md:mt-2 gap-2 p-2 pb-1 rounded group relative"
+          onClick={() => router.back()}
+          className="cursor-pointer p-1 hover:bg-[#343434] rounded-full text-2xl"
         >
-          <Link href={`/profile/${post?.postedBy?.username}`}>
-            {post?.postedBy.pfpURL ? (
-              <Image
-                src={post?.postedBy?.pfpURL}
-                alt="D"
-                width="30"
-                height="30"
-                className="rounded-full w-[30px] h-[30px] object-cover"
-              />
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="30px"
-                height="30px"
-                viewBox="0 0 16 16"
+          <BackIcon />
+        </div>
+        <span className="font-bold font-mont text-xl">Post</span>
+      </div>
+      <ContextMenu.Root>
+        <ContextMenu.Trigger className="w-full">
+          <div className={`bg-grey group px-2 pt-2 ${post?.replies.length === 0 ? "border-b border-b-lightwht" : ''}`}>
+            <div className="relative">
+              <div>
+                <Link
+                  className="flex items-center gap-2"
+                  href={`/profile/${post?.postedBy?.username}`}
+                >
+                  <Image
+                    src={post?.postedBy?.pfpURL}
+                    alt="D"
+                    width="30"
+                    height="30"
+                    className="rounded-full w-[30px] h-[30px] object-cover"
+                  />
+                  <h3 className="text-xl font-raleway font-semibold leading-none hover:underline">
+                    {post?.postedBy.username ?? "?"}
+                  </h3>
+                </Link>
+              </div>
+              <Popover.Root
+                open={popoverOpen}
+                onOpenChange={(open) => setPopoverOpen(open)}
               >
-                <path
-                  fill="currentColor"
-                  d="M16 7.992C16 3.58 12.416 0 8 0S0 3.58 0 7.992c0 2.43 1.104 4.62 2.832 6.09c.016.016.032.016.032.032c.144.112.288.224.448.336c.08.048.144.111.224.175A7.98 7.98 0 0 0 8.016 16a7.98 7.98 0 0 0 4.48-1.375c.08-.048.144-.111.224-.16c.144-.111.304-.223.448-.335c.016-.016.032-.016.032-.032c1.696-1.487 2.8-3.676 2.8-6.106zm-8 7.001c-1.504 0-2.88-.48-4.016-1.279c.016-.128.048-.255.08-.383a4.17 4.17 0 0 1 .416-.991c.176-.304.384-.576.64-.816c.24-.24.528-.463.816-.639c.304-.176.624-.304.976-.4A4.15 4.15 0 0 1 8 10.342a4.185 4.185 0 0 1 2.928 1.166c.368.368.656.8.864 1.295c.112.288.192.592.24.911A7.03 7.03 0 0 1 8 14.993zm-2.448-7.4a2.49 2.49 0 0 1-.208-1.024c0-.351.064-.703.208-1.023c.144-.32.336-.607.576-.847c.24-.24.528-.431.848-.575c.32-.144.672-.208 1.024-.208c.368 0 .704.064 1.024.208c.32.144.608.336.848.575c.24.24.432.528.576.847c.144.32.208.672.208 1.023c0 .368-.064.704-.208 1.023a2.84 2.84 0 0 1-.576.848a2.84 2.84 0 0 1-.848.575a2.715 2.715 0 0 1-2.064 0a2.84 2.84 0 0 1-.848-.575a2.526 2.526 0 0 1-.56-.848zm7.424 5.306c0-.032-.016-.048-.016-.08a5.22 5.22 0 0 0-.688-1.406a4.883 4.883 0 0 0-1.088-1.135a5.207 5.207 0 0 0-1.04-.608a2.82 2.82 0 0 0 .464-.383a4.2 4.2 0 0 0 .624-.784a3.624 3.624 0 0 0 .528-1.934a3.71 3.71 0 0 0-.288-1.47a3.799 3.799 0 0 0-.816-1.199a3.845 3.845 0 0 0-1.2-.8a3.72 3.72 0 0 0-1.472-.287a3.72 3.72 0 0 0-1.472.288a3.631 3.631 0 0 0-1.2.815a3.84 3.84 0 0 0-.8 1.199a3.71 3.71 0 0 0-.288 1.47c0 .352.048.688.144 1.007c.096.336.224.64.4.927c.16.288.384.544.624.784c.144.144.304.271.48.383a5.12 5.12 0 0 0-1.04.624c-.416.32-.784.703-1.088 1.119a4.999 4.999 0 0 0-.688 1.406c-.016.032-.016.064-.016.08C1.776 11.636.992 9.91.992 7.992C.992 4.14 4.144.991 8 .991s7.008 3.149 7.008 7.001a6.96 6.96 0 0 1-2.032 4.907z"
-                ></path>
-              </svg>
-            )}
-          </Link>
-          <div className="w-[92%]">
-            <div className="flex items-center gap-2">
-              <Link href={`/profile/${post?.postedBy?.username}`}>
-                <h3 className="text-lg font-raleway font-semibold leading-none hover:underline">
-                  {post?.postedBy?.username ?? "DELETED"}
-                </h3>
-              </Link>
-              <span className="text-sm text-lightwht leading-none">{post?.postedAt && post?.postedAt.length !== 0 ? format(new Date(post?.postedAt), "dd/MM/yy hh:mm a") : ""}</span>
+                <Popover.Trigger
+                  className={`pc-opacity-0 group-hover:opacity-100 ${
+                    editing ? "hidden" : ""
+                  } absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}
+                >
+                  <ThreeDots />
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Content className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]">
+                    {post?.postedBy.username === cUser?.username ||
+                    cUser?.role === "ADMIN" ? (
+                      <div>
+                        <div
+                          onClick={() => deletePost.mutate()}
+                          className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
+                        >
+                          <TrashIcon />
+                          <span>Delete</span>
+                        </div>
+                        {post?.postedBy.username === cUser?.username ? (
+                          <div
+                            onClick={() => {
+                              setEditing(true);
+                              setPopoverOpen(false);
+                            }}
+                            className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                          >
+                            <EditIcon />
+                            <span>Edit</span>
+                          </div>
+                        ) : (
+                          ""
+                        )}
+                        <div className="h-[1px] w-[97%] ml-[3px] mt-1 rounded-lg bg-[#5d5d5d]"></div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                    <div
+                      onClick={() => {
+                        setReplying(true);
+                        setReplyingTo({
+                          username: post?.postedBy.username,
+                          postId: post.id,
+                        });
+                        setPopoverOpen(false);
+                      }}
+                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                    >
+                      <ReplyIcon />
+                      <span>Reply</span>
+                    </div>
+                    <div className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
+                      <Link
+                        className="flex items-center gap-2 p-1 w-full h-full"
+                        href={`/profile/${post?.postedBy?.username}`}
+                      >
+                        <UserIcon />
+                        <span>View Profile</span>
+                      </Link>
+                    </div>
+                    <div
+                      onClick={() => copyLink()}
+                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                    >
+                      <LinkIcon />
+                      <span>Copy Link</span>
+                    </div>
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover.Root>
             </div>
             {post?.content?.length !== 0 && !editing ? (
-              <p className="break-words whitespace-pre-wrap">
+              <p className="text-[17px] mt-1 break-words whitespace-pre-wrap">
                 <Linkify componentDecorator={componentDecorator}>
                   {content ?? post?.content}
                 </Linkify>
@@ -347,10 +427,10 @@ export default function Post() {
                 )}
               </p>
             ) : editing ? (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+              <form onSubmit={handleSubmit} className="flex flex-col mt-1 gap-2">
                 <textarea
                   ref={textareaRef}
-                  className="outline-0 bg-[transparent] max-h-[500px] resize-none"
+                  className="outline-0 bg-[transparent] max-h-[500px] text-[17px] resize-none"
                   placeholder="type your tit"
                   rows="1"
                   onChange={(e) => editHandler(e)}
@@ -359,7 +439,10 @@ export default function Post() {
                 ></textarea>
                 <div className="self-end flex gap-1 items-center">
                   <button
-                    onClick={() => {setEditing(false); setContent(post?.content)}}
+                    onClick={() => {
+                      setEditing(false);
+                      setContent(post.content);
+                    }}
                     className="bg-[#3a4046] rounded py-1 px-3 "
                   >
                     Cancel
@@ -378,18 +461,18 @@ export default function Post() {
             {post?.images.length !== 0 ? (
               <div
                 className={`grid gap-3 mt-1 ${
-                  post?.images.length === 1
+                  post.images.length === 1
                     ? "grid-cols-1"
-                    : post?.images.length === 2
+                    : post.images.length === 2
                     ? "grid-cols-2"
-                    : post?.images.length === 3
+                    : post.images.length === 3
                     ? "grid-cols-3"
-                    : post?.images.length === 4
+                    : post.images.length === 4
                     ? "grid-cols-2 grid-rows-2"
                     : ""
                 }`}
               >
-                {post?.images.map((image) => {
+                {post.images.map((image) => {
                   let width = 400;
                   let height = 400;
                   if (image.width) {
@@ -421,7 +504,7 @@ export default function Post() {
             ) : (
               ""
             )}
-             {post.reply ? (
+            {post?.reply ? (
               post.reply.replyToId !== null ? (
                 <Link href={`/post/${post.reply.replyToId}`}>
                   <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
@@ -450,17 +533,29 @@ export default function Post() {
             ) : (
               ""
             )}
-            <div className={`flex ${post?.images ? "mt-1" : ""}`}>
+            <span className="text-lightwht block py-[6px]">
+              {post?.postedAt && post?.postedAt.length !== 0
+                ? format(new Date(post?.postedAt), "hh:mm a · MMM dd, yyyy")
+                : ""}
+            </span>
+            <div
+              className={`flex py-1 ${post.replies.length !== 0 ? "border-y border-y-lightwht" : "border-t border-y-lightwht"} ${
+                post.images.length !== 0 || post.replyToId ? "mt-1" : ""
+              }`}
+            >
               <div className="flex items-center">
                 {liked ? (
                   <div
-                    className="cursor-pointer p-1 hover:bg-[#343434] rounded-full"
-                    onClick={() => likeHandler("dislike")}
+                    className="cursor-pointer p-1 text-xl hover:bg-[#343434] rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      likeHandler("dislike");
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="16px"
-                      height="16px"
+                      width="1em"
+                      height="1em"
                       viewBox="0 0 24 24"
                     >
                       <path
@@ -471,13 +566,16 @@ export default function Post() {
                   </div>
                 ) : (
                   <div
-                    className="cursor-pointer p-1 hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
-                    onClick={() => likeHandler("like")}
+                    className="cursor-pointer p-1 text-xl hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      likeHandler("like");
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="16px"
-                      height="16px"
+                      width="1em"
+                      height="1em"
                       viewBox="0 0 24 24"
                     >
                       <path
@@ -497,111 +595,87 @@ export default function Post() {
               </div>
             </div>
           </div>
-          <Popover.Root open={popoverOpen} onOpenChange={(open) => setPopoverOpen(open)}>
-            <Popover.Trigger
-              className={`pc-opacity-0 group-hover:opacity-100 ${
-                editing ? "hidden" : ""
-              } absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}
-            >
-              <ThreeDots />
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]">
-                {post?.postedBy.username === cUser?.username ||
-                cUser?.role === "ADMIN" ? (
-                  <div>
-                    <div
-                      onClick={() => deletePost.mutate()}
-                      className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
-                    >
-                      <TrashIcon />
-                      <span>Delete</span>
-                    </div>
-                    {post?.postedBy.username === cUser?.username ? (
-                      <div
-                        onClick={() => {setEditing(true); setPopoverOpen(false)}}
-                        className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-                      >
-                        <EditIcon />
-                        <span>Edit</span>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <div className="h-[1px] w-[97%] ml-[3px] mt-1 rounded-lg bg-[#5d5d5d]"></div>
-                  </div>
+        </ContextMenu.Trigger>
+        <ImageDialog
+          selectedUrl={selectedUrl}
+          dialogOpen={dialogOpen}
+          setDialogOpen={setDialogOpen}
+        />
+        <ContextMenu.Portal>
+          <ContextMenu.Content
+            collisionPadding={{ bottom: 60 }}
+            className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+          >
+            {post?.postedBy.username === cUser?.username ||
+            cUser?.role === "ADMIN" ? (
+              <ContextMenu.Group>
+                <ContextMenu.Item
+                  onClick={() => deletePost.mutate()}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
+                >
+                  <TrashIcon />
+                  <span>Delete</span>
+                </ContextMenu.Item>
+                {post?.postedBy.username === cUser?.username ? (
+                  <ContextMenu.Item
+                    onClick={() => setEditing(true)}
+                    className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                  >
+                    <EditIcon />
+                    <span>Edit</span>
+                  </ContextMenu.Item>
                 ) : (
                   ""
                 )}
-                <div className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
-                  <Link
-                    className="flex items-center gap-2 p-1 w-full h-full"
-                    href={`/profile/${post?.postedBy?.username}`}
-                  >
-                    <UserIcon />
-                    <span>View Profile</span>
-                  </Link>
-                </div>
-                <div onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
-                  <LinkIcon />
-                  <span>Copy Link</span>
-                </div>
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
-        </div>
-      </ContextMenu.Trigger>
-      </div>
-          <ImageDialog
-            selectedUrl={selectedUrl}
-            dialogOpen={dialogOpen}
-            setDialogOpen={setDialogOpen}
-          />
-      <ContextMenu.Portal>
-        <ContextMenu.Content
-          collisionPadding={{ bottom: 60 }}
-          className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
-        >
-          {post?.postedBy.username === cUser?.username || cUser?.role === "ADMIN" ? (
-            <ContextMenu.Group>
-              <ContextMenu.Item
-                onClick={() => deletePost.mutate()}
-                className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
-              >
-                <TrashIcon />
-                <span>Delete</span>
-              </ContextMenu.Item>
-              {post?.postedBy.username === cUser?.username ? (
-                <ContextMenu.Item
-                  onClick={() => setEditing(true)}
-                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-                >
-                  <EditIcon />
-                  <span>Edit</span>
-                </ContextMenu.Item>
-              ) : (
-                ""
-              )}
-              <ContextMenu.Separator className="h-[1px] w-[97%] ml-[3px] mt-1 rounded-lg bg-[#5d5d5d]" />
-            </ContextMenu.Group>
-          ) : (
-            ""
-          )}
-          <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
-            <Link
-              className="flex items-center gap-2 p-1 w-full h-full"
-              href={`/profile/${post?.postedBy?.username}`}
+                <ContextMenu.Separator className="h-[1px] w-[97%] ml-[3px] mt-1 rounded-lg bg-[#5d5d5d]" />
+              </ContextMenu.Group>
+            ) : (
+              ""
+            )}
+            <ContextMenu.Item
+              onClick={() => {
+                setReplying(true);
+                setReplyingTo({
+                  username: post?.postedBy.username,
+                  postId: post.id,
+                });
+              }}
+              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
             >
-              <UserIcon />
-              <span>View Profile</span>
-            </Link>
-          </ContextMenu.Item>
-          <ContextMenu.Item onClick={() => copyLink()} className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple">
-            <LinkIcon />
-            <span>Copy Link</span>
-          </ContextMenu.Item>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
-    </ContextMenu.Root>
+              <ReplyIcon />
+              <span>Reply</span>
+            </ContextMenu.Item>
+            <ContextMenu.Item className="rounded cursor-pointer hover:outline-0 hover:bg-purple">
+              <Link
+                className="flex items-center gap-2 p-1 w-full h-full"
+                href={`/profile/${post?.postedBy?.username}`}
+              >
+                <UserIcon />
+                <span>View Profile</span>
+              </Link>
+            </ContextMenu.Item>
+            <ContextMenu.Item
+              onClick={() => copyLink()}
+              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+            >
+              <LinkIcon />
+              <span>Copy Link</span>
+            </ContextMenu.Item>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </ContextMenu.Root>
+      {post.replies.length > 0 ? (
+          <div className="overflow-auto bg-grey">
+            <div className="flex flex-col gap-1">
+              {post?.replies?.map((reply) => (
+                <GlobalPost post={reply.replyPost} cUser={cUser} />
+              ))}
+            </div>
+          </div>
+      ) : (
+        ""
+      )}
+      {replying ? <Input /> : ""}
+    </div>
   );
 }

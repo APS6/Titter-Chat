@@ -17,6 +17,9 @@ export async function POST(req) {
         if (!userId) {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
         }
+        if (body.content.length === 0 && body.images.length === 0 && body.replyToId === null) {
+            return NextResponse.json({ error: 'Post cannot be empty', success: false }, { status: 401 });
+        }
         const postData = {
             content: body.content,
             postedById: body.postedById,

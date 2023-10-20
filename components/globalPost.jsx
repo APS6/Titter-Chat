@@ -17,11 +17,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ReplyIcon from "./svg/replyIcon";
 import { useStateContext } from "@/context/context";
+import { useRouter } from "next/navigation";
 
 export default function GlobalPost({ post, divRef, cUser }) {
   const { user, accessToken } = useAuthContext();
   const { setReplying, setReplyingTo } = useStateContext();
-
+  const router = useRouter();
   const channel = ably.channels.get("likes");
 
   const [liked, setLiked] = useState(
@@ -58,16 +59,16 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ...pg,
             items: pg.items.reduce((acc, p) => {
               if (p.id === post.id) {
-                return acc
+                return acc;
               } else if (p.reply?.replyToId === post.id) {
                 acc.push({ ...p, reply: { replyToId: null } });
               } else {
                 acc.push(p);
               }
               return acc;
-            }, [])
-          }
-        })
+            }, []),
+          };
+        });
         return {
           pages: newData,
           pageParams: old.pageParams,
@@ -275,7 +276,8 @@ export default function GlobalPost({ post, divRef, cUser }) {
     <ContextMenu.Root key={post.id}>
       <ContextMenu.Trigger>
         <div
-          className=" flex items-start gap-2 p-2 pb-1 group relative"
+          onClick={() => {router.push(`/post/${post.id}`); setReplying(false); setReplyingTo(null);}}
+          className="cursor-pointer flex hover:bg-[#202020] items-start gap-2 p-2 pb-1 group relative"
           ref={divRef ?? null}
         >
           <Link href={`/profile/${sender?.username ?? "?"}`}>
@@ -406,7 +408,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             {post.reply ? (
               post.reply.replyToId !== null ? (
                 <Link href={`/post/${post.reply.replyToId}`}>
-                  <div className="border mt-1 bg-[#202020] p-[6px] border-[#707070] rounded-md cursor-pointer">
+                  <div className="border mt-1 bg-[#202020] hover:bg-[#191919] p-[6px] border-[#707070] rounded-md cursor-pointer">
                     <div className="flex items-center gap-1">
                       <Image
                         src={post.reply.replyToPost.postedBy.pfpURL}
@@ -437,7 +439,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 {liked ? (
                   <div
                     className="cursor-pointer p-1 hover:bg-[#343434] rounded-full"
-                    onClick={() => likeHandler("dislike")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      likeHandler("dislike");
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +459,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
                 ) : (
                   <div
                     className="cursor-pointer p-1 hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
-                    onClick={() => likeHandler("like")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      likeHandler("like");
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -484,6 +492,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             onOpenChange={(open) => setPopoverOpen(open)}
           >
             <Popover.Trigger
+              onClick={(e) => e.stopPropagation()}
               className={`pc-opacity-0 group-hover:opacity-100 ${
                 editing ? "hidden" : ""
               } absolute right-1 top-1 hover:bg-[#343434] rounded-full p-1`}
@@ -491,7 +500,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
               <ThreeDots />
             </Popover.Trigger>
             <Popover.Portal>
-              <Popover.Content className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]">
+              <Popover.Content
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+              >
                 {sender.username === cUser?.username ||
                 cUser?.role === "ADMIN" ? (
                   <div>
@@ -563,6 +575,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
       />
       <ContextMenu.Portal>
         <ContextMenu.Content
+          onClick={(e) => e.stopPropagation()}
           collisionPadding={{ bottom: 60 }}
           className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
         >
