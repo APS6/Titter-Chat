@@ -98,6 +98,10 @@ export default function Sidebar() {
             </svg>
           ),
           duration: 2000,
+          action: {
+            label: "View",
+            onClick: () => router.push(`/DMs/${newMessage.username}?id=${newMessage.id}`)
+          }
         })
       });
     }
