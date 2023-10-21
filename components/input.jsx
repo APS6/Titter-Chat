@@ -24,7 +24,6 @@ export default function Input() {
     if (message.length !== 0 || images.length !== 0 || replyingTo !== null) {
       const body = {
         content: message,
-        postedById: user.uid,
         images: images,
         replyToId: replying ? replyingTo.postId : null,
       };

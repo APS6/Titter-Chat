@@ -22,7 +22,7 @@ export async function POST(req) {
         }
         const postData = {
             content: body.content,
-            postedById: body.postedById,
+            postedById: userId,
         }
         if (body.images.length > 0) {
             const imageArray = body.images.map((img) => {

@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import ReplyIcon from "./svg/replyIcon";
 import { useStateContext } from "@/context/context";
 import { useRouter } from "next/navigation";
+import RepostIcon from "./svg/repost";
+import sendRepost from "@/app/lib/repost";
 
 export default function GlobalPost({ post, divRef, cUser }) {
   const { user, accessToken } = useAuthContext();
@@ -140,8 +142,8 @@ export default function GlobalPost({ post, divRef, cUser }) {
     return response;
   };
 
-  const likeHandler = async (action) => {
-    if (action === "like") {
+  const likeHandler = async () => {
+    if (!liked) {
       setLiked(true);
       setLikeCount((prevCount) => prevCount + 1);
       const body = {
@@ -167,7 +169,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
       } catch (error) {
         console.log("there was an error liking", error);
       }
-    } else if (action === "dislike") {
+    } else if (liked) {
       setLiked(false);
       setLikeCount((prevCount) => prevCount - 1);
       const body = {
@@ -396,7 +398,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   }
 
                   return (
-                    <div key={image.id}  onClick={() => e.stopPropagation()}>
+                    <div key={image.id} onClick={() => e.stopPropagation()}>
                       <Image
                         onClick={() => (
                           setSelectedUrl(image.imageUrl), setDialogOpen(true)
@@ -418,7 +420,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
             {post.reply ? (
               post.reply.replyToId !== null ? (
                 <Link
-                  onClick={() => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   href={`/post/${post.reply.replyToId}`}
                 >
                   <div className="border mt-1 bg-[#202020] hover:bg-[#191919] p-[6px] border-[#707070] rounded-md cursor-pointer">
@@ -447,57 +449,97 @@ export default function GlobalPost({ post, divRef, cUser }) {
             ) : (
               ""
             )}
-            <div className={`flex ${images || post.replyToId ? "mt-1" : ""}`}>
-              <div className="flex items-center">
-                {liked ? (
-                  <div
-                    className="cursor-pointer p-1 hover:bg-[#343434] rounded-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      likeHandler("dislike");
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16px"
-                      height="16px"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        fill="rgb(249, 24, 128)"
-                        d="m12 21l-1.45-1.3q-2.525-2.275-4.175-3.925T3.75 12.812Q2.775 11.5 2.388 10.4T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.3 0 2.475.55T12 4.75q.85-1 2.025-1.55t2.475-.55q2.35 0 3.925 1.575T22 8.15q0 1.15-.388 2.25t-1.362 2.412q-.975 1.313-2.625 2.963T13.45 19.7L12 21Z"
-                      ></path>
-                    </svg>
-                  </div>
-                ) : (
-                  <div
-                    className="cursor-pointer p-1 hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      likeHandler("like");
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16px"
-                      height="16px"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5C22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1l-.1-.1C7.14 14.24 4 11.39 4 8.5C4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5c0 2.89-3.14 5.74-7.9 10.05z"
-                      ></path>
-                    </svg>
-                  </div>
-                )}
-                <span
-                  className={`text-sm pt-[1px] ${
-                    liked ? "text-[rgb(249,24,128)]" : ""
-                  }`}
+            <div
+              className={`flex items-center ${
+                images || post.replyToId ? "mt-1" : ""
+              }`}
+            >
+              {/* reply */}
+              <div className="flex-1">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setReplying(true);
+                    setReplyingTo({
+                      username: sender?.username,
+                      postId: post.id,
+                    });
+                  }}
+                  className="cursor-pointer p-1 max-w-fit hover:bg-[#343434] rounded-full"
                 >
-                  {likeCount}
-                </span>
+                  <ReplyIcon />
+                </div>
               </div>
+              {/* repost */}
+              <div className="flex-1">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sendRepost(post.id, accessToken);
+                  }}
+                  className="cursor-pointer p-1 max-w-fit hover:bg-[#343434] rounded-full"
+                >
+                  <RepostIcon />
+                </div>
+              </div>
+              {/* like */}
+              <div className="flex-1">
+                <div
+                  onClick={() => {
+                    e.stopPropagation();
+                    likeHandler();
+                  }}
+                  className="max-w-fit group/like flex items-center"
+                >
+                  {liked ? (
+                    <div className="cursor-pointer p-1 group-hover/like:bg-[#f918801a] rounded-full">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="rgb(249, 24, 128)"
+                          d="m12 21l-1.45-1.3q-2.525-2.275-4.175-3.925T3.75 12.812Q2.775 11.5 2.388 10.4T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.3 0 2.475.55T12 4.75q.85-1 2.025-1.55t2.475-.55q2.35 0 3.925 1.575T22 8.15q0 1.15-.388 2.25t-1.362 2.412q-.975 1.313-2.625 2.963T13.45 19.7L12 21Z"
+                        ></path>
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="cursor-pointer p-1 group-hover/like:bg-[#f918801a] rounded-full group-hover/like:text-[rgb(249,24,128)]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5C22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1l-.1-.1C7.14 14.24 4 11.39 4 8.5C4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5c0 2.89-3.14 5.74-7.9 10.05z"
+                        ></path>
+                      </svg>
+                    </div>
+                  )}
+                  <span
+                    className={`text-sm pt-[1px] group-hover/like:text-[rgb(249,24,128)] ${
+                      liked ? "text-[rgb(249,24,128)]" : ""
+                    }`}
+                  >
+                    {likeCount}
+                  </span>
+                </div>
+              </div>
+              {/* share */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyLink();
+                }}
+                className="cursor-pointer p-1 max-w-fit hover:bg-[#343434] rounded-full"
+              >
+                <LinkIcon />
+              </div>
+              {/*thats all*/}
             </div>
           </div>
           <Popover.Root
@@ -568,13 +610,6 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     <UserIcon />
                     <span>View Profile</span>
                   </Link>
-                </div>
-                <div
-                  onClick={() => copyLink()}
-                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-                >
-                  <LinkIcon />
-                  <span>Copy Link</span>
                 </div>
               </Popover.Content>
             </Popover.Portal>
