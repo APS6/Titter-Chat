@@ -12,6 +12,7 @@ export default function RepostIcon() {
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
+        strokeWidth="1.5"
       >
         <path d="m13.5 13.5l3 3l3-3"></path>
         <path d="M9.5 4.5h3a4 4 0 0 1 4 4v8m-9-9l-3-3l-3 3"></path>
