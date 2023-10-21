@@ -275,10 +275,11 @@ export default function Input() {
           />
           <button
             type="submit"
-            className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 self-end ${
-              message.length === 0 && images.length === 0
-                ? "text-[#a5a5a5] cursor-not-allowed"
-                : "text-lightwht"
+            disabled={message.length === 0 && images.length === 0 && !replying}
+            className={`cursor-pointer rounded-full p-1 self-end ${
+              message.length === 0 && images.length === 0 && !replying
+                ? "text-[#a5a5a5] cursor-not-allowed "
+                : "hover:bg-[#343434]"
             }`}
           >
             <svg

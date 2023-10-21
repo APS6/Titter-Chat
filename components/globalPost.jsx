@@ -276,11 +276,18 @@ export default function GlobalPost({ post, divRef, cUser }) {
     <ContextMenu.Root key={post.id}>
       <ContextMenu.Trigger>
         <div
-          onClick={() => {router.push(`/post/${post.id}`); setReplying(false); setReplyingTo(null);}}
+          onClick={() => {
+            router.push(`/post/${post.id}`);
+            setReplying(false);
+            setReplyingTo(null);
+          }}
           className="cursor-pointer flex hover:bg-[#202020] items-start gap-2 p-2 pb-1 group relative"
           ref={divRef ?? null}
         >
-          <Link href={`/profile/${sender?.username ?? "?"}`}>
+          <Link
+            onClick={() => e.stopPropagation()}
+            href={`/profile/${sender?.username ?? "?"}`}
+          >
             {sender.pfpURL ? (
               <Image
                 src={sender?.pfpURL}
@@ -305,7 +312,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
           </Link>
           <div className="w-[92%]">
             <div className="flex items-center gap-2">
-              <Link href={`/profile/${sender?.username}`}>
+              <Link
+                onClick={() => e.stopPropagation()}
+                href={`/profile/${sender?.username}`}
+              >
                 <h3 className="text-lg font-raleway font-semibold leading-none hover:underline">
                   {sender?.username ?? "DELETED"}
                 </h3>
@@ -386,7 +396,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
                   }
 
                   return (
-                    <div key={image.id}>
+                    <div key={image.id}  onClick={() => e.stopPropagation()}>
                       <Image
                         onClick={() => (
                           setSelectedUrl(image.imageUrl), setDialogOpen(true)
@@ -407,7 +417,10 @@ export default function GlobalPost({ post, divRef, cUser }) {
             )}
             {post.reply ? (
               post.reply.replyToId !== null ? (
-                <Link href={`/post/${post.reply.replyToId}`}>
+                <Link
+                  onClick={() => e.stopPropagation()}
+                  href={`/post/${post.reply.replyToId}`}
+                >
                   <div className="border mt-1 bg-[#202020] hover:bg-[#191919] p-[6px] border-[#707070] rounded-md cursor-pointer">
                     <div className="flex items-center gap-1">
                       <Image

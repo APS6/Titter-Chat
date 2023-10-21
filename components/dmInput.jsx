@@ -16,7 +16,7 @@ export default function DMInput({ sendingTo, disabled }) {
   const textareaRef = useRef(null);
 
   const sendMessage = async () => {
-    if (message || images.length !== 0) {
+    if (message.length !== 0 || images.length !== 0) {
       const body = {
         content: message,
         sentById: user.uid,
@@ -234,10 +234,11 @@ export default function DMInput({ sendingTo, disabled }) {
           />
           <button
             type="submit"
-            className={`cursor-pointer hover:bg-[#343434] rounded-full p-1 self-end ${
+            disabled={message.length === 0 && images.length === 0}
+            className={`cursor-pointer rounded-full p-1 self-end ${
               message.length === 0 && images.length === 0
                 ? "text-[#a5a5a5] cursor-not-allowed"
-                : "text-lightwht"
+                : "hover:bg-[#343434]"
             }`}
           >
             <svg

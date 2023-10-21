@@ -307,7 +307,7 @@ export default function Post() {
 
   return (
     <div className="h-[100svh] px-1 flex flex-col pt-16 md:pt-2">
-      <div className="flex items-center gap-2 w-full border-b border-b-lightwht p-1 bg-grey">
+      <div className="flex items-center gap-2 w-full border-b border-b-[#808080] p-1 bg-grey">
         <div
           onClick={() => router.back()}
           className="cursor-pointer p-1 hover:bg-[#343434] rounded-full text-2xl"
@@ -318,11 +318,10 @@ export default function Post() {
       </div>
       <ContextMenu.Root>
         <ContextMenu.Trigger className="w-full">
-          <div className={`bg-grey group px-2 pt-2 ${post?.replies.length === 0 ? "border-b border-b-lightwht" : ''}`}>
+          <div className={`bg-grey group px-2 pt-2`}>
             <div className="relative">
-              <div>
                 <Link
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 max-w-fit"
                   href={`/profile/${post?.postedBy?.username}`}
                 >
                   <Image
@@ -336,7 +335,6 @@ export default function Post() {
                     {post?.postedBy.username ?? "?"}
                   </h3>
                 </Link>
-              </div>
               <Popover.Root
                 open={popoverOpen}
                 onOpenChange={(open) => setPopoverOpen(open)}
@@ -539,7 +537,7 @@ export default function Post() {
                 : ""}
             </span>
             <div
-              className={`flex py-1 ${post.replies.length !== 0 ? "border-y border-y-lightwht" : "border-t border-y-lightwht"} ${
+              className={`flex py-1 ${post.replies.length !== 0 ? "border-y border-y-[#808080]" : "border-t border-y-[#808080]"} ${
                 post.images.length !== 0 || post.replyToId ? "mt-1" : ""
               }`}
             >
@@ -548,7 +546,6 @@ export default function Post() {
                   <div
                     className="cursor-pointer p-1 text-xl hover:bg-[#343434] rounded-full"
                     onClick={(e) => {
-                      e.stopPropagation();
                       likeHandler("dislike");
                     }}
                   >
@@ -568,7 +565,6 @@ export default function Post() {
                   <div
                     className="cursor-pointer p-1 text-xl hover:bg-[#343434] rounded-full hover:text-[rgb(249,24,128)]"
                     onClick={(e) => {
-                      e.stopPropagation();
                       likeHandler("like");
                     }}
                   >
