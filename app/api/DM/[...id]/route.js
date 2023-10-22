@@ -29,6 +29,17 @@ export async function GET(req, { params }) {
                 },
                 include: {
                     images: true,
+                    reply: {
+                        select: {
+                            replyToId: true,
+                            replyToMessage: {
+                                select: {
+                                    content: true,
+                                    images: true,
+                                }
+                            }
+                        }
+                    },
                 },
                 orderBy: {
                     sentAt: "desc"

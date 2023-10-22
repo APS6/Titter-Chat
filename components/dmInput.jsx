@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
+import CancelBg from "./svg/cancelbg";
+import { toast } from "sonner";
 
-export default function DMInput({ sendingTo, disabled }) {
-  const { user, accessToken } = useAuthContext();
+export default function DMInput({ sendingTo, disabled, replying, replyingTo, setReplyingTo, setReplying }) {
+  const { accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,9 +21,9 @@ export default function DMInput({ sendingTo, disabled }) {
     if (message.length !== 0 || images.length !== 0) {
       const body = {
         content: message,
-        sentById: user.uid,
         sentToId: sendingTo,
         images: images,
+        replyToId: replying ? replyingTo.messageId : null,
       };
       setLoading(true);
       setShowLoading(true);
@@ -36,6 +38,7 @@ export default function DMInput({ sendingTo, disabled }) {
         });
         if (response.status !== 200) {
           console.log("something went wrong");
+          toast.error("Something went wrong")
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);
@@ -44,6 +47,10 @@ export default function DMInput({ sendingTo, disabled }) {
           setMessage("");
           setImages([]);
           setLoading(false);
+          if (replying) {
+            setReplying(false);
+            setReplyingTo(null);
+          }
           setTimeout(() => {
             setShowLoading(false);
           }, 500);
@@ -101,6 +108,25 @@ export default function DMInput({ sendingTo, disabled }) {
   return (
     <div className="bg-[#000] w-full pt-1 pb-2">
       <div className="flex flex-col gap-2 bg-grey rounded ">
+      {replying ? (
+          <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">
+            <div className=" w-4/5">
+              <span className="text-lightwht">Replying to </span>
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{replyingTo?.content}</span>
+            </div>
+            <div
+              onClick={() => {
+                setReplying(false);
+                setReplyingTo(null);
+              }}
+              className="cursor-pointer hover:bg-[#343434] rounded-full p-1"
+            >
+              <CancelBg />
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
         {images.length > 0 ? (
           <div className="flex mt-1 gap-3 pt-2 px-2 items-center sm:overflow-auto">
             {images.map((image) => {
@@ -228,7 +254,7 @@ export default function DMInput({ sendingTo, disabled }) {
             onKeyDown={(e) => handleKeyDown(e)}
             type="text"
             placeholder={
-              disabled ? "You can not message this user" : "Send a private tit"
+              disabled ? "You can not message this user" :"Start a new message"
             }
             className="rounded w-full bg-grey outline-none resize-none max-h-52"
           />

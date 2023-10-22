@@ -287,7 +287,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
           ref={divRef ?? null}
         >
           <Link
-            onClick={() => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             href={`/profile/${sender?.username ?? "?"}`}
           >
             {sender.pfpURL ? (
@@ -315,7 +315,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
           <div className="w-[92%]">
             <div className="flex items-center gap-2">
               <Link
-                onClick={() => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 href={`/profile/${sender?.username}`}
               >
                 <h3 className="text-lg font-raleway font-semibold leading-none hover:underline">
@@ -610,6 +610,13 @@ export default function GlobalPost({ post, divRef, cUser }) {
                     <UserIcon />
                     <span>View Profile</span>
                   </Link>
+                </div>
+                <div
+                  onClick={() => copyLink()}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                >
+                  <LinkIcon />
+                  <span>Copy Link</span>
                 </div>
               </Popover.Content>
             </Popover.Portal>

@@ -40,6 +40,7 @@ export default function Input() {
         });
         if (response.status !== 200) {
           console.log("something went wrong");
+          toast.error("Something went wrong")
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);

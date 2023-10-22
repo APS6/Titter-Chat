@@ -11,8 +11,15 @@ import { useAuthContext } from "@/context/authContext";
 import Image from "next/image";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ReplyIcon from "./svg/replyIcon";
 
-export default function DMMessage({ message, divRef, cUsername }) {
+export default function DMMessage({
+  message,
+  divRef,
+  cUsername,
+  setReplying,
+  setReplyingTo,
+}) {
   const { user, accessToken } = useAuthContext();
   const [selectedUrl, setSelectedUrl] = useState("");
   const [dialogOpen, setDialogOpen] = useState();
@@ -35,15 +42,21 @@ export default function DMMessage({ message, divRef, cUsername }) {
       await queryClient.cancelQueries({ queryKey: ["dm", cUsername] });
       const previousData = queryClient.getQueryData(["dm", cUsername]);
       queryClient.setQueryData(["dm", cUsername], (old) => {
-        let newData = [...old.pages];
-        const pageIndex = newData.findIndex((pg) =>
-          pg.items.some((p) => p.id === message.id)
-        );
-        if (pageIndex !== -1) {
-          newData[pageIndex].items = newData[pageIndex].items.filter(
-            (p) => p.id !== message.id
-          );
-        }
+        const newData = old.pages.map((pg) => {
+          return {
+            ...pg,
+            items: pg.items.reduce((acc, p) => {
+              if (p.id === message.id) {
+                return acc;
+              } else if (p.reply?.replyToId === message.id) {
+                acc.push({ ...p, reply: { replyToId: null } });
+              } else {
+                acc.push(p);
+              }
+              return acc;
+            }, []),
+          };
+        });
         return {
           pages: newData,
           pageParams: old.pageParams,
@@ -73,23 +86,31 @@ export default function DMMessage({ message, divRef, cUsername }) {
       const previousData = queryClient.getQueryData(["dm", cUsername]);
 
       queryClient.setQueryData(["dm", cUsername], (old) => {
-        let newData = [...old.pages];
-        const pageIndex = newData.findIndex((pg) =>
-          pg.items.some((p) => p.id === message.id)
-        );
-        if (pageIndex !== -1) {
-          const pIndex = newData[pageIndex].items.findIndex(
-            (p) => p.id === message.id
-          );
-          if (pIndex !== -1) {
-            const edMessage = {
-              ...message,
-              content: content,
-              edited: true,
-            };
-            newData[pageIndex].items.splice(pIndex, 1, edMessage);
-          }
-        }
+        const newData = old.pages.map((pg) => {
+          return {
+            ...pg,
+            items: pg.items.reduce((acc, p) => {
+              if (p.id === message.id) {
+                acc.push({ ...p, content: content, edited: true });
+              } else if (p.reply?.replyToId === message.id) {
+                acc.push({
+                  ...p,
+                  reply: {
+                    ...p.reply,
+                    replyToMessage: {
+                      ...p.reply.replyToMessage,
+                      content: content,
+                      edited: true,
+                    },
+                  },
+                });
+              } else {
+                acc.push(p);
+              }
+              return acc;
+            }, []),
+          };
+        });
         return {
           pages: newData,
           pageParams: old.pageParams,
@@ -176,7 +197,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
   );
 
   return (
-    <ContextMenu.Root key={message.id}>
+    <ContextMenu.Root>
       <ContextMenu.Trigger
         ref={divRef}
         className={` flex flex-col w-full gap-1 group ${
@@ -185,9 +206,7 @@ export default function DMMessage({ message, divRef, cUsername }) {
       >
         <div
           className={`flex gap-2 max-w-[75%] justify-start ${
-            received
-              ? "flex-row "
-              : " flex-row-reverse"
+            received ? "flex-row " : " flex-row-reverse"
           }`}
         >
           <div
@@ -195,6 +214,27 @@ export default function DMMessage({ message, divRef, cUsername }) {
               received ? "items-start" : " items-end"
             }`}
           >
+            {message.reply ? (
+              <div className="bg-grey rounded-3xl px-4 pt-4 pb-6 max-w-full -mb-5 flex gap-1">
+                <p className="break-words whitespace-pre-wrap text-lightwht limit-lines">
+                  {message.reply.replyToId
+                    ? message.reply.replyToMessage.content
+                    : "This message was deleted"}
+                </p>
+                {message.reply.replyToId && message.reply.replyToMessage?.images?.length !== 0 ? (
+                  <Image
+                    src={message.reply.replyToMessage.images[0].imageUrl}
+                    alt="Image"
+                    width={20}
+                    height={20}
+                  />
+                ) : (
+                  ""
+                )}
+              </div>
+            ) : (
+              ""
+            )}
             {message.content.length !== 0 ? (
               <div
                 className={`bg-grey relative rounded-3xl px-4 py-4 max-w-full ${
@@ -265,23 +305,23 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 })
               : ""}
           </div>
-          <Popover.Root
-            open={popoverOpen}
-            onOpenChange={(open) => setPopoverOpen(open)}
-          >
-            <Popover.Trigger
-              className={`pc-opacity-0 self-center group-hover:opacity-100 ${
-                editing ? "hidden" : ""
-              }  hover:bg-[#343434] rounded-full p-1`}
+          {!received ? (
+            <Popover.Root
+              open={popoverOpen}
+              onOpenChange={(open) => setPopoverOpen(open)}
             >
-              <ThreeDots />
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content
-                collisionPadding={{ bottom: 70 }}
-                className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+              <Popover.Trigger
+                className={`pc-opacity-0 self-center group-hover:opacity-100 ${
+                  editing ? "hidden" : ""
+                }  hover:bg-[#343434] rounded-full p-1`}
               >
-                {!received ? (
+                <ThreeDots />
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content
+                  collisionPadding={{ bottom: 70 }}
+                  className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+                >
                   <div className="flex flex-col gap-[2px]">
                     <button
                       onClick={() => deleteMessage.mutate()}
@@ -298,12 +338,24 @@ export default function DMMessage({ message, divRef, cUsername }) {
                       <span>Edit</span>
                     </button>
                   </div>
-                ) : (
-                  ""
-                )}
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
+          ) : (
+            ""
+          )}
+          <div
+            onClick={() => {
+              setReplying(true);
+              setReplyingTo({
+                messageId: message.id,
+                content: message.content,
+              });
+            }}
+            className="p-1 rounded-full cursor-pointer pc-opacity-0 self-center group-hover:opacity-100 hover:bg-[#343434]"
+          >
+            <ReplyIcon />
+          </div>
         </div>
         <span className="text-xs text-lightwht leading-none">
           {formattedPostedAt}
@@ -331,9 +383,34 @@ export default function DMMessage({ message, divRef, cUsername }) {
                 <EditIcon />
                 <span>Edit</span>
               </ContextMenu.Item>
+              <ContextMenu.Item
+              onClick={() => {
+                setReplying(true);
+                setReplyingTo({
+                  messageId: message.id,
+                  content: message.content,
+                });
+              }}
+              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+            >
+              <ReplyIcon />
+              <span>Reply</span>
+            </ContextMenu.Item>
             </ContextMenu.Group>
           ) : (
-            "Cant do shit"
+            <ContextMenu.Item
+              onClick={() => {
+                setReplying(true);
+                setReplyingTo({
+                  messageId: message.id,
+                  content: message.content,
+                });
+              }}
+              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+            >
+              <ReplyIcon />
+              <span>Reply</span>
+            </ContextMenu.Item>
           )}
         </ContextMenu.Content>
       </ContextMenu.Portal>

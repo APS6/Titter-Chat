@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
@@ -22,7 +22,7 @@ import ScrollDown from "@/components/svg/scrollDown";
 
 export default function DMUser({ params }) {
   const { username } = params;
-  document.title = `${username} DM | Titter The Chat App`;
+  document.title = `${username} | Message | Titter The Chat App`;
 
   const channel = ably.channels.get("dm");
 
@@ -32,6 +32,8 @@ export default function DMUser({ params }) {
   const { ref: lastDivRef, inView } = useInView();
 
   const { user, accessToken } = useAuthContext();
+  const [replying, setReplying] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const chatUser = useQuery({
     queryKey: ["chatU", username],
@@ -109,15 +111,21 @@ export default function DMUser({ params }) {
       channel.subscribe(`delete_dm_${user.uid}`, (nMessage) => {
         const rmMsg = nMessage.data;
         queryClient.setQueryData(["dm", username], (old) => {
-          let newData = [...old.pages];
-          const pageIndex = newData.findIndex((pg) =>
-            pg.items.some((p) => p.id === rmMsg.id)
-          );
-          if (pageIndex !== -1) {
-            newData[pageIndex].items = newData[pageIndex].items.filter(
-              (p) => p.id !== rmMsg.id
-            );
-          }
+          const newData = old.pages.map((pg) => {
+            return {
+              ...pg,
+              items: pg.items.reduce((acc, p) => {
+                if (p.id === rmMsg.id) {
+                  return acc;
+                } else if (p.reply?.replyToId === rmMsg.id) {
+                  acc.push({ ...p, reply: { replyToId: null } });
+                } else {
+                  acc.push(p);
+                }
+                return acc;
+              }, []),
+            };
+          });
           return {
             pages: newData,
             pageParams: old.pageParams,
@@ -129,18 +137,31 @@ export default function DMUser({ params }) {
       channel.subscribe(`edit_dm_${user.uid}`, (nMessage) => {
         const edMsg = nMessage.data;
         queryClient.setQueryData(["dm", username], (old) => {
-          let newData = [...old.pages];
-          const pageIndex = newData.findIndex((pg) =>
-            pg.items.some((p) => p.id === edMsg.id)
-          );
-          if (pageIndex !== -1) {
-            const pIndex = newData[pageIndex].items.findIndex(
-              (p) => p.id === edMsg.id
-            );
-            if (pIndex !== -1) {
-              newData[pageIndex].items.splice(pIndex, 1, edMsg);
-            }
-          }
+          const newData = old.pages.map((pg) => {
+            return {
+              ...pg,
+              items: pg.items.reduce((acc, p) => {
+                if (p.id === edMsg.id) {
+                  acc.push(edMsg);
+                } else if (p.reply?.replyToId === edMsg.id) {
+                  acc.push({
+                    ...p,
+                    reply: {
+                      ...p.reply,
+                      replyToMessage: {
+                        ...p.reply.replyToMessage,
+                        content: edMsg.content,
+                        edited: true,
+                      },
+                    },
+                  });
+                } else {
+                  acc.push(p);
+                }
+                return acc;
+              }, []),
+            };
+          });
           return {
             pages: newData,
             pageParams: old.pageParams,
@@ -199,9 +220,12 @@ export default function DMUser({ params }) {
             {messages?.map((message, i) => {
               return (
                 <DMMessage
+                  key={message.id}
                   cUsername={username}
                   divRef={i === messages.length - 1 ? lastDivRef : null}
                   message={message}
+                  setReplying={setReplying}
+                  setReplyingTo={setReplyingTo}
                 />
               );
             })}
@@ -223,6 +247,10 @@ export default function DMUser({ params }) {
       <DMInput
         sendingTo={chatUser?.data?.user?.id}
         disabled={chatUser && !chatUser?.data?.following}
+        replying={replying}
+        replyingTo={replyingTo}
+        setReplying={setReplying}
+        setReplyingTo={setReplyingTo}
       />
     </div>
   );

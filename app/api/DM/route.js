@@ -17,10 +17,13 @@ export async function POST(req) {
         const userId = decodedToken.uid;
         if (!userId) {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
-        } else if (userId === body.sentById) {
+        }
+        if (body.content.length === 0 && body.images.length === 0) {
+            return NextResponse.json({ error: 'Message cannot be empty', success: false }, { status: 401 });
+        }
             const messageData = {
                 content: body.content,
-                sentById: body.sentById,
+                sentById: userId,
                 sentToId: body.sentToId
             }
             if (body.images.length > 0) {
@@ -29,10 +32,28 @@ export async function POST(req) {
                     create: imageArray,
                 }
             }
+            if (body.replyToId) {
+                messageData.reply = {
+                    create: {
+                        replyToId: body.replyToId
+                    }
+                }
+            }
             const newMessage = await prisma.directMessage.create({
                 data: messageData,
                 include: {
                     images: true,
+                    reply: {
+                        select: {
+                            replyToId: true,
+                            replyToMessage: {
+                                select: {
+                                    content: true,
+                                    images: true,
+                                }
+                            }
+                        }
+                    },
                     sentTo: {
                         select: {
                             username: true,
@@ -67,10 +88,6 @@ export async function POST(req) {
             }
             sidebar.publish(`mr_${body.sentToId}`, mr);
             return NextResponse.json({ success: true }, { status: 200 });
-        }
-        else {
-            return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });
-        }
     } catch (error) {
         console.error('Request error', error);
         return NextResponse.json({ error: 'Error sending message', success: false }, { status: 500 });
@@ -163,6 +180,17 @@ export async function PATCH(req) {
             },
             include: {
                 images: true,
+                reply: {
+                    select: {
+                        replyToId: true,
+                        replyToMessage: {
+                            select: {
+                                content: true,
+                                images: true,
+                            }
+                        }
+                    }
+                },
             },
         })
         channel.publish(`edit_dm_${newMessage.sentToId}`, newMessage);

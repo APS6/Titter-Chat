@@ -184,7 +184,7 @@ export default function Messages() {
     >
       <div className="flex flex-col-reverse gap-1">
         {data?.pages?.map((page, pageI, pages) => (
-          <Fragment>
+          <Fragment key={pageI}>
             {page?.items?.map((post, i) => (
               <GlobalPost
                 key={post.id}
