@@ -215,7 +215,7 @@ export default function DMMessage({
             }`}
           >
             {message.reply ? (
-              <div className="bg-grey rounded-3xl px-4 pt-4 pb-6 max-w-full -mb-5 flex gap-1">
+              <div className="bg-grey rounded-3xl px-4 pt-4 pb-6 max-w-full -mb-5 flex gap-2">
                 <p className="break-words whitespace-pre-wrap text-lightwht limit-lines">
                   {message.reply.replyToId
                     ? message.reply.replyToMessage.content

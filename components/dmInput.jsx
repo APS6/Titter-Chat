@@ -8,7 +8,7 @@ import CancelBg from "./svg/cancelbg";
 import { toast } from "sonner";
 
 export default function DMInput({ sendingTo, disabled, replying, replyingTo, setReplyingTo, setReplying }) {
-  const { accessToken } = useAuthContext();
+  const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,6 +22,7 @@ export default function DMInput({ sendingTo, disabled, replying, replyingTo, set
       const body = {
         content: message,
         sentToId: sendingTo,
+        sentById: user.uid,
         images: images,
         replyToId: replying ? replyingTo.messageId : null,
       };
