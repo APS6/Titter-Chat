@@ -221,8 +221,10 @@ export default function DMMessage({
                     ? message.reply.replyToMessage.content
                     : "This message was deleted"}
                 </p>
-                {message.reply.replyToId && message.reply.replyToMessage?.images?.length !== 0 ? (
+                {message.reply.replyToId &&
+                message.reply.replyToMessage?.images?.length !== 0 ? (
                   <Image
+                    className=" self-end"
                     src={message.reply.replyToMessage.images[0].imageUrl}
                     alt="Image"
                     width={20}
@@ -384,18 +386,18 @@ export default function DMMessage({
                 <span>Edit</span>
               </ContextMenu.Item>
               <ContextMenu.Item
-              onClick={() => {
-                setReplying(true);
-                setReplyingTo({
-                  messageId: message.id,
-                  content: message.content,
-                });
-              }}
-              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-            >
-              <ReplyIcon />
-              <span>Reply</span>
-            </ContextMenu.Item>
+                onClick={() => {
+                  setReplying(true);
+                  setReplyingTo({
+                    messageId: message.id,
+                    content: message.content,
+                  });
+                }}
+                className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+              >
+                <ReplyIcon />
+                <span>Reply</span>
+              </ContextMenu.Item>
             </ContextMenu.Group>
           ) : (
             <ContextMenu.Item

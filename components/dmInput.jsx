@@ -7,7 +7,14 @@ import Image from "next/image";
 import CancelBg from "./svg/cancelbg";
 import { toast } from "sonner";
 
-export default function DMInput({ sendingTo, disabled, replying, replyingTo, setReplyingTo, setReplying }) {
+export default function DMInput({
+  sendingTo,
+  disabled,
+  replying,
+  replyingTo,
+  setReplyingTo,
+  setReplying,
+}) {
   const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
@@ -39,7 +46,7 @@ export default function DMInput({ sendingTo, disabled, replying, replyingTo, set
         });
         if (response.status !== 200) {
           console.log("something went wrong");
-          toast.error("Something went wrong")
+          toast.error("Something went wrong");
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);
@@ -109,11 +116,15 @@ export default function DMInput({ sendingTo, disabled, replying, replyingTo, set
   return (
     <div className="bg-[#000] w-full pt-1 pb-2">
       <div className="flex flex-col gap-2 bg-grey rounded ">
-      {replying ? (
+        {replying ? (
           <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">
-            <div className=" w-4/5">
+            <div className="w-[90%]">
               <span className="text-lightwht">Replying to </span>
-              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{replyingTo?.content}</span>
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis block">
+                {replyingTo?.content.length !== 0
+                  ? replyingTo.content
+                  : "image"}
+              </span>
             </div>
             <div
               onClick={() => {
@@ -174,7 +185,9 @@ export default function DMInput({ sendingTo, disabled, replying, replyingTo, set
             <Dialog.Trigger
               disabled={images.length === 4 || disabled}
               className={`hover:bg-[#343434] rounded-full p-1 self-end ${
-                images.length === 4 || disabled? "text-[#a5a5a5] cursor-not-allowed" : ""
+                images.length === 4 || disabled
+                  ? "text-[#a5a5a5] cursor-not-allowed"
+                  : ""
               }`}
             >
               <svg
@@ -255,7 +268,7 @@ export default function DMInput({ sendingTo, disabled, replying, replyingTo, set
             onKeyDown={(e) => handleKeyDown(e)}
             type="text"
             placeholder={
-              disabled ? "You can not message this user" :"Start a new message"
+              disabled ? "You can not message this user" : "Start a new message"
             }
             className="rounded w-full bg-grey outline-none resize-none max-h-52"
           />
