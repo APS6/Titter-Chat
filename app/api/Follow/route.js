@@ -20,8 +20,39 @@ export async function POST(req) {
                 data: {
                     followerId: body.followerId,
                     followingId: body.followingId,
+                },
+                include: {
+                    follower: {
+                        select: {
+                            username: true,
+                            pfpURL: true,
+                        }
+                    },
+                    following: {
+                        select: {
+                            username: true,
+                        }
+                    }
                 }
             })
+
+            const message = {
+                topic: body.followingId,
+                notification: {
+                    title: `${newFollow.follower.username} followed you`,
+                },
+                webpush: {
+                    notification: {
+                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                        image: newFollow.follower.pfpURL
+                    },
+                    fcmOptions: {
+                        link: `https://titter-chat.vercel.app/profile/${newFollow.following.username}`
+                    }
+                }
+            }
+            admin.messaging().send(message)
+
             return NextResponse.json({ success: true }, { status: 200 });
         }
         else {
@@ -51,7 +82,38 @@ export async function DELETE(req) {
                         followingId: body.followingId,
                     },
                 },
+                include: {
+                    follower: {
+                        select: {
+                            username: true,
+                            pfpURL: true,
+                        }
+                    },
+                    following: {
+                        select: {
+                            username: true,
+                        }
+                    }
+                }
             })
+
+            const message = {
+                topic: body.followingId,
+                notification: {
+                    title: `${deletedFollow.follower.username} unfollowed you`,
+                },
+                webpush: {
+                    notification: {
+                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                        image: deletedFollow.follower.pfpURL
+                    },
+                    fcmOptions: {
+                        link: `https://titter-chat.vercel.app/profile/${deletedFollow.following.username}`
+                    }
+                }
+            }
+            admin.messaging().send(message)
+
             return NextResponse.json({ success: true }, { status: 200 });
         } else {
             return NextResponse.json({ error: 'Failed Authorization', success: false }, { status: 400 });

@@ -20,6 +20,7 @@
     "ably": "^1.2.41",
     "analytics": "github:vercel/analytics",
     "autoprefixer": "10.4.14",
+    "bufferutil": "^4.0.8",
     "date-fns": "^2.30.0",
     "encoding": "^0.1.13",
     "eslint-config-next": "^13.5.2",
@@ -38,7 +39,8 @@
     "react-scroll-to-bottom": "^4.2.0",
     "sonner": "^1.0.3",
     "tailwindcss": "3.3.2",
-    "uploadthing": "^5.7.1"
+    "uploadthing": "^5.7.1",
+    "utf-8-validate": "^5.0.10"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^4.34.1",

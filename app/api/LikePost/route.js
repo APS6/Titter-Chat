@@ -21,9 +21,40 @@ export async function POST(req) {
                 data: {
                     userId: body.userId,
                     postId: body.postId,
+                },
+                include: {
+                    post: {
+                        select: {
+                            postedById: true,
+                            content: true,
+                        }
+                    },
+                    user: {
+                        select: {
+                            username: true,
+                        }
+                    }
                 }
             })
             channel.publish('new_like', { userId: body.userId, postId: body.postId, action: "like" });
+            
+            const message = {
+                topic: newLike.post.postedById,
+                notification: {
+                    title: `${newLike.user.username} liked your post`,
+                    body: newLike.post.content
+                },
+                webpush: {
+                    notification: {
+                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                    },
+                    fcmOptions: {
+                        link: `https://titter-chat.vercel.app/post/${newLike.postId}`
+                    }
+                }
+            }
+            admin.messaging().send(message)
+            
             return NextResponse.json(newLike, { success: true }, { status: 200 });
         }
         else {

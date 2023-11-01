@@ -26,7 +26,7 @@ export default function Sidebar() {
 
   const router = useRouter();
 
-  const auth = getAuth();
+  const auth = getAuth(initFirebase());
 
   const handleSignOut = async () => {
     try {
@@ -37,20 +37,16 @@ export default function Sidebar() {
     }
   };
 
-  if (!user) {
-    router.push("/SignIn");
-  }
-
   const queryClient = useQueryClient();
 
   const { data, error, isError, isLoading } = useQuery({
-    queryKey: [user.uid, "userMessages"],
+    queryKey: [user?.uid, "userMessages"],
     queryFn: () => fetchData(`/messages/${accessToken}`),
     enabled: !!accessToken,
   });
 
   const updateMessages = (newMessage) => {
-    queryClient.setQueryData([user.uid, "userMessages"], (oldData) => {
+    queryClient.setQueryData([user?.uid, "userMessages"], (oldData) => {
       const userIndex = oldData.messages.findIndex(
         (msg) => msg.id === newMessage.id
       );
@@ -75,12 +71,12 @@ export default function Sidebar() {
 
 
   useEffect(() => {
-    if (user.uid) {
-      channel.subscribe(`ms_${user.uid}`, (newM) => {
+    if (user?.uid) {
+      channel.subscribe(`ms_${user?.uid}`, (newM) => {
         updateMessages(newM.data)
       });
       
-      channel.subscribe(`mr_${user.uid}`, (newM) => {
+      channel.subscribe(`mr_${user?.uid}`, (newM) => {
         const newMessage = newM.data;
         updateMessages(newMessage)
         toast(`${newMessage.username} sent a message`, {
@@ -259,11 +255,11 @@ export default function Sidebar() {
         <div className="flex items-center">
           <Link
             className="flex gap-2 p-2 rounded-full hover:bg-[#343434]"
-            href={`/profile/${data?.user.username}`}
+            href={`/profile/${data?.user?.username}`}
           >
-            {data?.user.pfpURL ? (
+            {data?.user?.pfpURL ? (
               <Image
-                src={data?.user.pfpURL}
+                src={data?.user?.pfpURL}
                 alt="User Image"
                 width={30}
                 height={30}
@@ -283,7 +279,7 @@ export default function Sidebar() {
               </svg>
             )}
             <h2 className="font-mont text-xl">
-              {data?.user.username ?? "You"}
+              {data?.user?.username ?? "You"}
             </h2>
           </Link>
           <div

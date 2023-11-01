@@ -3,19 +3,50 @@
 import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
 import Loading from "./loading";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "../api/uploadthing/core";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { ContextProvider } from "@/context/context";
+import { getMessaging, onMessage } from "firebase/messaging";
+import { initFirebase } from "@/firebase/app";
+import { getAuth } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { useAuthState } from "react-firebase-hooks/auth";
+import retrieveToken from "../lib/retrieveToken";
 
 const queryClient = new QueryClient();
 
 export default function Layout({ children }) {
+  const auth = getAuth(initFirebase());
+  const [user, loading, error] = useAuthState(auth);
+  const router = useRouter();
+  const messaging = getMessaging();
+
+  if (!user && !loading && !error) {
+    router.push("/SignIn");
+  }
+
+  useEffect(() => {
+    if (user) {
+      user.getIdToken().then((token) => {
+        retrieveToken(token);
+      });
+    }
+  }, [!!user])
+
+  onMessage(messaging, (payload) => {
+    console.log("Message received. ", payload);
+    toast(payload.notification.title, {
+      description: payload.notification.body,
+    });
+  });
+
+
   return (
     <body className="bg-[#000]">
       <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
@@ -24,10 +55,10 @@ export default function Layout({ children }) {
           <Navigation />
           <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
             <ContextProvider>
-            <Suspense fallback={<Loading />}>
-              {children}
-              <Analytics />
-            </Suspense>
+              <Suspense fallback={<Loading />}>
+                {children}
+                <Analytics />
+              </Suspense>
             </ContextProvider>
           </main>
         </AuthContextProvider>

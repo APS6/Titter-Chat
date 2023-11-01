@@ -1,7 +1,6 @@
 "use client";
 import { Fragment, useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
-import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import ScrollToBottom from "react-scroll-to-bottom";
 import GlobalPost from "./globalPost";
@@ -21,15 +20,10 @@ import fetchData from "@/app/lib/fetchData";
 
 export default function Messages() {
   const { user } = useAuthContext();
-  const router = useRouter();
 
   const channel = ably.channels.get("global");
 
   const queryClient = useQueryClient();
-
-  if (!user) {
-    router.push("/SignIn");
-  }
 
   const { ref: lastDivRef, inView } = useInView();
 

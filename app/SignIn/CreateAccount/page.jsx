@@ -111,7 +111,7 @@ export default function CreateAccount() {
 
   if (loading) {
       return (
-        <div className="h-screen grid place-items-center">
+        <div className="h-full grid place-items-center">
        <BlockLoader />
         </div>
       );
@@ -123,7 +123,7 @@ export default function CreateAccount() {
 
   if (user) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center">
+      <div className="h-full flex flex-col items-center justify-center">
         <span className="text-sm text-[red]">{tip}</span>
         <div className="h-68 w-80 bg-grey flex flex-col items-center py-6 px-4 rounded">
           <h2 className="text-3xl font-bold">Create Account</h2>

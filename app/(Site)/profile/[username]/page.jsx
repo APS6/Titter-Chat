@@ -26,9 +26,6 @@ export default function Profile() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const likesParam = searchParams.get("likes");
-  if (!user) {
-    router.push("/SignIn");
-  }
 
   const createQueryString = useCallback(
     (name, value) => {

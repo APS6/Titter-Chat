@@ -62,7 +62,8 @@ export async function POST(req) {
                                 postedBy: {
                                     select: {
                                         pfpURL: true,
-                                        username: true
+                                        username: true,
+                                        id: true,
                                     }
                                 }
                             }
@@ -70,9 +71,28 @@ export async function POST(req) {
                     }
                 }
             }
-        }
-        )
+        })
         channel.publish('new_post', newPost);
+
+        if (newPost.reply && userId !== newPost.reply?.replyToPost?.postedBy?.id) {
+            const message = {
+                topic: newPost.reply.replyToPost.postedBy.id,
+                notification: {
+                    title: `${newPost.postedBy.username} replied to your post`,
+                    body: newPost.content
+                },
+                webpush: {
+                    notification: {
+                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                    },
+                    fcmOptions: {
+                        link: `https://titter-chat.vercel.app/post/${newPost.id}`
+                    }
+                }
+            }
+            admin.messaging().send(message)
+        }
+
         return NextResponse.json(newPost, { success: true }, { status: 200 });
 
     } catch (error) {

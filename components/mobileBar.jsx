@@ -10,13 +10,9 @@ export default function MobileBar() {
   const { user } = useAuthContext();
   const router = useRouter()
 
-  if (!user) {
-    router.push("/SignIn")
-  }
-
   const {data, error, status} = useQuery({
-    queryKey: [user.uid, "userOverview"],
-    queryFn: () => fetchData(`UserOverview/${user.uid}`)
+    queryKey: [user?.uid, "userOverview"],
+    queryFn: () => fetchData(`UserOverview/${user?.uid}`)
   })
 
   if (status === "error"){

@@ -10,7 +10,7 @@ export const metadata = {
 export default function Layout({ children }) {
   return (
       <body className='bg-[#000]'>
-        <main className='w-full max-w-5xl m-auto px-5'>
+        <main className='w-full h-[100svh] max-w-5xl m-auto px-5'>
         <Suspense fallback={<Loading />}>
           <AuthContextProvider>
             {children}

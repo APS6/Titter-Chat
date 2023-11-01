@@ -48,7 +48,7 @@ export default function SignIn() {
   };
   if (loading) {
     return (
-      <div className="h-screen grid place-items-center">
+      <div className="h-full grid place-items-center">
         <BlockLoader />
       </div>
     );
@@ -56,7 +56,7 @@ export default function SignIn() {
 
   if (!user) {
     return (
-      <div className="h-screen grid place-items-center">
+      <div className="h-full grid place-items-center">
         <div className="bg-grey flex flex-col items-center p-6 gap-6 shadow-[rgb(147_175_205_/_30%)_0_0_0_3px] rounded">
           <h2 className="text-2xl font-bold">Login or Signup</h2>
           <button

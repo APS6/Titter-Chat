@@ -87,6 +87,25 @@ export async function POST(req) {
                 pfpURL: newMessage.sentBy.pfpURL,
             }
             sidebar.publish(`mr_${body.sentToId}`, mr);
+
+            const message = {
+                topic: body.sentToId,
+                notification: {
+                    title: `${newMessage.sentBy.username} sent a message`,
+                    body: newMessage.content
+                },
+                webpush: {
+                    notification: {
+                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                        image: newMessage.sentBy.pfpURL
+                    },
+                    fcmOptions: {
+                        link: `https://titter-chat.vercel.app/DMs/${newMessage.sentBy.username}?id=${userId}`
+                    }
+                }
+            }
+            admin.messaging().send(message)
+
             return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error('Request error', error);
