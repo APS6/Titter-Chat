@@ -485,7 +485,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
               {/* like */}
               <div className="flex-1">
                 <div
-                  onClick={() => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     likeHandler();
                   }}

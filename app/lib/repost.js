@@ -1,3 +1,4 @@
+"use server"
 export default async function sendRepost(replyTo, accessToken) {
       const body = {
         content: "",

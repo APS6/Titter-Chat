@@ -41,7 +41,7 @@ export default function Sidebar() {
 
   const { data, error, isError, isLoading } = useQuery({
     queryKey: [user?.uid, "userMessages"],
-    queryFn: () => fetchData(`/messages/${accessToken}`),
+    queryFn: () => fetchData(`messages/${accessToken}`),
     enabled: !!accessToken,
   });
 
