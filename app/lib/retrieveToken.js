@@ -5,7 +5,7 @@ import { getMessaging, getToken } from "firebase/messaging";
 export default async function retrieveToken (accessToken){
     const firebaseApp = initFirebase()
     try {
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        if (typeof Window !== 'undefined' && 'serviceWorker' in Navigator) {
             const messaging = getMessaging(firebaseApp);
 
             // Retrieve the notification permission status
