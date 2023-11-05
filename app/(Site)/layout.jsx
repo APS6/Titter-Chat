@@ -12,20 +12,18 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "../api/uploadthing/core";
 import { Toaster, toast } from "sonner";
 import { ContextProvider } from "@/context/context";
-import { getMessaging, onMessage } from "firebase/messaging";
 import { initFirebase } from "@/firebase/app";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import retrieveToken from "../lib/retrieveToken";
-
+import { getMessaging, onMessage, isSupported } from "firebase/messaging"
 const queryClient = new QueryClient();
 
 export default function Layout({ children }) {
   const auth = getAuth(initFirebase());
   const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
-  const messaging = getMessaging();
 
   if (!user && !loading && !error) {
     router.push("/SignIn");
@@ -33,19 +31,38 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     if (user) {
-      user.getIdToken().then((token) => {
-        retrieveToken(token);
-      });
+      try {
+        let messaging = null;
+
+      const messagingSupported = async () => {
+        try {
+          const support = await isSupported();
+          console.log(support)
+          return support;
+        } catch (error) {
+          return false
+        }
+      };
+    
+      if (messagingSupported()) {
+        messaging = getMessaging();
+
+        onMessage(messaging, (payload) => {
+          console.log("Message received. ", payload);
+          toast(payload.notification.title, {
+            description: payload.notification.body,
+          });
+        });
+        
+        user.getIdToken().then((token) => {
+          retrieveToken(token);
+        });
+      }
+      } catch (error) {
+        console.log("ahh ffs -", error)
+      }
     }
-  }, [!!user])
-
-  onMessage(messaging, (payload) => {
-    console.log("Message received. ", payload);
-    toast(payload.notification.title, {
-      description: payload.notification.body,
-    });
-  });
-
+  }, [!!user]);
 
   return (
     <body className="bg-[#000]">

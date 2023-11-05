@@ -46,7 +46,7 @@ model Post {
 model Reply {
   replyToPost Post?   @relation("replies", fields: [replyToId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   replyToId   String?
-  replyPost   Post    @relation("replyPost", fields: [replyPostId], references: [id])
+  replyPost   Post    @relation("replyPost", fields: [replyPostId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   replyPostId String  @unique
 
   @@index([replyToId])
@@ -107,7 +107,7 @@ model DirectMessage {
 model DMReply {
   replyToMessage DirectMessage?   @relation("replies", fields: [replyToId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   replyToId   String?
-  replyMessage   DirectMessage    @relation("replyMessage", fields: [replyMessageId], references: [id])
+  replyMessage   DirectMessage    @relation("replyMessage", fields: [replyMessageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   replyMessageId String  @unique
 
   @@index([replyToId])
