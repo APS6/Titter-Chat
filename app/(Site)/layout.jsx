@@ -37,7 +37,6 @@ export default function Layout({ children }) {
       const messagingSupported = async () => {
         try {
           const support = await isSupported();
-          console.log(support)
           return support;
         } catch (error) {
           return false

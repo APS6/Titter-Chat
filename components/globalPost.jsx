@@ -123,6 +123,9 @@ export default function GlobalPost({ post, divRef, cUser }) {
       },
       body: JSON.stringify(body),
     });
+    if (response.status !== 200) {
+      throw new Error(response.error)
+    }
     return response;
   };
 
@@ -139,6 +142,9 @@ export default function GlobalPost({ post, divRef, cUser }) {
       },
       body: JSON.stringify(body),
     });
+    if (response.status !== 200) {
+      throw new Error(response.error)
+    }
     return response;
   };
 

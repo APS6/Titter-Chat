@@ -128,6 +128,9 @@ export default function Post() {
       },
       body: JSON.stringify(body),
     });
+    if (response.status !== 200) {
+      throw new Error(response.error)
+    }
     return response;
   };
 
@@ -144,6 +147,9 @@ export default function Post() {
       },
       body: JSON.stringify(body),
     });
+    if (response.status !== 200) {
+      throw new Error(response.error)
+    }
     return response;
   };
 
