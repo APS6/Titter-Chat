@@ -18,9 +18,9 @@ export default function manifest() {
             }
         ],
         background_color: "#161616",
+        theme_color: "#161616",
         categories: ["social"],
         orientation: "portrait",
-        theme_color: "#7228bd",
         shortcuts: [
             {
                 "name": "Home",
