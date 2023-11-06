@@ -96,8 +96,7 @@ export async function POST(req) {
                 },
                 webpush: {
                     notification: {
-                        icon: "https://titter-chat.vercel.app/newlogo.png",
-                        image: newMessage.sentBy.pfpURL
+                        icon: "https://titter-chat.vercel.app/newlogo.png"
                     },
                     fcmOptions: {
                         link: `https://titter-chat.vercel.app/DMs/${newMessage.sentBy.username}?id=${userId}`

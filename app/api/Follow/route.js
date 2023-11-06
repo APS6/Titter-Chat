@@ -104,8 +104,7 @@ export async function DELETE(req) {
                 },
                 webpush: {
                     notification: {
-                        icon: "https://titter-chat.vercel.app/newlogo.png",
-                        image: deletedFollow.follower.pfpURL
+                        icon: "https://titter-chat.vercel.app/newlogo.png"
                     },
                     fcmOptions: {
                         link: `https://titter-chat.vercel.app/profile/${deletedFollow.following.username}`
