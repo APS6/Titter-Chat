@@ -15,6 +15,12 @@ export default function manifest() {
                 "src": "/android-chrome-512x512.png",
                 "sizes": "512x512",
                 "type": "image/png"
+            },
+            {
+                "src": "/maskableIcon.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable"
             }
         ],
         background_color: "#161616",
