@@ -16,7 +16,7 @@ export async function GET(req, { params }) {
                 },
                 include: {
                     sentDM: {
-                        take: 5,
+                        take: 10,
                         distinct: ['sentToId'],
                         include: {
                             sentTo: {
@@ -32,7 +32,7 @@ export async function GET(req, { params }) {
                         }
                     },
                     receivedDM: {
-                        take: 5,
+                        take: 10,
                         distinct: ['sentById'],
                         include: {
                             sentBy: {
@@ -53,11 +53,12 @@ export async function GET(req, { params }) {
                 username: userMessages.username,
                 pfpURL: userMessages.pfpURL,
             }
-
+            // add all sentDM
             let messages = userMessages.sentDM.map((dm) => ({ id: dm.sentToId, username: dm.sentTo.username, pfpURL: dm.sentTo.pfpURL, content: dm.content, sentAt: dm.sentAt }))
 
             for (const dm of userMessages.receivedDM) {
                 const exists = messages.find((e) => e.id === dm.sentById)
+                // if the same user is already added
                 if (exists) {
                     const newer = new Date(dm.sentAt) > new Date(exists.sentAt)
 
@@ -87,7 +88,7 @@ export async function GET(req, { params }) {
                 (a, b) => new Date(b.sentAt) - new Date(a.sentAt)
             );
 
-            const sortedMessages = sorted.slice(0, 3)
+            const sortedMessages = sorted.slice(0, 8)
 
             return NextResponse.json({ user, messages: sortedMessages }, { status: 200 });
         }

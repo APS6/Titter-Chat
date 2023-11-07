@@ -39,7 +39,7 @@ export default function DMs() {
           <div className="mt-6">
             {data?.messages? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data.messages.map((convo) => {
+                {data.messages.slice(0, 3).map((convo) => {
                   const sentAt = new Date(convo.sentAt);
                   const currentDate = new Date();
 
