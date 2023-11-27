@@ -62,7 +62,7 @@ export async function POST(req) {
         }
     } catch (error) {
         console.error('Request error', error);
-        NextResponse.json({ error: 'Error Liking Post', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error Liking Post', success: false }, { status: 500 });
     }
 }
 export async function DELETE(req) {
@@ -92,6 +92,6 @@ export async function DELETE(req) {
         }
     } catch (error) {
         console.error('Request error', error);
-        NextResponse.json({ error: 'Error disliking Post', success: false }, { status: 500 });
+       return NextResponse.json({ error: 'Error disliking Post', success: false }, { status: 500 });
     }
 }

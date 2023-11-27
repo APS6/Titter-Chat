@@ -23,6 +23,7 @@ export async function GET(req, {params}) {
                     following: {
                         select: {
                             username: true,
+                            allowDMs: true,
                         }
                     }
                 }
@@ -32,10 +33,10 @@ export async function GET(req, {params}) {
                 username: username
             }
         });
-        if (user.following.length === 0) {
-            return NextResponse.json({user: user, following: false, currentUser: user.following[0].following.username}, { status: 200 });
+        if (user.following.length === 0 || !user.following[0]?.following?.allowDMs ) {
+            return NextResponse.json({user: user, allowMessage: false, currentUser: user.following[0].following.username}, { status: 200 });
         }
-        return NextResponse.json({user: user, following: true, currentUser: user.following[0].following.username }, { status: 200 });
+        return NextResponse.json({user: user, allowMessage: true, currentUser: user.following[0].following.username }, { status: 200 });
     }
     } catch (error) {
         console.error('Error retrieving user data', error);

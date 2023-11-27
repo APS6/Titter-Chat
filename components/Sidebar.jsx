@@ -22,7 +22,7 @@ import { toast } from "sonner";
 export default function Sidebar() {
   const { user, accessToken } = useAuthContext();
 
-  const channel = ably.channels.get('sidebar');
+  const channel = ably.channels.get("sidebar");
 
   const router = useRouter();
 
@@ -69,16 +69,15 @@ export default function Sidebar() {
     });
   };
 
-
   useEffect(() => {
     if (user?.uid) {
       channel.subscribe(`ms_${user?.uid}`, (newM) => {
-        updateMessages(newM.data)
+        updateMessages(newM.data);
       });
-      
+
       channel.subscribe(`mr_${user?.uid}`, (newM) => {
         const newMessage = newM.data;
-        updateMessages(newMessage)
+        updateMessages(newMessage);
         toast(`${newMessage.username} sent a message`, {
           icon: (
             <svg
@@ -96,9 +95,10 @@ export default function Sidebar() {
           duration: 2000,
           action: {
             label: "View",
-            onClick: () => router.push(`/DMs/${newMessage.username}?id=${newMessage.id}`)
-          }
-        })
+            onClick: () =>
+              router.push(`/DMs/${newMessage.username}?id=${newMessage.id}`),
+          },
+        });
       });
     }
     return () => {
@@ -160,6 +160,24 @@ export default function Sidebar() {
                 </svg>
               </div>
               <span className=" text-[22px] font-mont font-bold">Messages</span>
+            </div>
+          </Link>
+          <Link className="w-full mt-2" href="/settings">
+            <div className="flex items-center gap-2 hover:bg-[#343434] rounded-full px-2">
+              <div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M10.125 22q-.375 0-.65-.25t-.325-.625l-.3-2.325q-.325-.125-.613-.3t-.562-.375l-2.175.9q-.35.15-.7.038t-.55-.438L2.4 15.4q-.2-.325-.125-.7t.375-.6l1.875-1.425Q4.5 12.5 4.5 12.337v-.674q0-.163.025-.338L2.65 9.9q-.3-.225-.375-.6t.125-.7l1.85-3.225q.2-.325.55-.438t.7.038l2.175.9q.275-.2.575-.375t.6-.3l.3-2.325q.05-.375.325-.625t.65-.25h3.75q.375 0 .65.25t.325.625l.3 2.325q.325.125.613.3t.562.375l2.175-.9q.35-.15.7-.038t.55.438L21.6 8.6q.2.325.125.7t-.375.6l-1.875 1.425q.025.175.025.338v.674q0 .163-.05.338l1.875 1.425q.3.225.375.6t-.125.7l-1.85 3.2q-.2.325-.563.45t-.712-.025l-2.125-.9q-.275.2-.575.375t-.6.3l-.3 2.325q-.05.375-.325.625t-.65.25h-3.75ZM11 20h1.975l.35-2.65q.775-.2 1.438-.588t1.212-.937l2.475 1.025l.975-1.7l-2.15-1.625q.125-.35.175-.737T17.5 12q0-.4-.05-.787t-.175-.738l2.15-1.625l-.975-1.7l-2.475 1.05q-.55-.575-1.212-.962t-1.438-.588L13 4h-1.975l-.35 2.65q-.775.2-1.437.588t-1.213.937L5.55 7.15l-.975 1.7l2.15 1.6q-.125.375-.175.75t-.05.8q0 .4.05.775t.175.75l-2.15 1.625l.975 1.7l2.475-1.05q.55.575 1.213.963t1.437.587L11 20Zm1.05-4.5q1.45 0 2.475-1.025T15.55 12q0-1.45-1.025-2.475T12.05 8.5q-1.475 0-2.488 1.025T8.55 12q0 1.45 1.012 2.475T12.05 15.5ZM12 12Z"
+                  ></path>
+                </svg>
+              </div>
+              <span className=" text-[22px] font-mont font-bold">Settings</span>
             </div>
           </Link>
           <div className="flex flex-col items-center mt-8">

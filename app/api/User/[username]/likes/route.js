@@ -65,6 +65,6 @@ export async function GET(req, { params }) {
         return NextResponse.json({ items: likes, nextCursor }, { status: 200 });
     } catch (error) {
         console.error('Error retrieving user data', error);
-        NextResponse.json({ error: 'Error retrieving user data', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error retrieving user data', success: false }, { status: 500 });
     }
 }

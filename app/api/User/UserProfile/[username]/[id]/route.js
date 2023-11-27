@@ -26,6 +26,7 @@ export async function GET(req, { params }) {
             return NextResponse.json(null, { status: 404 });
         }
         const followedBy = userData.following.some((u) => u.followingId === id)
+        const canDM = followedBy || userData.allowDMs
         const following = userData.followedBy.some((u) => u.followerId === id)
         const followerCount = userData.followedBy.length
         const followingCount = userData.following.length
@@ -34,6 +35,7 @@ export async function GET(req, { params }) {
             bio: userData.bio,
             username: userData.username,
             pfpURL: userData.pfpURL,
+            canDM: canDM,
             followedBy: followedBy,
             following: following,
             followerCount: followerCount,
@@ -41,6 +43,6 @@ export async function GET(req, { params }) {
         }, { status: 200 });
     } catch (error) {
         console.error('Error retrieving user data', error);
-        NextResponse.json({ error: 'Error retrieving user data', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error retrieving user data', success: false }, { status: 500 });
     }
 }

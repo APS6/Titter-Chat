@@ -15,6 +15,6 @@ export async function GET() {
         return NextResponse.json(usernames, { status: 200 });
     } catch (error) {
         console.error('Error retrieving usernames', error);
-        NextResponse.json({ error: 'Error retrieving usernames', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error retrieving usernames', success: false }, { status: 500 });
     }
 }

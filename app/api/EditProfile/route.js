@@ -31,10 +31,10 @@ export async function POST(req) {
             }
         } catch (error) {
             console.error('Request error', error);
-            NextResponse.json({ error: 'Error updating User', success: false }, { status: 500 });
+            return NextResponse.json({ error: 'Error updating User', success: false }, { status: 500 });
         }
     }
     else {
-        NextResponse.json({ error: 'Invalid User', success: false }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid User', success: false }, { status: 400 });
     }
 }

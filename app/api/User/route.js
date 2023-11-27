@@ -9,9 +9,9 @@ export async function POST(req) {
     const token = headersList.get("authorization");
 
     if (!isValidEmail(body.email)) {
-        NextResponse.json({ error: 'Invalid Email address', success: false }, { status: 400 });
+       return NextResponse.json({ error: 'Invalid Email address', success: false }, { status: 400 });
     } else if (body.username.length < 3 && body.username.length > 9 && body.bio.length > 60) {
-        NextResponse.json({ error: 'Invalid Data: username must be longer than 3, less than 9 characters, bio should be less than 60 characters', success: false }, { status: 400 });
+       return NextResponse.json({ error: 'Invalid Data: username must be longer than 3, less than 9 characters, bio should be less than 60 characters', success: false }, { status: 400 });
     } else {
         try {
             const decodedToken = await admin.auth().verifyIdToken(token);
@@ -34,7 +34,7 @@ export async function POST(req) {
             }
         } catch (error) {
             console.error('Request error', error);
-            NextResponse.json({ error: 'Error creating User', success: false }, { status: 500 });
+           return NextResponse.json({ error: 'Error creating User', success: false }, { status: 500 });
         }
     }
 

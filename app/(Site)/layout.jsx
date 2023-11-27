@@ -2,8 +2,7 @@
 
 import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
-import Loading from "./loading";
-import { Suspense, useEffect } from "react";
+import {  useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -16,8 +15,7 @@ import { initFirebase } from "@/firebase/app";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
-import retrieveToken from "../lib/retrieveToken";
-import { getMessaging, onMessage, isSupported } from "firebase/messaging"
+import { getMessaging, onMessage, isSupported } from "firebase/messaging";
 const queryClient = new QueryClient();
 
 export default function Layout({ children }) {
@@ -34,31 +32,27 @@ export default function Layout({ children }) {
       try {
         let messaging = null;
 
-      const messagingSupported = async () => {
-        try {
-          const support = await isSupported();
-          return support;
-        } catch (error) {
-          return false
-        }
-      };
-    
-      if (messagingSupported()) {
-        messaging = getMessaging();
+        const messagingSupported = async () => {
+          try {
+            const support = await isSupported();
+            return support;
+          } catch (error) {
+            return false;
+          }
+        };
 
-        onMessage(messaging, (payload) => {
-          console.log("Message received. ", payload);
-          toast(payload.notification.title, {
-            description: payload.notification.body,
+        if (messagingSupported()) {
+          messaging = getMessaging();
+
+          onMessage(messaging, (payload) => {
+            console.log("Message received. ", payload);
+            toast(payload.notification.title, {
+              description: payload.notification.body,
+            });
           });
-        });
-        
-        user.getIdToken().then((token) => {
-          retrieveToken(token);
-        });
-      }
+        }
       } catch (error) {
-        console.log("ahh ffs -", error)
+        console.log("ahh ffs -", error);
       }
     }
   }, [!!user]);
@@ -71,10 +65,8 @@ export default function Layout({ children }) {
           <Navigation />
           <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
             <ContextProvider>
-              <Suspense fallback={<Loading />}>
-                {children}
-                <Analytics />
-              </Suspense>
+              {children}
+              <Analytics />
             </ContextProvider>
           </main>
         </AuthContextProvider>

@@ -246,7 +246,7 @@ export default function DMUser({ params }) {
       </ScrollToBottom>
       <DMInput
         sendingTo={chatUser?.data?.user?.id}
-        disabled={chatUser && !chatUser?.data?.following}
+        disabled={chatUser && !chatUser?.data?.allowMessage}
         replying={replying}
         replyingTo={replyingTo}
         setReplying={setReplying}

@@ -19,13 +19,20 @@ model User {
   email      String          @unique
   bio        String?
   pfpURL     String
+  role       Role            @default(USER)
   posts      Post[]          @relation("UserPosts")
   likes      Like[]
   followedBy Follows[]       @relation("following")
   following  Follows[]       @relation("follower")
   sentDM     DirectMessage[] @relation("sentby")
   receivedDM DirectMessage[] @relation("sentto")
-  role       Role            @default(USER)
+  allowDMs Boolean @default(false)
+  // notifications
+  enableNotifications Boolean @default(false)
+  notifyLike Boolean @default(false)
+  notifyDMs Boolean @default(false)
+  notifyReplies Boolean @default(false)
+  notifyFollow Boolean @default(false)
 }
 
 model Post {

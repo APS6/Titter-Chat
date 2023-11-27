@@ -30,11 +30,6 @@ export default async function retrieveToken (accessToken){
                               },
                               body: JSON.stringify(body),
                             });
-                            if (response.status !== 200) {
-                              console.log("something went wrong while saving FCM token");
-                            } else {
-                              console.log("Saved FCM token successfully ");
-                            }
                           } catch (error) {
                             console.log("there was an error saving FCM token", error);
                           }
