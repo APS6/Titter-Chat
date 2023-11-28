@@ -21,73 +21,76 @@ export async function POST(req) {
         if (body.content.length === 0 && body.images.length === 0) {
             return NextResponse.json({ error: 'Message cannot be empty', success: false }, { status: 401 });
         }
-            const messageData = {
-                content: body.content,
-                sentById: userId,
-                sentToId: body.sentToId
+        const messageData = {
+            content: body.content,
+            sentById: userId,
+            sentToId: body.sentToId
+        }
+        if (body.images.length > 0) {
+            const imageArray = body.images.map((img) => { return { imageUrl: img.imageUrl } })
+            messageData.images = {
+                create: imageArray,
             }
-            if (body.images.length > 0) {
-                const imageArray = body.images.map((img) => { return { imageUrl: img.imageUrl } })
-                messageData.images = {
-                    create: imageArray,
+        }
+        if (body.replyToId) {
+            messageData.reply = {
+                create: {
+                    replyToId: body.replyToId
                 }
             }
-            if (body.replyToId) {
-                messageData.reply = {
-                    create: {
-                        replyToId: body.replyToId
-                    }
-                }
-            }
-            const newMessage = await prisma.directMessage.create({
-                data: messageData,
-                include: {
-                    images: true,
-                    reply: {
-                        select: {
-                            replyToId: true,
-                            replyToMessage: {
-                                select: {
-                                    content: true,
-                                    images: true,
-                                }
+        }
+        const newMessage = await prisma.directMessage.create({
+            data: messageData,
+            include: {
+                images: true,
+                reply: {
+                    select: {
+                        replyToId: true,
+                        replyToMessage: {
+                            select: {
+                                content: true,
+                                images: true,
                             }
                         }
-                    },
-                    sentTo: {
-                        select: {
-                            username: true,
-                            pfpURL: true,
-                        }
-                    },
-                    sentBy: {
-                        select: {
-                            username: true,
-                            pfpURL: true,
-                        }
+                    }
+                },
+                sentTo: {
+                    select: {
+                        username: true,
+                        pfpURL: true,
+                        enableNotifications: true,
+                        notifyDMs: true,
+                    }
+                },
+                sentBy: {
+                    select: {
+                        username: true,
+                        pfpURL: true,
                     }
                 }
-            })
-            channel.publish(`m_${body.sentById}`, newMessage);
-            channel.publish(`m_${body.sentToId}`, newMessage);
-
-            const ms = {
-                content: newMessage.content,
-                sentAt: newMessage.sentAt,
-                id: newMessage.sentToId,
-                username: newMessage.sentTo.username,
-                pfpURL: newMessage.sentTo.pfpURL,
             }
-            sidebar.publish(`ms_${body.sentById}`, ms);
-            const mr = {
-                content: newMessage.content,
-                sentAt: newMessage.sentAt,
-                id: newMessage.sentById,
-                username: newMessage.sentBy.username,
-                pfpURL: newMessage.sentBy.pfpURL,
-            }
-            sidebar.publish(`mr_${body.sentToId}`, mr);
+        })
+        channel.publish(`m_${body.sentById}`, newMessage);
+        channel.publish(`m_${body.sentToId}`, newMessage);
 
+        const ms = {
+            content: newMessage.content,
+            sentAt: newMessage.sentAt,
+            id: newMessage.sentToId,
+            username: newMessage.sentTo.username,
+            pfpURL: newMessage.sentTo.pfpURL,
+        }
+        sidebar.publish(`ms_${body.sentById}`, ms);
+        const mr = {
+            content: newMessage.content,
+            sentAt: newMessage.sentAt,
+            id: newMessage.sentById,
+            username: newMessage.sentBy.username,
+            pfpURL: newMessage.sentBy.pfpURL,
+        }
+        sidebar.publish(`mr_${body.sentToId}`, mr);
+
+        if (newMessage.sentTo.enableNotifications && newMessage.sentTo.notifyDMs) {
             const message = {
                 topic: body.sentToId,
                 notification: {
@@ -104,8 +107,9 @@ export async function POST(req) {
                 }
             }
             admin.messaging().send(message)
+        }
 
-            return NextResponse.json({ success: true }, { status: 200 });
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error('Request error', error);
         return NextResponse.json({ error: 'Error sending message', success: false }, { status: 500 });
@@ -151,7 +155,7 @@ export async function DELETE(req) {
                 sentToId: true,
             }
         })
-        channel.publish(`delete_dm_${deleted.sentToId}`, {id: deleted.id });
+        channel.publish(`delete_dm_${deleted.sentToId}`, { id: deleted.id });
         return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error) {

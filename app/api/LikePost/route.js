@@ -26,6 +26,12 @@ export async function POST(req) {
                     post: {
                         select: {
                             postedById: true,
+                            postedBy: {
+                                select: {
+                                    enableNotifications: true,
+                                    notifyLike: true,
+                                }
+                            },
                             content: true,
                         }
                     },
@@ -37,24 +43,26 @@ export async function POST(req) {
                 }
             })
             channel.publish('new_like', { userId: body.userId, postId: body.postId, action: "like" });
-            
-            const message = {
-                topic: newLike.post.postedById,
-                notification: {
-                    title: `${newLike.user.username} liked your post`,
-                    body: newLike.post.content
-                },
-                webpush: {
+
+            if (newLike.post.postedBy.enableNotifications && newLike.post.postedBy.notifyLike) {
+                const message = {
+                    topic: newLike.post.postedById,
                     notification: {
-                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                        title: `${newLike.user.username} liked your post`,
+                        body: newLike.post.content
                     },
-                    fcmOptions: {
-                        link: `https://titter-chat.vercel.app/post/${newLike.postId}`
+                    webpush: {
+                        notification: {
+                            icon: "https://titter-chat.vercel.app/newlogo.png",
+                        },
+                        fcmOptions: {
+                            link: `https://titter-chat.vercel.app/post/${newLike.postId}`
+                        }
                     }
                 }
+                admin.messaging().send(message)
             }
-            admin.messaging().send(message)
-            
+
             return NextResponse.json(newLike, { success: true }, { status: 200 });
         }
         else {
@@ -92,6 +100,6 @@ export async function DELETE(req) {
         }
     } catch (error) {
         console.error('Request error', error);
-       return NextResponse.json({ error: 'Error disliking Post', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error disliking Post', success: false }, { status: 500 });
     }
 }

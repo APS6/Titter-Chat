@@ -64,6 +64,8 @@ export async function POST(req) {
                                         pfpURL: true,
                                         username: true,
                                         id: true,
+                                        enableNotifications: true,
+                                        notifyReplies: true,
                                     }
                                 }
                             }
@@ -73,8 +75,8 @@ export async function POST(req) {
             }
         })
         channel.publish('new_post', newPost);
-
-        if (newPost.reply && userId !== newPost.reply?.replyToPost?.postedBy?.id) {
+        // if there is a reply that is not by the same user and the user wants to receive notifications for replies.
+        if (newPost.reply && userId !== newPost.reply?.replyToPost?.postedBy?.id && newPost.reply?.replyToPost?.postedBy?.enableNotifications && newPost.reply?.replyToPost?.postedBy?.notifyReplies) {
             const message = {
                 topic: newPost.reply.replyToPost.postedBy.id,
                 notification: {

@@ -32,11 +32,12 @@ export async function POST(req) {
                         select: {
                             username: true,
                             notifyFollow: true,
+                            enableNotifications: true
                         }
                     }
                 }
             })
-            if (newFollow.following.notifyFollow) {
+            if (newFollow.following.notifyFollow && newFollow.following.enableNotifications) {
                 const message = {
                     topic: body.followingId,
                     notification: {
