@@ -16,7 +16,6 @@ import { getAuth } from "firebase/auth";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { getMessaging, onMessage, isSupported } from "firebase/messaging";
-import { Router } from "next/router";
 import BellIcon from "@/components/svg/bellIcon";
 const queryClient = new QueryClient();
 
@@ -44,30 +43,26 @@ export default function Layout({ children }) {
         };
 
         if (messagingSupported()) {
-          try {
-            if (
-              pathname !== "/settings" &&
-              Notification.permission === "default"
-            ) {
-              toast(
-                "Don't miss a thing! Enable notifications for instant updates.",
-                {
-                  duration: 6000,
-                  icon: <BellIcon />,
-                  action: {
-                    label: "Enable now!",
-                    onClick: () => {
-                      router.push("/settings");
-                    },
+          if (
+            pathname !== "/settings" &&
+            Notification.permission === "default"
+          ) {
+            toast(
+              "Don't miss a thing! Enable notifications for instant updates.",
+              {
+                duration: 6000,
+                icon: <BellIcon />,
+                action: {
+                  label: "Enable now!",
+                  onClick: () => {
+                    router.push("/settings");
                   },
-                  cancel: {
-                    label: "Not now",
-                  },
-                }
-              );
-            }
-          } catch (error) {
-            console.log("PAIN!!!", error);
+                },
+                cancel: {
+                  label: "Not now",
+                },
+              }
+            );
           }
 
           messaging = getMessaging();
