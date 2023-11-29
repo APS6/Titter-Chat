@@ -44,26 +44,30 @@ export default function Layout({ children }) {
         };
 
         if (messagingSupported()) {
-          if (
-            pathname !== "/settings" &&
-            Notification.permission === "default"
-          ) {
-            toast(
-              "Don't miss a thing! Enable notifications for instant updates.",
-              {
-                duration: 10000,
-                icon: <BellIcon />,
-                action: {
-                  label: "Enable now!",
-                  onClick: () => {
-                    router.push("/settings");
+          try {
+            if (
+              pathname !== "/settings" &&
+              Notification.permission === "default"
+            ) {
+              toast(
+                "Don't miss a thing! Enable notifications for instant updates.",
+                {
+                  duration: 6000,
+                  icon: <BellIcon />,
+                  action: {
+                    label: "Enable now!",
+                    onClick: () => {
+                      router.push("/settings");
+                    },
                   },
-                },
-                cancel: {
-                  label: "Not now",
-                },
-              }
-            );
+                  cancel: {
+                    label: "Not now",
+                  },
+                }
+              );
+            }
+          } catch (error) {
+            console.log("PAIN!!!", error);
           }
 
           messaging = getMessaging();

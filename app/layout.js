@@ -6,12 +6,12 @@ export const metadata = {
     openGraph: {
         title: "Titter Chat - The Birb App",
         description: "Start chatting with your friends and the world on Titter",
-        url: 'https://titter-chat.vercel.app',
+        url: 'https://titterchat.vercel.app',
         siteName: 'Titter',
         locale: 'en_US',
         images: [
             {
-                url: 'https://titter-chat.vercel.app/opengraph.jpeg',
+                url: 'https://titterchat.vercel.app/opengraph.jpeg',
                 alt: "Titter Chat The Birb App",
                 width: 886,
                 height: 436,
@@ -20,7 +20,7 @@ export const metadata = {
     },
     generator: 'Next.js',
     keywords: ['Titter', 'chat', 'social media', 'titter-chat'],
-    
+
 }
 
 export default function RootLayout({ children }) {
