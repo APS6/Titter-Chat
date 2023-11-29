@@ -2,7 +2,7 @@
 
 import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
-import {  useEffect } from "react";
+import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -13,16 +13,18 @@ import { Toaster, toast } from "sonner";
 import { ContextProvider } from "@/context/context";
 import { initFirebase } from "@/firebase/app";
 import { getAuth } from "firebase/auth";
-import { redirect, usePathname } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { getMessaging, onMessage, isSupported } from "firebase/messaging";
+import { Router } from "next/router";
+import BellIcon from "@/components/svg/bellIcon";
 const queryClient = new QueryClient();
 
 export default function Layout({ children }) {
   const auth = getAuth(initFirebase());
   const [user, loading, error] = useAuthState(auth);
-  const pathname = usePathname()
-
+  const pathname = usePathname();
+  const router = useRouter();
   if (!user && !loading && !error) {
     redirect("/SignIn");
   }
@@ -42,18 +44,26 @@ export default function Layout({ children }) {
         };
 
         if (messagingSupported()) {
-          if (pathname !== "/settings" && Notification.permission === 'default') {
-            toast("Don't miss a thing! Enable notifications for instant updates.", {
-              duration: 10000,
-              icon: <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M5 19q-.425 0-.713-.288T4 18q0-.425.288-.713T5 17h1v-7q0-2.075 1.25-3.688T10.5 4.2v-.7q0-.625.438-1.063T12 2q.625 0 1.063.438T13.5 3.5v.7q2 .5 3.25 2.113T18 10v7h1q.425 0 .713.288T20 18q0 .425-.288.713T19 19H5Zm7-7.5ZM12 22q-.825 0-1.413-.588T10 20h4q0 .825-.588 1.413T12 22Zm-4-5h8v-7q0-1.65-1.175-2.825T12 6q-1.65 0-2.825 1.175T8 10v7Z"></path></svg>,
-              action: {
-                label: "Enable now!",
-                onClick: () => {redirect('/settings')}
-              },
-              cancel: {
-                label: "Not now",
+          if (
+            pathname !== "/settings" &&
+            Notification.permission === "default"
+          ) {
+            toast(
+              "Don't miss a thing! Enable notifications for instant updates.",
+              {
+                duration: 10000,
+                icon: <BellIcon />,
+                action: {
+                  label: "Enable now!",
+                  onClick: () => {
+                    router.push("/settings");
+                  },
+                },
+                cancel: {
+                  label: "Not now",
+                },
               }
-            })
+            );
           }
 
           messaging = getMessaging();
