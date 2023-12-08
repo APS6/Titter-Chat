@@ -18,6 +18,7 @@
     "@tanstack/react-query-devtools": "^4.33.0",
     "@uploadthing/react": "^5.6.2",
     "@vercel/analytics": "^1.0.2",
+    "@vercel/speed-insights": "^1.0.0",
     "ably": "^1.2.41",
     "analytics": "github:vercel/analytics",
     "autoprefixer": "10.4.14",

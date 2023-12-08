@@ -4,6 +4,7 @@ import { AuthContextProvider } from "@/context/authContext";
 import Navigation from "@/components/navigation";
 import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
@@ -90,6 +91,7 @@ export default function Layout({ children }) {
             <ContextProvider>
               {children}
               <Analytics />
+              <SpeedInsights />
             </ContextProvider>
           </main>
         </AuthContextProvider>
