@@ -22,6 +22,6 @@ export async function POST(req) {
         });
     } catch (error) {
         console.error('Request error', error);
-       return NextResponse.json({ error: 'Error Saving token', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error Saving token', success: false }, { status: 500 });
     }
 }

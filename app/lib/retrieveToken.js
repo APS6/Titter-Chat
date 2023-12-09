@@ -1,7 +1,8 @@
 'use client'
 import { initFirebase } from "@/firebase/app";
 import { getMessaging, getToken } from "firebase/messaging";
-export default async function retrieveToken (accessToken){
+
+export default async function retrieveToken(accessToken) {
     const firebaseApp = initFirebase()
     try {
         if (typeof window != 'undefined' && navigator?.serviceWorker) {
@@ -20,19 +21,19 @@ export default async function retrieveToken (accessToken){
                     if (currentToken) {
                         const body = {
                             token: currentToken,
-                          };
-                          try {
-                            const response = await fetch("/api/subscribeToken", {
-                              method: "POST",
-                              headers: {
-                                "Content-Type": "application/json",
-                                Authorization: accessToken,
-                              },
-                              body: JSON.stringify(body),
+                        };
+                        try {
+                            await fetch("/api/subscribeToken", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: accessToken,
+                                },
+                                body: JSON.stringify(body),
                             });
-                          } catch (error) {
-                            console.log("there was an error saving FCM token", error);
-                          }
+                        } catch (error) {
+                            console.log("there was an error saving FCM token", response.error);
+                        }
                     } else {
                         console.log(
                             'No registration token available.'

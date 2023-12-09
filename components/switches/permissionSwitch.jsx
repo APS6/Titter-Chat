@@ -30,7 +30,7 @@ export default function PermissionSwitch({ enabled, setEnabled }) {
 
   const HandleEnabled = async (c) => {
     if (c === true) {
-      await retrieveToken();
+      await retrieveToken(accessToken);
       if (Notification.permission === "granted") {
         queryClient.setQueryData(["settings"], (oldData) => {
           const enableAll =
@@ -62,7 +62,7 @@ export default function PermissionSwitch({ enabled, setEnabled }) {
       await toggleNotifications(false);
     }
   };
-  
+
   return (
     <Switch.Root
       checked={enabled}
