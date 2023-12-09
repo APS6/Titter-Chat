@@ -98,7 +98,8 @@ export async function POST(req) {
                     body: newMessage.content
                 },
                 data: {
-                    disabledPath: `/DMs/${newMessage.sentBy.username}`
+                    disabledPath: `/DMs/${newMessage.sentBy.username}`,
+                    linkPath: `/DMs/${newMessage.sentBy.username}?id=${newMessage.sentById}`
                 },
                 webpush: {
                     notification: {

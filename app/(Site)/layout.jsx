@@ -69,10 +69,23 @@ export default function Layout({ children }) {
           messaging = getMessaging();
 
           onMessage(messaging, (payload) => {
-            if (payload.data?.disabledPath !== pathname)
-              toast(payload.notification.title, {
-                description: payload.notification.body,
-              });
+            if (
+              payload.data?.disabledPath !== pathname &&
+              payload.data?.linkPath !== pathname
+            )
+              if (payload.data?.linkPath) {
+                toast(payload.notification.title, {
+                  description: payload.notification.body,
+                  action: {
+                    label: "View",
+                    onClick: () => router.push(payload.data.linkPath),
+                  },
+                });
+              } else {
+                toast(payload.notification.title, {
+                  description: payload.notification.body,
+                });
+              }
           });
         }
       } catch (error) {
