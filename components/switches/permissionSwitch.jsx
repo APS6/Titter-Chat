@@ -2,6 +2,7 @@ import retrieveToken from "@/app/lib/retrieveToken";
 import * as Switch from "@radix-ui/react-switch";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/context/authContext";
+import { toast } from "sonner";
 
 export default function PermissionSwitch({ enabled, setEnabled }) {
   const queryClient = useQueryClient();
@@ -30,6 +31,9 @@ export default function PermissionSwitch({ enabled, setEnabled }) {
 
   const HandleEnabled = async (c) => {
     if (c === true) {
+      toast.loading("Enabling Notifications, Please wait", {
+        id: "loader",
+      });
       await retrieveToken(accessToken);
       if (Notification.permission === "granted") {
         queryClient.setQueryData(["settings"], (oldData) => {
@@ -50,6 +54,7 @@ export default function PermissionSwitch({ enabled, setEnabled }) {
           }
           return { ...oldData, enableNotifications: true };
         });
+        toast.dismiss("loader");
         await toggleNotifications(true);
       }
     }
