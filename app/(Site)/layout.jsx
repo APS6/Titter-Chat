@@ -69,10 +69,10 @@ export default function Layout({ children }) {
           messaging = getMessaging();
 
           onMessage(messaging, (payload) => {
-            console.log("Message received. ", payload);
-            toast(payload.notification.title, {
-              description: payload.notification.body,
-            });
+            if (payload.data?.disabledPath !== pathname)
+              toast(payload.notification.title, {
+                description: payload.notification.body,
+              });
           });
         }
       } catch (error) {
