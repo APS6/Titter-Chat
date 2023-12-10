@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <div className="h-[100svh] px-1 flex flex-col">
+    <div className="full-height px-1 flex flex-col">
       <Messages />
       <Input />
     </div>

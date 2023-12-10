@@ -129,7 +129,7 @@ export default function Post() {
       body: JSON.stringify(body),
     });
     if (response.status !== 200) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
     return response;
   };
@@ -148,7 +148,7 @@ export default function Post() {
       body: JSON.stringify(body),
     });
     if (response.status !== 200) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
     return response;
   };
@@ -314,7 +314,7 @@ export default function Post() {
   );
 
   return (
-    <div className="h-[100svh] px-1 flex flex-col pt-16 md:py-2">
+    <div className="full-height flex flex-col md:py-2">
       <div className="bg-grey h-full flex flex-col overflow-y-auto rounded-s">
         <div className="flex items-center gap-2 w-full border-b border-b-[#808080] p-1">
           <div
@@ -549,7 +549,9 @@ export default function Post() {
                   : ""}
               </span>
               <div
-                className={`flex py-1 items-center border-y border-y-[#808080] ${post.images.length !== 0 || post.replyToId ? "mt-1" : ""}`}
+                className={`flex py-1 items-center border-y border-y-[#808080] ${
+                  post.images.length !== 0 || post.replyToId ? "mt-1" : ""
+                }`}
               >
                 {/* reply */}
                 <div className="flex-1">

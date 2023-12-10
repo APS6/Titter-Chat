@@ -40,7 +40,7 @@ export default function Input() {
         });
         if (response.status !== 200) {
           console.log("something went wrong");
-          toast.error("Something went wrong")
+          toast.error("Something went wrong");
           setLoading(false);
           setTimeout(() => {
             setShowLoading(false);
@@ -123,7 +123,7 @@ export default function Input() {
   };
 
   return (
-    <div className="bg-[#000] w-full pt-1 pb-2">
+    <div className="bg-[#000] w-full pt-1 pb-1">
       <div className="flex flex-col gap-2 bg-grey rounded ">
         {replying ? (
           <div className="bg-[#222222] flex items-center justify-between py-1 px-2 rounded-tl rounded-tr">

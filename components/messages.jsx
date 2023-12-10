@@ -172,7 +172,7 @@ export default function Messages() {
 
   return (
     <ScrollToBottom
-      className="pt-14 md:pt-0 relative bg-grey overflow-y-auto"
+      className=" relative bg-grey overflow-y-auto"
       followButtonClassName="hidden"
       scrollViewClassName="pt-1"
     >

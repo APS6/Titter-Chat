@@ -45,7 +45,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="mt-16 md:mt-2 px-1 md:px-0">
+    <div className="mt-2 px-1 md:px-0">
       <h1 className="font-bold font-mont text-4xl">Settings</h1>
       <div className=" border-y border-y-grey py-3 mt-4">
         <h2 className="font-bold text-xl pb-1">Notifications</h2>

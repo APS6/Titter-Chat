@@ -6,12 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import qs from 'query-string'
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import qs from "query-string";
 
 import fetchData from "@/app/lib/fetchData";
 import BlockLoader from "@/components/svg/blockLoader";
@@ -53,7 +49,9 @@ export default function Profile() {
   const fetchPosts = async ({ pageParam = undefined }) => {
     const url = qs.stringifyUrl(
       {
-        url: `/api/User/${username}/${likesParam === 'true' ? "likes" : "posts"}`,
+        url: `/api/User/${username}/${
+          likesParam === "true" ? "likes" : "posts"
+        }`,
         query: {
           cursor: pageParam,
         },
@@ -66,18 +64,18 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    if (likesParam === 'true') {
+    if (likesParam === "true") {
       queryClient.prefetchInfiniteQuery({
         queryKey: [username, "likes"],
-        queryFn: fetchPosts
-      })
+        queryFn: fetchPosts,
+      });
     } else {
       queryClient.prefetchInfiniteQuery({
         queryKey: [username, "posts"],
-        queryFn: fetchPosts
-      })
+        queryFn: fetchPosts,
+      });
     }
-  }, [])
+  }, []);
 
   const follow = useMutation({
     mutationFn: () => followHandler(),
@@ -101,7 +99,7 @@ export default function Profile() {
     },
     onError: (err, v, context) => {
       console.log(err);
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
       queryClient.setQueryData(["Profile", username], context.previousData);
     },
     onSuccess: () => {
@@ -141,7 +139,6 @@ export default function Profile() {
     }
   };
 
-
   if (isLoading) {
     return (
       <div className="h-[100svh] w-full grid place-items-center">
@@ -165,13 +162,13 @@ export default function Profile() {
     );
   }
   if (profile === null) {
-    notFound()
+    notFound();
   }
 
   return (
-    <div className="mt-16 md:mt-2 px-1 md:px-0">
+    <div className="mt-2 md:px-0">
       <div>
-        <div className="flex justify-center md:justify-between items-start gap-3 md:gap-8">
+        <div className="flex justify-center px-1 md:justify-between items-start gap-3 md:gap-8">
           {profile?.pfpURL ? (
             <Image
               className="w-12 h-12 md:w-32 md:h-32 object-cover rounded-full"
@@ -313,11 +310,11 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      {likesParam === "true" ? 
-        <ProfilePosts type={"likes"}/>
-       :
-        <ProfilePosts type={"posts"}/>
-      }
+      {likesParam === "true" ? (
+        <ProfilePosts type={"likes"} />
+      ) : (
+        <ProfilePosts type={"posts"} />
+      )}
     </div>
   );
 }

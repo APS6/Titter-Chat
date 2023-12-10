@@ -10,7 +10,7 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import { useQuery} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import BlockLoader from "@/components/svg/blockLoader";
 
 export default function DMs() {
@@ -22,7 +22,6 @@ export default function DMs() {
     enabled: !!accessToken,
   });
 
-
   if (isError) {
     console.log("failed fetching", error);
   }
@@ -30,14 +29,14 @@ export default function DMs() {
   return (
     <>
       {isLoading ? (
-        <div className="h-[100svh] w-full grid place-items-center">
+        <div className="full-height w-full grid place-items-center">
           <BlockLoader />
         </div>
       ) : (
-        <div className="mt-16 md:mt-3 md:ml-4 lg:ml-0 px-1 md:px-0">
+        <div className="mt-3 md:ml-4 lg:ml-0 px-1 md:px-0">
           <h1 className="font-bold font-mont text-4xl">Messages</h1>
           <div className="mt-6">
-            {data?.messages? (
+            {data?.messages ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {data.messages.slice(0, 3).map((convo) => {
                   const sentAt = new Date(convo.sentAt);

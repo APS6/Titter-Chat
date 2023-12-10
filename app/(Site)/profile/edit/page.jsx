@@ -37,12 +37,12 @@ export default function EditProfile() {
   });
 
   useEffect(() => {
-    if (oldData.data){
-      setUsername(oldData.data.username)
-      setBio(oldData.data.bio)
-      setPfp(oldData.data.pfpURL)
+    if (oldData.data) {
+      setUsername(oldData.data.username);
+      setBio(oldData.data.bio);
+      setPfp(oldData.data.pfpURL);
     }
-  }, [oldData?.data])
+  }, [oldData?.data]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -69,13 +69,13 @@ export default function EditProfile() {
           console.log("something went wrong");
         } else {
           console.log("Updated profile successfully");
-          toast.success("Updated profile successfully")
+          toast.success("Updated profile successfully");
           queryClient.invalidateQueries([user.uid]);
           router.push(`/profile/${username}`);
         }
       } catch (error) {
         console.log("there was an error submitting", error);
-        toast.error("Something went wrong")
+        toast.error("Something went wrong");
       }
     }
   };
@@ -120,7 +120,7 @@ export default function EditProfile() {
   }
 
   return (
-    <div className="h-[100svh] w-full grid place-items-center mt-16 md:mt-2 px-1 md:px-0">
+    <div className="full-height w-full grid place-items-center px-1 md:px-0">
       <div className="w-full bg-grey border-[1px] border-[#7b7b7b] rounded">
         <div className="w-full bg-[#000] p-2 flex justify-between items-center border-b-[1px] border-[#7b7b7b] rounded-t">
           <h3 className="font-mont font-bold text-2xl">Edit Profile</h3>
