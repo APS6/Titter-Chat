@@ -96,3 +96,8 @@
 .full-height {
   height: calc(100svh - 49px);
 }
+@media (min-width: 768px) {
+  .full-height {
+    height: 100svh;
+  }
+}
