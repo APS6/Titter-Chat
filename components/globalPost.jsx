@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import RepostIcon from "./svg/repost";
 import sendRepost from "@/app/lib/repost";
 
-export default function GlobalPost({ post, divRef, cUser }) {
+export default function GlobalPost({ post, divRef, cUser, inContext }) {
   const { user, accessToken } = useAuthContext();
   const { setReplying, setReplyingTo } = useStateContext();
   const router = useRouter();
@@ -41,7 +41,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
 
   const sender = post.postedBy;
   const images = post.images;
-
+  const showContext = inContext ? inContext : false;
   const textareaRef = useRef(null);
 
   const localPostedAt = new Date(post.postedAt);
@@ -631,7 +631,7 @@ export default function GlobalPost({ post, divRef, cUser }) {
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
       />
-      {window.innerWidth > 768 ? (
+      {showContext ? (
         <ContextMenu.Portal>
           <ContextMenu.Content
             onClick={(e) => e.stopPropagation()}

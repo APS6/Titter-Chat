@@ -5,7 +5,12 @@ export default function PostContextMenu({ post, divRef, cUser }) {
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
-        <GlobalPost divRef={divRef} post={post} cUser={cUser} />
+        <GlobalPost
+          divRef={divRef}
+          post={post}
+          cUser={cUser}
+          inContext={true}
+        />
       </ContextMenu.Trigger>
     </ContextMenu.Root>
   );
