@@ -70,7 +70,6 @@ export async function POST(req) {
                 }
             }
         })
-        channel.publish(`m_${body.sentById}`, newMessage);
         channel.publish(`m_${body.sentToId}`, newMessage);
 
         const ms = {
@@ -113,7 +112,7 @@ export async function POST(req) {
             admin.messaging().send(message)
         }
 
-        return NextResponse.json({ success: true }, { status: 200 });
+        return NextResponse.json(newMessage, { success: true }, { status: 200 });
     } catch (error) {
         console.error('Request error', error);
         return NextResponse.json({ error: 'Error sending message', success: false }, { status: 500 });

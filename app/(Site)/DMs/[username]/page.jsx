@@ -91,10 +91,7 @@ export default function DMUser({ params }) {
     if (user && chatUser?.data?.user?.id) {
       channel.subscribe(`m_${user.uid}`, (newM) => {
         const newMessage = newM.data;
-        if (
-          newMessage.sentToId === chatUser.data.user.id ||
-          newMessage.sentById === chatUser.data.user.id
-        ) {
+        if (newMessage.sentById === chatUser.data.user.id) {
           queryClient.setQueryData(["dm", username], (oldData) => {
             let newData = [...oldData.pages];
             newData[0] = {
@@ -264,6 +261,7 @@ export default function DMUser({ params }) {
         replyingTo={replyingTo}
         setReplying={setReplying}
         setReplyingTo={setReplyingTo}
+        cUsername={username}
       />
     </div>
   );

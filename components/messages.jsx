@@ -76,18 +76,20 @@ export default function Messages() {
   useEffect(() => {
     channel.subscribe("new_post", (post) => {
       const newPost = post.data;
-      queryClient.setQueryData(["posts"], (oldData) => {
-        let newData = [...oldData.pages];
-        newData[0] = {
-          ...newData[0],
-          items: [newPost, ...newData[0].items],
-        };
+      if (newPost.postedById === user.uid) {
+        queryClient.setQueryData(["posts"], (oldData) => {
+          let newData = [...oldData.pages];
+          newData[0] = {
+            ...newData[0],
+            items: [newPost, ...newData[0].items],
+          };
 
-        return {
-          pages: newData,
-          pageParams: oldData.pageParams,
-        };
-      });
+          return {
+            pages: newData,
+            pageParams: oldData.pageParams,
+          };
+        });
+      }
     });
 
     channel.subscribe("delete_post", (post) => {

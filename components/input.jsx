@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useStateContext } from "@/context/context";
 import CancelBg from "./svg/cancelbg";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Input() {
   const { user, accessToken } = useAuthContext();
@@ -19,6 +20,7 @@ export default function Input() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [images, setImages] = useState([]);
   const textareaRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const sendMessage = async () => {
     if (message.length !== 0 || images.length !== 0 || replyingTo !== null) {
@@ -54,6 +56,18 @@ export default function Input() {
             setReplying(false);
             setReplyingTo(null);
           }
+          queryClient.setQueryData(["posts"], (oldData) => {
+            let newData = [...oldData.pages];
+            newData[0] = {
+              ...newData[0],
+              items: [response.json(), ...newData[0].items],
+            };
+
+            return {
+              pages: newData,
+              pageParams: oldData.pageParams,
+            };
+          });
           setTimeout(() => {
             setShowLoading(false);
           }, 500);

@@ -6,6 +6,7 @@ import { UploadDropzone } from "@uploadthing/react";
 import Image from "next/image";
 import CancelBg from "./svg/cancelbg";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DMInput({
   sendingTo,
@@ -14,6 +15,7 @@ export default function DMInput({
   replyingTo,
   setReplyingTo,
   setReplying,
+  cUsername,
 }) {
   const { user, accessToken } = useAuthContext();
   const [message, setMessage] = useState("");
@@ -23,6 +25,7 @@ export default function DMInput({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [images, setImages] = useState([]);
   const textareaRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const sendMessage = async () => {
     if (message.length !== 0 || images.length !== 0) {
@@ -59,6 +62,17 @@ export default function DMInput({
             setReplying(false);
             setReplyingTo(null);
           }
+          queryClient.setQueryData(["dm", cUsername], (oldData) => {
+            let newData = [...oldData.pages];
+            newData[0] = {
+              ...newData[0],
+              items: [response.json(), ...newData[0].items],
+            };
+            return {
+              pages: newData,
+              pageParams: oldData.pageParams,
+            };
+          });
           setTimeout(() => {
             setShowLoading(false);
           }, 500);
