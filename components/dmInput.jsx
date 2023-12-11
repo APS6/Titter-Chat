@@ -62,20 +62,21 @@ export default function DMInput({
             setReplying(false);
             setReplyingTo(null);
           }
+          setTimeout(() => {
+            setShowLoading(false);
+          }, 500);
+          const newMessage = await response.json();
           queryClient.setQueryData(["dm", cUsername], (oldData) => {
             let newData = [...oldData.pages];
             newData[0] = {
               ...newData[0],
-              items: [response.json(), ...newData[0].items],
+              items: [newMessage, ...newData[0].items],
             };
             return {
               pages: newData,
               pageParams: oldData.pageParams,
             };
           });
-          setTimeout(() => {
-            setShowLoading(false);
-          }, 500);
         }
       } catch (error) {
         console.log("there was an error submitting", error);
