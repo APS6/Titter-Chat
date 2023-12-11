@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-query";
 import qs from "query-string";
 import fetchData from "@/app/lib/fetchData";
+import PostContextMenu from "./postContextMenu";
 
 export default function Messages() {
   const { user } = useAuthContext();
@@ -179,18 +180,34 @@ export default function Messages() {
       <div className="flex flex-col-reverse gap-1">
         {data?.pages?.map((page, pageI, pages) => (
           <Fragment key={pageI}>
-            {page?.items?.map((post, i) => (
-              <GlobalPost
-                key={post.id}
-                divRef={
-                  i === page.items.length - 1 && pageI === pages.length - 1
-                    ? lastDivRef
-                    : null
-                }
-                post={post}
-                cUser={cUser}
-              />
-            ))}
+            {page?.items?.map((post, i) => {
+              if (window.innerWidth > 768) {
+                return (
+                  <PostContextMenu
+                    key={post.id}
+                    divRef={
+                      i === page.items.length - 1 && pageI === pages.length - 1
+                        ? lastDivRef
+                        : null
+                    }
+                    post={post}
+                    cUser={cUser}
+                  />
+                );
+              } else
+                return (
+                  <GlobalPost
+                    key={post.id}
+                    divRef={
+                      i === page.items.length - 1 && pageI === pages.length - 1
+                        ? lastDivRef
+                        : null
+                    }
+                    post={post}
+                    cUser={cUser}
+                  />
+                );
+            })}
           </Fragment>
         ))}
         {isFetchingNextPage ? (

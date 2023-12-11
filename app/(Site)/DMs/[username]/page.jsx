@@ -19,6 +19,7 @@ import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
 import DMMessage from "@/components/dmMessage";
 import ScrollDown from "@/components/svg/scrollDown";
+import DMContextMenu from "@/components/dmContextMenu";
 
 export default function DMUser({ params }) {
   const { username } = params;
@@ -218,16 +219,28 @@ export default function DMUser({ params }) {
         {status !== "loading" ? (
           <div className="flex flex-col-reverse gap-2">
             {messages?.map((message, i) => {
-              return (
-                <DMMessage
-                  key={message.id}
-                  cUsername={username}
-                  divRef={i === messages.length - 1 ? lastDivRef : null}
-                  message={message}
-                  setReplying={setReplying}
-                  setReplyingTo={setReplyingTo}
-                />
-              );
+              if (window.innerWidth > 768) {
+                return (
+                  <DMContextMenu
+                    key={message.id}
+                    cUsername={username}
+                    divRef={i === messages.length - 1 ? lastDivRef : null}
+                    message={message}
+                    setReplying={setReplying}
+                    setReplyingTo={setReplyingTo}
+                  />
+                );
+              } else
+                return (
+                  <DMMessage
+                    key={message.id}
+                    cUsername={username}
+                    divRef={i === messages.length - 1 ? lastDivRef : null}
+                    message={message}
+                    setReplying={setReplying}
+                    setReplyingTo={setReplyingTo}
+                  />
+                );
             })}
             <ScrollDown />
             {isFetchingNextPage ? (

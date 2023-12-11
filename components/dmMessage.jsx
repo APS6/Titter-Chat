@@ -197,8 +197,8 @@ export default function DMMessage({
   );
 
   return (
-    <ContextMenu.Root>
-      <ContextMenu.Trigger
+    <>
+      <div
         ref={divRef}
         className={` flex flex-col w-full gap-1 group ${
           received ? "self-start items-start" : "self-end items-end"
@@ -311,6 +311,7 @@ export default function DMMessage({
             <Popover.Root
               open={popoverOpen}
               onOpenChange={(open) => setPopoverOpen(open)}
+              modal={true}
             >
               <Popover.Trigger
                 className={`pc-opacity-0 self-center group-hover:opacity-100 ${
@@ -362,29 +363,45 @@ export default function DMMessage({
         <span className="text-xs text-lightwht leading-none">
           {formattedPostedAt}
         </span>
-      </ContextMenu.Trigger>
-      <ContextMenu.Portal>
-        <ContextMenu.Content
-          collisionPadding={{ bottom: 70 }}
-          className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
-        >
-          {!received ? (
-            <ContextMenu.Group>
-              <ContextMenu.Item
-                onClick={() => deleteMessage.mutate()}
-                className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
-              >
-                <TrashIcon />
-                <span>Delete</span>
-              </ContextMenu.Item>
+      </div>
+      {window.innerWidth > 768 ? (
+        <ContextMenu.Portal>
+          <ContextMenu.Content
+            collisionPadding={{ bottom: 70 }}
+            className="bg-[#282828] rounded min-w-[10rem] p-1 flex flex-col gap-[2px]"
+          >
+            {!received ? (
+              <ContextMenu.Group>
+                <ContextMenu.Item
+                  onClick={() => deleteMessage.mutate()}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-[#ee4a4a]"
+                >
+                  <TrashIcon />
+                  <span>Delete</span>
+                </ContextMenu.Item>
 
-              <ContextMenu.Item
-                onClick={() => setEditing(true)}
-                className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-              >
-                <EditIcon />
-                <span>Edit</span>
-              </ContextMenu.Item>
+                <ContextMenu.Item
+                  onClick={() => setEditing(true)}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                >
+                  <EditIcon />
+                  <span>Edit</span>
+                </ContextMenu.Item>
+                <ContextMenu.Item
+                  onClick={() => {
+                    setReplying(true);
+                    setReplyingTo({
+                      messageId: message.id,
+                      content: message.content,
+                    });
+                  }}
+                  className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
+                >
+                  <ReplyIcon />
+                  <span>Reply</span>
+                </ContextMenu.Item>
+              </ContextMenu.Group>
+            ) : (
               <ContextMenu.Item
                 onClick={() => {
                   setReplying(true);
@@ -398,29 +415,17 @@ export default function DMMessage({
                 <ReplyIcon />
                 <span>Reply</span>
               </ContextMenu.Item>
-            </ContextMenu.Group>
-          ) : (
-            <ContextMenu.Item
-              onClick={() => {
-                setReplying(true);
-                setReplyingTo({
-                  messageId: message.id,
-                  content: message.content,
-                });
-              }}
-              className="flex items-center p-1 rounded gap-2 cursor-pointer hover:outline-0 hover:bg-purple"
-            >
-              <ReplyIcon />
-              <span>Reply</span>
-            </ContextMenu.Item>
-          )}
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
+            )}
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      ) : (
+        ""
+      )}
       <ImageDialog
         selectedUrl={selectedUrl}
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
       />
-    </ContextMenu.Root>
+    </>
   );
 }
