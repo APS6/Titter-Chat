@@ -223,9 +223,9 @@ export default function Input() {
             <Dialog.Portal>
               <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-50" />
               <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-grey rounded flex flex-col p-4">
-                <div className="flex justify-between w-full pb-2 border-b-lightwht border-b">
+                <div className="flex justify-between w-full pb-1 border-b-lightwht border-b">
                   <Dialog.Title className="text-xl">Upload Images</Dialog.Title>
-                  <Dialog.Close className="text-lightwht hover:text-[#878787] ">
+                  <Dialog.Close className=" text-slate-300 rounded-full hover:bg-[#343434] p-1">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="1.5rem"
