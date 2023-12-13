@@ -197,14 +197,14 @@ export default function FollowTabs({
             {follow.following ? (
               <button
                 onClick={() => unfollowUser.mutate(follow.follower.id)}
-                className=" bg-black border-1 border-white rounded-2xl p-1 px-3"
+                className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
               >
                 Following
               </button>
             ) : (
               <button
                 onClick={() => followUser.mutate(follow.follower.id)}
-                className="bg-white text-black rounded-2xl"
+                className="bg-white text-black rounded-2xl py-1 px-3"
               >
                 Follow
               </button>
@@ -236,7 +236,7 @@ export default function FollowTabs({
             </div>
             <button
               onClick={() => unfollowUser.mutate(follow.following.id)}
-              className=" bg-black border-1 border-white rounded-2xl p-1 px-3"
+              className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
             >
               Following
             </button>
