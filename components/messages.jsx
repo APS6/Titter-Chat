@@ -154,10 +154,6 @@ export default function Messages() {
         };
       });
     });
-
-    return () => {
-      channel.unsubscribe();
-    };
   }, []);
 
   if (status === "loading") {

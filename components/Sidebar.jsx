@@ -80,9 +80,6 @@ export default function Sidebar() {
         updateMessages(newMessage);
       });
     }
-    return () => {
-      channel.unsubscribe();
-    };
   }, [user]);
 
   if (isError) {

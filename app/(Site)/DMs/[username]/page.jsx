@@ -168,9 +168,6 @@ export default function DMUser({ params }) {
         });
       });
     }
-    return () => {
-      channel.unsubscribe();
-    };
   }, [user, chatUser?.data?.user?.id]);
 
   if (status === "error") {
