@@ -25,7 +25,7 @@ export default function Profile() {
   const searchParams = useSearchParams();
   const likesParam = searchParams.get("likes");
   const dialogValue = searchParams.get("showFollow");
-  const showDialog = dialogValue !== "false";
+  const showDialog = dialogValue && dialogValue !== "false";
   const createQueryString = useCallback(
     (name, value) => {
       const params = new URLSearchParams(searchParams);
