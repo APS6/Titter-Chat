@@ -26,7 +26,12 @@ export default function DMUser({ params }) {
   document.title = `${username} | Message | Titter The Chat App`;
 
   const channel = ably.channels.get("dm");
-
+  ably.connection.on("connected", () => {
+    console.log("Connected to Ably!");
+  });
+  ably.connection.on("disconnected", () => {
+    console.log("disconnected from Ably!");
+  });
   const searchParams = useSearchParams();
   const chatUserId = searchParams.get("id");
   const queryClient = useQueryClient();
@@ -88,9 +93,11 @@ export default function DMUser({ params }) {
   }, [inView]);
 
   useEffect(() => {
+    console.log("messages effect");
     if (user && chatUser?.data?.user?.id) {
       channel.subscribe(`m_${user.uid}`, (newM) => {
         const newMessage = newM.data;
+        console.log("Received message");
         if (newMessage.sentById === chatUser.data.user.id) {
           queryClient.setQueryData(["dm", username], (oldData) => {
             let newData = [...oldData.pages];
@@ -168,6 +175,10 @@ export default function DMUser({ params }) {
         });
       });
     }
+    return () => {
+      channel.unsubscribe();
+      console.log("effect closed");
+    };
   }, [user, chatUser?.data?.user?.id]);
 
   if (status === "error") {

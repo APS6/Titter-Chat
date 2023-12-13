@@ -23,7 +23,12 @@ export default function Messages() {
   const { user } = useAuthContext();
 
   const channel = ably.channels.get("global");
-
+  ably.connection.on("connected", () => {
+    console.log("Connected to Ably!");
+  });
+  ably.connection.on("disconnected", () => {
+    console.log("disconnected from Ably!");
+  });
   const queryClient = useQueryClient();
 
   const { ref: lastDivRef, inView } = useInView();
@@ -74,6 +79,7 @@ export default function Messages() {
   }, [inView]);
 
   useEffect(() => {
+    console.log("messages effect");
     channel.subscribe("new_post", (post) => {
       const newPost = post.data;
       if (newPost.postedById === user.uid) {
@@ -154,6 +160,10 @@ export default function Messages() {
         };
       });
     });
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
 
   if (status === "loading") {
