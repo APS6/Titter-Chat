@@ -12,6 +12,8 @@ import qs from "query-string";
 import fetchData from "@/app/lib/fetchData";
 import BlockLoader from "@/components/svg/blockLoader";
 import ProfilePosts from "@/components/ProfilePosts";
+import * as Dialog from "@radix-ui/react-dialog";
+import FollowTabs from "@/components/followTabs";
 
 export default function Profile() {
   const { user, accessToken } = useAuthContext();
@@ -22,7 +24,8 @@ export default function Profile() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const likesParam = searchParams.get("likes");
-
+  const dialogValue = searchParams.get("showFollow");
+  const showDialog = dialogValue !== "false";
   const createQueryString = useCallback(
     (name, value) => {
       const params = new URLSearchParams(searchParams);
@@ -139,6 +142,16 @@ export default function Profile() {
     }
   };
 
+  const handleDialog = (open) => {
+    if (open === false) {
+      router.push(pathname + "?" + createQueryString("showFollow", "false"));
+    }
+  };
+
+  const handleTabParams = (value) => {
+    router.push(pathname + "?" + createQueryString("showFollow", value));
+  };
+
   if (isLoading) {
     return (
       <div className="h-[100svh] w-full grid place-items-center">
@@ -198,10 +211,28 @@ export default function Profile() {
                   {username}
                 </h2>
                 <div className="flex gap-2">
-                  <span className="text-sm">
+                  <span
+                    className="text-sm hover:underline cursor-pointer"
+                    onClick={() =>
+                      router.push(
+                        pathname +
+                          "?" +
+                          createQueryString("showFollow", "followers")
+                      )
+                    }
+                  >
                     {profile?.followerCount} Followers
                   </span>
-                  <span className="text-sm">
+                  <span
+                    className="text-sm hover:underline cursor-pointer"
+                    onClick={() =>
+                      router.push(
+                        pathname +
+                          "?" +
+                          createQueryString("showFollow", "following")
+                      )
+                    }
+                  >
                     {profile?.followingCount} Following
                   </span>
                 </div>
@@ -315,6 +346,39 @@ export default function Profile() {
       ) : (
         <ProfilePosts type={"posts"} />
       )}
+
+      <Dialog.Root
+        open={showDialog}
+        onOpenChange={(open) => handleDialog(open)}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-[#000000] opacity-50" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-grey w-80 rounded flex flex-col p-4">
+            <div className="flex justify-between w-full pb-2">
+              <Dialog.Title className="text-xl">{username}</Dialog.Title>
+              <Dialog.Close className="text-lightwht hover:text-[#878787] ">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="1.5rem"
+                  height="1.5rem"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    fill="currentColor"
+                    d="m12 13.4l-4.9 4.9q-.275.275-.7.275t-.7-.275q-.275-.275-.275-.7t.275-.7l4.9-4.9l-4.9-4.9q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275l4.9 4.9l4.9-4.9q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7L13.4 12l4.9 4.9q.275.275.275.7t-.275.7q-.275.275-.7.275t-.7-.275L12 13.4Z"
+                  ></path>
+                </svg>
+              </Dialog.Close>
+            </div>
+            <FollowTabs
+              defaultValue={dialogValue}
+              profileUsername={username}
+              handleTabParams={handleTabParams}
+            />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }
