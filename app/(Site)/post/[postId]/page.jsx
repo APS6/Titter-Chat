@@ -4,7 +4,6 @@ import { useAuthContext } from "@/context/authContext";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import { ably } from "@/app/lib/webSocket";
 import Linkify from "react-linkify";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
@@ -26,12 +25,12 @@ import Input from "@/components/input";
 import ReplyIcon from "@/components/svg/replyIcon";
 import sendRepost from "@/app/lib/repost";
 import RepostIcon from "@/components/svg/repost";
+import { useChannel } from "ably/react";
 
 export default function Post() {
   const { user, accessToken } = useAuthContext();
   const { replying, setReplying, setReplyingTo } = useStateContext();
   const { postId } = useParams();
-  const channel = ably.channels.get("likes");
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(null);
@@ -47,6 +46,17 @@ export default function Post() {
   const router = useRouter();
 
   const queryClient = useQueryClient();
+
+  useChannel("likes", (message) => {
+    const newLikes = message.data;
+    if (newLikes.postId === post.id && newLikes.userId !== user.uid) {
+      if (newLikes.action === "like") {
+        setLikeCount((prevCount) => prevCount + 1);
+      } else if (newLikes.action === "dislike") {
+        setLikeCount((prevCount) => prevCount - 1);
+      }
+    }
+  });
 
   const {
     data: post,
@@ -242,23 +252,6 @@ export default function Post() {
       }
     );
   };
-
-  useEffect(() => {
-    channel.subscribe("new_like", (data) => {
-      const newLikes = data.data;
-      if (newLikes.postId === post.id && newLikes.userId !== user.uid) {
-        if (newLikes.action === "like") {
-          setLikeCount((prevCount) => prevCount + 1);
-        } else if (newLikes.action === "dislike") {
-          setLikeCount((prevCount) => prevCount - 1);
-        }
-      }
-    });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     if (post) {

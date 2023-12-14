@@ -9,29 +9,22 @@ import Loader from "./svg/loader";
 import BlockLoader from "./svg/blockLoader";
 import ScrollDown from "./svg/scrollDown";
 
-import { ably } from "@/app/lib/webSocket";
 import {
   useInfiniteQuery,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import qs from "query-string";
+import useGlobalSocket from "@/app/hooks/globalChatSocket";
 import fetchData from "@/app/lib/fetchData";
 import PostContextMenu from "./postContextMenu";
 
 export default function Messages() {
   const { user } = useAuthContext();
 
-  const channel = ably.channels.get("global");
-  ably.connection.on("connected", () => {
-    console.log("Connected to Ably!");
-  });
-  ably.connection.on("disconnected", () => {
-    console.log("disconnected from Ably!");
-  });
-  const queryClient = useQueryClient();
-
   const { ref: lastDivRef, inView } = useInView();
+
+  useGlobalSocket();
 
   const fetchPosts = async ({ pageParam = undefined }) => {
     const url = qs.stringifyUrl(
@@ -77,94 +70,6 @@ export default function Messages() {
       fetchNextPage();
     }
   }, [inView]);
-
-  useEffect(() => {
-    console.log("messages effect");
-    channel.subscribe("new_post", (post) => {
-      const newPost = post.data;
-      if (newPost.postedById === user.uid) {
-        queryClient.setQueryData(["posts"], (oldData) => {
-          let newData = [...oldData.pages];
-          newData[0] = {
-            ...newData[0],
-            items: [newPost, ...newData[0].items],
-          };
-
-          return {
-            pages: newData,
-            pageParams: oldData.pageParams,
-          };
-        });
-      }
-    });
-
-    channel.subscribe("delete_post", (post) => {
-      const rmPost = post.data;
-      if (rmPost.removerId !== user.uid) {
-        queryClient.setQueryData(["posts"], (old) => {
-          const newData = old.pages.map((pg) => {
-            return {
-              ...pg,
-              items: pg.items.reduce((acc, p) => {
-                if (p.id === rmPost.id) {
-                  return acc;
-                } else if (p.reply?.replyToId === rmPost.id) {
-                  acc.push({ ...p, reply: { replyToId: null } });
-                } else {
-                  acc.push(p);
-                }
-                return acc;
-              }, []),
-            };
-          });
-          return {
-            pages: newData,
-            pageParams: old.pageParams,
-            c: old.c ? old.c + 1 : 1,
-          };
-        });
-      }
-    });
-
-    channel.subscribe("edit_post", (post) => {
-      const edPost = post.data;
-      queryClient.setQueryData(["posts"], (old) => {
-        const newData = old.pages.map((pg) => {
-          return {
-            ...pg,
-            items: pg.items.reduce((acc, p) => {
-              if (p.id === edPost.id) {
-                acc.push(edPost);
-              } else if (p.reply?.replyToId === edPost.id) {
-                acc.push({
-                  ...p,
-                  reply: {
-                    ...p.reply,
-                    replyToPost: {
-                      ...p.reply.replyToPost,
-                      content: edPost.content,
-                    },
-                  },
-                });
-              } else {
-                acc.push(p);
-              }
-              return acc;
-            }, []),
-          };
-        });
-        return {
-          pages: newData,
-          pageParams: old.pageParams,
-          c: old.c ? old.c + 1 : 1,
-        };
-      });
-    });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
 
   if (status === "loading") {
     return (

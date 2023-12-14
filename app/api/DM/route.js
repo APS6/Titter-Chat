@@ -4,9 +4,6 @@ import { ably } from "@/app/lib/webSocket";
 import admin from "@/app/lib/firebaseAdmin";
 import { headers } from "next/headers";
 
-const channel = ably.channels.get("dm");
-const sidebar = ably.channels.get("sidebar");
-
 export async function POST(req) {
     const body = await req.json()
     const headersList = headers();
@@ -70,7 +67,8 @@ export async function POST(req) {
                 }
             }
         })
-        channel.publish(`m_${body.sentToId}`, newMessage);
+        const dmChannel = ably.channels.get(`dm-${body.sentToId}-${newMessage.sentBy.username}`)
+        dmChannel.publish(`new`, newMessage);
 
         const ms = {
             content: newMessage.content,
@@ -79,7 +77,8 @@ export async function POST(req) {
             username: newMessage.sentTo.username,
             pfpURL: newMessage.sentTo.pfpURL,
         }
-        sidebar.publish(`ms_${body.sentById}`, ms);
+        const sidebarSender = ably.channels.get(`sidebar-${body.sentById}`)
+        sidebarSender.publish(`message`, ms);
         const mr = {
             content: newMessage.content,
             sentAt: newMessage.sentAt,
@@ -87,7 +86,8 @@ export async function POST(req) {
             username: newMessage.sentBy.username,
             pfpURL: newMessage.sentBy.pfpURL,
         }
-        sidebar.publish(`mr_${body.sentToId}`, mr);
+        const sidebarReceiver = ably.channels.get(`sidebar-${body.sentToId}`)
+        sidebarReceiver.publish(`message`, mr);
 
         if (newMessage.sentTo.enableNotifications && newMessage.sentTo.notifyDMs) {
             const message = {
@@ -155,10 +155,16 @@ export async function DELETE(req) {
             select: {
                 id: true,
                 sentById: true,
+                sentBy: {
+                    select: {
+                        username: true,
+                    }
+                },
                 sentToId: true,
             }
         })
-        channel.publish(`delete_dm_${deleted.sentToId}`, { id: deleted.id });
+        const dmChannel = ably.channels.get(`dm-${deleted.sentToId}-${deleted.sentBy.username}`)
+        dmChannel.publish(`deleted`, { id: deleted.id });
         return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error) {
@@ -216,9 +222,15 @@ export async function PATCH(req) {
                         }
                     }
                 },
+                sentBy: {
+                    select: {
+                        username: true
+                    }
+                }
             },
         })
-        channel.publish(`edit_dm_${newMessage.sentToId}`, newMessage);
+        const dmChannel = ably.channels.get(`dm-${newMessage.sentToId}-${newMessage.sentBy.username}`)
+        dmChannel.publish(`edited`, newMessage);
         return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error) {

@@ -18,6 +18,8 @@ import { redirect, usePathname, useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { getMessaging, onMessage, isSupported } from "firebase/messaging";
 import BellIcon from "@/components/svg/bellIcon";
+import { AblyProvider } from "ably/react";
+import * as Ably from "ably";
 const queryClient = new QueryClient();
 
 export default function Layout({ children }) {
@@ -25,6 +27,18 @@ export default function Layout({ children }) {
   const [user, loading, error] = useAuthState(auth);
   const pathname = usePathname();
   const router = useRouter();
+  let client = null;
+
+  try {
+    if (!!user?.uid) {
+      client = Ably.Realtime.Promise({
+        authUrl: `/api/ablyToken/${user?.uid}`,
+      });
+    }
+  } catch (error) {
+    console.error("Error initializing Ably client:", error);
+  }
+
   if (!user && !loading && !error) {
     redirect("/SignIn");
   }
@@ -99,14 +113,16 @@ export default function Layout({ children }) {
       <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
-          <Navigation />
-          <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
-            <ContextProvider>
-              {children}
-              <Analytics />
-              <SpeedInsights />
-            </ContextProvider>
-          </main>
+          <AblyProvider client={client}>
+            <Navigation />
+            <main className="w-full md:w-[70%] max-w-4xl m-auto md:ml-52 lg:ml-60 h-full">
+              <ContextProvider>
+                {children}
+                <Analytics />
+                <SpeedInsights />
+              </ContextProvider>
+            </main>
+          </AblyProvider>
         </AuthContextProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

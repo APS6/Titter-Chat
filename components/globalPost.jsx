@@ -3,7 +3,6 @@ import { useAuthContext } from "@/context/authContext";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import { ably } from "@/app/lib/webSocket";
 import Linkify from "react-linkify";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
@@ -20,12 +19,12 @@ import { useStateContext } from "@/context/context";
 import { useRouter } from "next/navigation";
 import RepostIcon from "./svg/repost";
 import sendRepost from "@/app/lib/repost";
+import { useChannel } from "ably/react";
 
 export default function GlobalPost({ post, divRef, cUser, inContext }) {
   const { user, accessToken } = useAuthContext();
   const { setReplying, setReplyingTo } = useStateContext();
   const router = useRouter();
-  const channel = ably.channels.get("likes");
 
   const [liked, setLiked] = useState(
     post.likes ? post.likes.some((like) => like.userId === user.uid) : false
@@ -48,6 +47,17 @@ export default function GlobalPost({ post, divRef, cUser, inContext }) {
   const formattedPostedAt = format(localPostedAt, "dd/MM/yy hh:mm a");
 
   const queryClient = useQueryClient();
+
+  useChannel("likes", (message) => {
+    const newLikes = message.data;
+    if (newLikes.postId === post.id && newLikes.userId !== user.uid) {
+      if (newLikes.action === "like") {
+        setLikeCount((prevCount) => prevCount + 1);
+      } else if (newLikes.action === "dislike") {
+        setLikeCount((prevCount) => prevCount - 1);
+      }
+    }
+  });
 
   const deletePost = useMutation({
     mutationFn: () => deletePostFn(),
@@ -239,23 +249,6 @@ export default function GlobalPost({ post, divRef, cUser, inContext }) {
   };
 
   useEffect(() => {
-    channel.subscribe("new_like", (data) => {
-      const newLikes = data.data;
-      if (newLikes.postId === post.id && newLikes.userId !== user.uid) {
-        if (newLikes.action === "like") {
-          setLikeCount((prevCount) => prevCount + 1);
-        } else if (newLikes.action === "dislike") {
-          setLikeCount((prevCount) => prevCount - 1);
-        }
-      }
-    });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
     if (post.edited) {
       setContent(post.content);
     }
@@ -345,7 +338,11 @@ export default function GlobalPost({ post, divRef, cUser, inContext }) {
               )}
             </p>
           ) : editing ? (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+            <form
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-2"
+            >
               <textarea
                 ref={textareaRef}
                 className="outline-0 bg-[transparent] max-h-[500px] resize-none"

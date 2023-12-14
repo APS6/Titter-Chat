@@ -2,7 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import fetchData from "@/app/lib/fetchData";
-import { useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { getAuth, signOut } from "firebase/auth";
 import { initFirebase } from "@/firebase/app";
@@ -13,16 +12,14 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import { ably } from "@/app/lib/webSocket";
 import { useRouter } from "next/navigation";
 import Loader from "./svg/loader";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
+import { useChannel } from "ably/react";
 
 export default function Sidebar() {
   const { user, accessToken } = useAuthContext();
-
-  const channel = ably.channels.get("sidebar");
 
   const router = useRouter();
 
@@ -68,22 +65,11 @@ export default function Sidebar() {
       return { user: oldData.user, messages: messages };
     });
   };
-
-  useEffect(() => {
-    if (user?.uid) {
-      channel.subscribe(`ms_${user?.uid}`, (newM) => {
-        updateMessages(newM.data);
-      });
-
-      channel.subscribe(`mr_${user?.uid}`, (newM) => {
-        const newMessage = newM.data;
-        updateMessages(newMessage);
-      });
-    }
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [user]);
+  if (user) {
+    const { channel } = useChannel(`sidebar-${user.uid}`, (message) => {
+      updateMessages(message.data);
+    });
+  }
 
   if (isError) {
     console.log("failed fetching", error);

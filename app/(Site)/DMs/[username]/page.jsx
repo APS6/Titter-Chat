@@ -7,45 +7,38 @@ import { useInView } from "react-intersection-observer";
 import { useAuthContext } from "@/context/authContext";
 import fetchData from "@/app/lib/fetchData";
 import ScrollToBottom from "react-scroll-to-bottom";
-import { ably } from "@/app/lib/webSocket";
 import qs from "query-string";
-import {
-  useInfiniteQuery,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import DMInput from "@/components/dmInput";
 import BlockLoader from "@/components/svg/blockLoader";
 import Loader from "@/components/svg/loader";
 import DMMessage from "@/components/dmMessage";
 import ScrollDown from "@/components/svg/scrollDown";
 import DMContextMenu from "@/components/dmContextMenu";
+import useDMSocket from "@/app/hooks/dmSocket";
 
 export default function DMUser({ params }) {
   const { username } = params;
   document.title = `${username} | Message | Titter The Chat App`;
 
-  const channel = ably.channels.get("dm");
-  ably.connection.on("connected", () => {
-    console.log("Connected to Ably!");
-  });
-  ably.connection.on("disconnected", () => {
-    console.log("disconnected from Ably!");
-  });
   const searchParams = useSearchParams();
   const chatUserId = searchParams.get("id");
-  const queryClient = useQueryClient();
+
   const { ref: lastDivRef, inView } = useInView();
 
   const { user, accessToken } = useAuthContext();
   const [replying, setReplying] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
 
+  useDMSocket({
+    userId: user?.uid,
+    cUsername: username,
+  });
+
   const chatUser = useQuery({
     queryKey: ["chatU", username],
     queryFn: () => fetchData(`chatUser/${username}/${accessToken}`),
     enabled: !!accessToken,
-    refetchOnWindowFocus: false,
   });
 
   const fetchMessages = async ({ pageParam = undefined }) => {
@@ -91,95 +84,6 @@ export default function DMUser({ params }) {
       fetchNextPage();
     }
   }, [inView]);
-
-  useEffect(() => {
-    console.log("messages effect");
-    if (user && chatUser?.data?.user?.id) {
-      channel.subscribe(`m_${user.uid}`, (newM) => {
-        const newMessage = newM.data;
-        console.log("Received message");
-        if (newMessage.sentById === chatUser.data.user.id) {
-          queryClient.setQueryData(["dm", username], (oldData) => {
-            let newData = [...oldData.pages];
-            newData[0] = {
-              ...newData[0],
-              items: [newMessage, ...newData[0].items],
-            };
-            return {
-              pages: newData,
-              pageParams: oldData.pageParams,
-            };
-          });
-        }
-      });
-
-      channel.subscribe(`delete_dm_${user.uid}`, (nMessage) => {
-        const rmMsg = nMessage.data;
-        queryClient.setQueryData(["dm", username], (old) => {
-          const newData = old.pages.map((pg) => {
-            return {
-              ...pg,
-              items: pg.items.reduce((acc, p) => {
-                if (p.id === rmMsg.id) {
-                  return acc;
-                } else if (p.reply?.replyToId === rmMsg.id) {
-                  acc.push({ ...p, reply: { replyToId: null } });
-                } else {
-                  acc.push(p);
-                }
-                return acc;
-              }, []),
-            };
-          });
-          return {
-            pages: newData,
-            pageParams: old.pageParams,
-            c: old.c ? old.c + 1 : 1,
-          };
-        });
-      });
-
-      channel.subscribe(`edit_dm_${user.uid}`, (nMessage) => {
-        const edMsg = nMessage.data;
-        queryClient.setQueryData(["dm", username], (old) => {
-          const newData = old.pages.map((pg) => {
-            return {
-              ...pg,
-              items: pg.items.reduce((acc, p) => {
-                if (p.id === edMsg.id) {
-                  acc.push(edMsg);
-                } else if (p.reply?.replyToId === edMsg.id) {
-                  acc.push({
-                    ...p,
-                    reply: {
-                      ...p.reply,
-                      replyToMessage: {
-                        ...p.reply.replyToMessage,
-                        content: edMsg.content,
-                        edited: true,
-                      },
-                    },
-                  });
-                } else {
-                  acc.push(p);
-                }
-                return acc;
-              }, []),
-            };
-          });
-          return {
-            pages: newData,
-            pageParams: old.pageParams,
-            c: old.c ? old.c + 1 : 1,
-          };
-        });
-      });
-    }
-    return () => {
-      channel.unsubscribe();
-      console.log("effect closed");
-    };
-  }, [user, chatUser?.data?.user?.id]);
 
   if (status === "error") {
     console.error("Error Fetching Messages: ", error);
