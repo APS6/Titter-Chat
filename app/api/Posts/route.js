@@ -82,9 +82,6 @@ export async function POST(req) {
                 notification: {
                     title: `${newPost.postedBy.username} replied to your post`,
                     body: newPost.content
-                }, data: {
-                    linkPath: `/post/${newPost.id}`,
-                    disabledPath: `/Home`
                 },
                 webpush: {
                     notification: {

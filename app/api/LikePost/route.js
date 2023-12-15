@@ -51,10 +51,6 @@ export async function POST(req) {
                         title: `${newLike.user.username} liked your post`,
                         body: newLike.post.content
                     },
-                    data: {
-                        linkPath: `/post/${newLike.postId}`,
-                        disabledPath: `/Home`
-                    },
                     webpush: {
                         notification: {
                             icon: "https://titter-chat.vercel.app/newlogo.png",

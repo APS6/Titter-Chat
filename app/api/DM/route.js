@@ -98,10 +98,6 @@ export async function POST(req) {
                     title: `${newMessage.sentBy.username} sent a message`,
                     body: newMessage.content
                 },
-                data: {
-                    disabledPath: `/DMs/${newMessage.sentBy.username}`,
-                    linkPath: `/DMs/${newMessage.sentBy.username}?id=${newMessage.sentById}`
-                },
                 webpush: {
                     notification: {
                         icon: "https://titter-chat.vercel.app/newlogo.png"
