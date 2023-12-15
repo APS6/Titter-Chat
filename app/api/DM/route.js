@@ -76,6 +76,7 @@ export async function POST(req) {
             id: newMessage.sentToId,
             username: newMessage.sentTo.username,
             pfpURL: newMessage.sentTo.pfpURL,
+            received: false,
         }
         const sidebarSender = ably.channels.get(`sidebar-${body.sentById}`)
         sidebarSender.publish(`message`, ms);
@@ -85,6 +86,7 @@ export async function POST(req) {
             id: newMessage.sentById,
             username: newMessage.sentBy.username,
             pfpURL: newMessage.sentBy.pfpURL,
+            received: true,
         }
         const sidebarReceiver = ably.channels.get(`sidebar-${body.sentToId}`)
         sidebarReceiver.publish(`message`, mr);

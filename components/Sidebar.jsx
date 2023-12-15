@@ -12,17 +12,18 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Loader from "./svg/loader";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useChannel } from "ably/react";
+import { toast } from "sonner";
 
 export default function Sidebar() {
   const { user, accessToken } = useAuthContext();
 
   const router = useRouter();
-
+  const pathname = usePathname();
   const auth = getAuth(initFirebase());
 
   const handleSignOut = async () => {
@@ -67,7 +68,16 @@ export default function Sidebar() {
   };
   if (user) {
     const { channel } = useChannel(`sidebar-${user.uid}`, (message) => {
-      updateMessages(message.data);
+      const Msg = message.data;
+      updateMessages(Msg);
+      if (Msg.received && `/DMs/${Msg.username}` !== pathname)
+        toast(`${Msg.username} sent you a message`, {
+          description: Msg.content,
+          action: {
+            label: "View",
+            onClick: () => router.push(`/DMs/${Msg.username}?id=${Msg.id}`),
+          },
+        });
     });
   }
 
