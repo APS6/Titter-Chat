@@ -194,20 +194,24 @@ export default function FollowTabs({
                 </h3>
               </Link>
             </div>
-            {follow.following ? (
-              <button
-                onClick={() => unfollowUser.mutate(follow.follower.id)}
-                className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
-              >
-                Following
-              </button>
+            {user.uid === profile.id ? (
+              follow.following ? (
+                <button
+                  onClick={() => unfollowUser.mutate(follow.follower.id)}
+                  className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
+                >
+                  Following
+                </button>
+              ) : (
+                <button
+                  onClick={() => followUser.mutate(follow.follower.id)}
+                  className="bg-white text-black rounded-2xl py-1 px-3"
+                >
+                  Follow
+                </button>
+              )
             ) : (
-              <button
-                onClick={() => followUser.mutate(follow.follower.id)}
-                className="bg-white text-black rounded-2xl py-1 px-3"
-              >
-                Follow
-              </button>
+              ""
             )}
           </div>
         ))}
@@ -234,12 +238,16 @@ export default function FollowTabs({
                 </h3>
               </Link>
             </div>
-            <button
-              onClick={() => unfollowUser.mutate(follow.following.id)}
-              className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
-            >
-              Following
-            </button>
+            {user.uid === profile.id ? (
+              <button
+                onClick={() => unfollowUser.mutate(follow.following.id)}
+                className=" bg-black border-1 border-white rounded-2xl py-1 px-3"
+              >
+                Following
+              </button>
+            ) : (
+              ""
+            )}
           </div>
         ))}
       </Tabs.Content>

@@ -128,7 +128,7 @@ export default function Profile() {
     } else if (!profile.following) {
       const body = {
         followerId: user.uid,
-        followingId: profile.user.id,
+        followingId: profile.id,
       };
       const response = await fetch("/api/Follow", {
         method: "DELETE",
