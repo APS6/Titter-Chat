@@ -120,7 +120,7 @@ export default function DMUser({ params }) {
           </h2>
         </div>
       </Link>
-      <div className="flex flex-col h-[calc(100svh-44px)] justify-between">
+      <div className="flex flex-col h-[calc(100svh-44px-49px)] md:h-[calc(100svh-44px)] justify-between">
         <ScrollToBottom
           className="relative mt-1 overflow-y-auto"
           followButtonClassName="hidden"

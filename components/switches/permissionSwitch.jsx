@@ -54,6 +54,7 @@ export default function PermissionSwitch({ enabled, setEnabled }) {
           }
           return { ...oldData, enableNotifications: true };
         });
+        setEnabled(true);
         toast.dismiss("loader");
         await toggleNotifications(true);
       }
