@@ -103,7 +103,7 @@ export default function DMUser({ params }) {
   return (
     <div className="full-height px-1 pt-1">
       <Link href={`/profile/${username}`}>
-        <div className="flex gap-2 pl-2 items-center">
+        <div className="flex gap-2 pl-2 md:pl-0 items-center">
           {chatUser?.data?.user?.pfpURL ? (
             <Image
               src={chatUser?.data?.user?.pfpURL}
