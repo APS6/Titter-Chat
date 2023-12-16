@@ -29,7 +29,7 @@ export default function Settings() {
     } else {
       setNotificationEnabled(false);
     }
-  }, [Notification.permission, settingsData]);
+  }, [Notification.permission, settingsData?.enableNotifications]);
 
   if (status === "loading") {
     return (

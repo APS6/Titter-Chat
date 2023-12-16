@@ -30,6 +30,7 @@ export async function POST(req) {
                                 select: {
                                     enableNotifications: true,
                                     notifyLike: true,
+                                    fcmTokens: true
                                 }
                             },
                             content: true,
@@ -45,22 +46,24 @@ export async function POST(req) {
             channel.publish('new_like', { userId: body.userId, postId: body.postId, action: "like" });
 
             if (newLike.post.postedBy.enableNotifications && newLike.post.postedBy.notifyLike) {
-                const message = {
-                    topic: newLike.post.postedById,
-                    notification: {
-                        title: `${newLike.user.username} liked your post`,
-                        body: newLike.post.content
-                    },
-                    webpush: {
+                newLike.post.postedBy.fcmTokens.forEach((token) => {
+                    const message = {
+                        token: token.value,
                         notification: {
-                            icon: "https://titter-chat.vercel.app/newlogo.png",
+                            title: `${newLike.user.username} liked your post`,
+                            body: newLike.post.content
                         },
-                        fcmOptions: {
-                            link: `https://titter-chat.vercel.app/post/${newLike.postId}`
+                        webpush: {
+                            notification: {
+                                icon: "https://titter-chat.vercel.app/newlogo.png",
+                            },
+                            fcmOptions: {
+                                link: `https://titter-chat.vercel.app/post/${newLike.postId}`
+                            }
                         }
                     }
-                }
-                admin.messaging().send(message)
+                    admin.messaging().send(message)
+                })
             }
 
             return NextResponse.json(newLike, { success: true }, { status: 200 });

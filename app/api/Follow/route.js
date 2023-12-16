@@ -32,28 +32,31 @@ export async function POST(req) {
                         select: {
                             username: true,
                             notifyFollow: true,
-                            enableNotifications: true
+                            enableNotifications: true,
+                            fcmTokens: true
                         }
                     }
                 }
             })
             if (newFollow.following.notifyFollow && newFollow.following.enableNotifications) {
-                const message = {
-                    topic: body.followingId,
-                    notification: {
-                        title: `${newFollow.follower.username} followed you`,
-                    },
-                    webpush: {
+                newFollow.following.fcmTokens.forEach((token) => {
+                    const message = {
+                        token: token.value,
                         notification: {
-                            icon: "https://titter-chat.vercel.app/newlogo.png",
-                            image: newFollow.follower.pfpURL
+                            title: `${newFollow.follower.username} followed you`,
                         },
-                        fcmOptions: {
-                            link: `https://titter-chat.vercel.app/profile/${newFollow.following.username}`
+                        webpush: {
+                            notification: {
+                                icon: "https://titter-chat.vercel.app/newlogo.png",
+                                image: newFollow.follower.pfpURL
+                            },
+                            fcmOptions: {
+                                link: `https://titter-chat.vercel.app/profile/${newFollow.following.username}`
+                            }
                         }
                     }
-                }
-                admin.messaging().send(message)
+                    admin.messaging().send(message)
+                })
             }
 
             return NextResponse.json({ success: true }, { status: 200 });
@@ -106,6 +109,6 @@ export async function DELETE(req) {
         }
     } catch (error) {
         console.error('Request error', error);
-       return NextResponse.json({ error: 'Error unfollowing user', success: false }, { status: 500 });
+        return NextResponse.json({ error: 'Error unfollowing user', success: false }, { status: 500 });
     }
 }

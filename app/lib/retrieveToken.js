@@ -19,11 +19,12 @@ export default async function retrieveToken(accessToken) {
                             'BLwYfECvEYwvoWZNyzQYlX3GqnOaqW754d8Vg8u-45x3_hYSsVoS0UNqsC3l3Yt8KVRfgYHbTazEEk7AdQM2vis',
                     });
                     if (currentToken) {
+                        console.log(currentToken)
                         const body = {
                             token: currentToken,
                         };
                         try {
-                            await fetch("/api/subscribeToken", {
+                            await fetch("/api/saveFCMToken", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -31,6 +32,7 @@ export default async function retrieveToken(accessToken) {
                                 },
                                 body: JSON.stringify(body),
                             });
+                            window.localStorage.setItem("lastRefreshed", Date.now())
                         } catch (error) {
                             console.log("there was an error saving FCM token", response.error);
                         }

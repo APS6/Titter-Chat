@@ -57,6 +57,7 @@ export async function POST(req) {
                         pfpURL: true,
                         enableNotifications: true,
                         notifyDMs: true,
+                        fcmTokens: true,
                     }
                 },
                 sentBy: {
@@ -92,22 +93,25 @@ export async function POST(req) {
         sidebarReceiver.publish(`message`, mr);
 
         if (newMessage.sentTo.enableNotifications && newMessage.sentTo.notifyDMs) {
-            const message = {
-                topic: body.sentToId,
-                notification: {
-                    title: `${newMessage.sentBy.username} sent a message`,
-                    body: newMessage.content
-                },
-                webpush: {
+            newMessage.sentTo.fcmTokens.forEach((token) => {
+                const message = {
+                    token: token.value,
                     notification: {
-                        icon: "https://titter-chat.vercel.app/newlogo.png"
+                        title: `${newMessage.sentBy.username} sent a message`,
+                        body: newMessage.content
                     },
-                    fcmOptions: {
-                        link: `https://titter-chat.vercel.app/DMs/${newMessage.sentBy.username}?id=${userId}`
+                    webpush: {
+                        notification: {
+                            icon: "https://titter-chat.vercel.app/newlogo.png"
+                        },
+                        fcmOptions: {
+                            link: `https://titter-chat.vercel.app/DMs/${newMessage.sentBy.username}?id=${userId}`
+                        }
                     }
                 }
-            }
-            admin.messaging().send(message)
+                admin.messaging().send(message)
+            })
+
         }
 
         return NextResponse.json(newMessage, { success: true }, { status: 200 });

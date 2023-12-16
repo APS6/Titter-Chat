@@ -66,6 +66,7 @@ export async function POST(req) {
                                         id: true,
                                         enableNotifications: true,
                                         notifyReplies: true,
+                                        fcmTokens: true
                                     }
                                 }
                             }
@@ -77,22 +78,24 @@ export async function POST(req) {
         channel.publish('new_post', newPost);
         // if there is a reply that is not by the same user and the user wants to receive notifications for replies.
         if (newPost.reply && userId !== newPost.reply?.replyToPost?.postedBy?.id && newPost.reply?.replyToPost?.postedBy?.enableNotifications && newPost.reply?.replyToPost?.postedBy?.notifyReplies) {
-            const message = {
-                topic: newPost.reply.replyToPost.postedBy.id,
-                notification: {
-                    title: `${newPost.postedBy.username} replied to your post`,
-                    body: newPost.content
-                },
-                webpush: {
+            newPost.reply.replyToPost.postedBy.fcmTokens.forEach((token) => {
+                const message = {
+                    token: token.value,
                     notification: {
-                        icon: "https://titter-chat.vercel.app/newlogo.png",
+                        title: `${newPost.postedBy.username} replied to your post`,
+                        body: newPost.content
                     },
-                    fcmOptions: {
-                        link: `https://titter-chat.vercel.app/post/${newPost.id}`
+                    webpush: {
+                        notification: {
+                            icon: "https://titter-chat.vercel.app/newlogo.png",
+                        },
+                        fcmOptions: {
+                            link: `https://titter-chat.vercel.app/post/${newPost.id}`
+                        }
                     }
                 }
-            }
-            admin.messaging().send(message)
+                admin.messaging().send(message)
+            })
         }
 
         return NextResponse.json(newPost, { success: true }, { status: 200 });
