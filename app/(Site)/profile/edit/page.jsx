@@ -46,8 +46,9 @@ export default function EditProfile() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const exists = usernames.data.find((u) => u.username === username);
-    if (exists.username !== oldData.data.username) {
+    console.log(username)
+    const exists = usernames.data.some((u) => u.username === username);
+    if (exists) {
       setTip("Username already exists");
     } else {
       const body = {
@@ -239,6 +240,7 @@ export default function EditProfile() {
                 endpoint="pfpUploader"
                 onClientUploadComplete={(res) => {
                   setUploading(false);
+                  console.log(res)
                   setPfp(res[0].url);
                   if (
                     username.length >= 3 &&
