@@ -46,9 +46,10 @@ export default function EditProfile() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log(username)
+    console.log(usernames)
     const exists = usernames.data.some((u) => u.username === username);
-    if (exists) {
+    console.log(exists)
+    if (!!exists) {
       setTip("Username already exists");
     } else {
       const body = {
