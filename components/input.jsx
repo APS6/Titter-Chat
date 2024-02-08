@@ -41,7 +41,7 @@ export default function Input() {
           body: JSON.stringify(body),
         });
         if (response.status !== 200) {
-          console.log("something went wrong");
+          console.log("something went wrong", response.error);
           toast.error("Something went wrong");
           setLoading(false);
           setTimeout(() => {
@@ -170,7 +170,7 @@ export default function Input() {
                     width={100}
                     height={100}
                     className=" object-cover rounded w-16 h-16 sm:w-24 sm:h-24"
-                    onLoadingComplete={(img) =>
+                    onLoad={(img) =>
                       dimensionsHandler(img, image.key)
                     }
                   />
